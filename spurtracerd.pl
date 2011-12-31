@@ -38,12 +38,12 @@ sub post_configure_hook {
 sub process_data_submission {
 	my ($this, $data) = @_;
 
-	my @data = ();
+	my %data;
 	foreach(split(/\&/, $data)) {
-		push(@data, uri_unescape($_));
+		$data{$1} = $2 if(/(\w+)=(.+)/);
 	}
 
-	if($this->{server}->{spuren}->add_data(@data) == 0) {
+	if($this->{server}->{spuren}->add_data(%data) == 0) {
 		$this->send_status(200);
 		print "Content-type: text/plain\r\n\r\n";
 		print "OK";
