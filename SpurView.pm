@@ -43,6 +43,13 @@ sub print {
 	my $writer = new XML::Writer( OUTPUT => STDOUT );
 	$writer->xmlDecl('UTF-8');
 	$writer->startTag('Spuren');
+
+	# require Data::Dumper;
+	# print STDERR Data::Dumper->Dump([\@{$this->{data}}], ['data'])."\n";
+
+	foreach(@{$this->{data}}) {
+		$writer->emptyTag('Notification', %{$_});
+	}
 	$writer->endTag();
 	return 0;
 }

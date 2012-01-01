@@ -78,7 +78,10 @@ sub add_data {
 #
 #		("host" => "appserver?", "component" => "cms")
 #
-# Returns 0 on success
+# Returns 	
+#
+# status code 			0 on success
+# array of result hashes	(undefined on error)
 ################################################################################
 sub fetch_data {
 	my ($this, %regex, $max_results) = @_;
@@ -101,12 +104,30 @@ sub fetch_data {
 	print STDERR "Querying for >>>$filter<<<\n";
 
 	my @results = $this->{redis}->keys($filter);
+	my @decoded = ();
+	foreach my $key (@results) {
+		print STDERR "result: $key\n";
 
-	foreach(@results) {
-		print STDERR "result: $_\n";
+		# Decode value store key according to schema 
+		#
+		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
+		if($key =~ /d(\d+)::h(\w+)::n(\w+)::c(\w+)::t([nc])::(s(\w+))?/) {
+			my %result = (
+				'time'		=> $1,
+				'host'		=> $2,
+				'component'	=> $3,
+				'ctxt'		=> $4,
+				'type'		=> $5
+			);
+print STDERR "got result: ". join(",", values %result) . "\n";
+			$result{$status} = $6 if(defined($6));
+			push(@decoded, \%result);
+		} else {
+			print STDERR "Invalid key encoding: >>>$key<<<!\n";
+		}
 	}
 
-	return 0;
+	return (0, \@decoded);
 }
 
 1;

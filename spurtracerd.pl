@@ -88,9 +88,13 @@ sub process_data_submission {
 sub process_query {
 	my ($this, $query) = @_;
 
-	my %fields;
-	foreach(split(/\&/, $query)) {
-		$fields{$1} = $2 if(/(\w+)=(.+)/);
+	my %fields = ();
+
+	if(defined($query)) {
+		# Decode filtering fields if we got some
+		foreach(split(/\&/, $query)) {
+			$fields{$1} = $2 if(/(\w+)=(.+)/);
+		}
 	}
 
 	my ($status, @results) = $this->{server}->{spuren}->fetch_data(%fields);
