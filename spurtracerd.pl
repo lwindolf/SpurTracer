@@ -8,6 +8,7 @@ use Redis;
 use URI::Escape;
 use base qw(Net::Server::HTTP);
 require "./Spuren.pm";
+require "./SpurView.pm";
 
 __PACKAGE__->run;
 
@@ -92,15 +93,18 @@ sub process_query {
 		$fields{$1} = $2 if(/(\w+)=(.+)/);
 	}
 
-	if($this->{server}->{spuren}->fetch_data(%fields) == 0) {
-		$this->send_status(200);
-		print "Content-type: text/html\r\n\r\n";
-		print "query $query\n";
-	} else {
+	my ($status, @results) = $this->{server}->{spuren}->fetch_data(%fields);
+
+	unless($status == 0) {
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
 		print "Invalid query";
 	}
+
+	$this->send_status(200);
+
+	my $view = new SpurView("ListAll", @results);
+	$view->print();
 }
 
 ################################################################################

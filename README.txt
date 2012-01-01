@@ -8,8 +8,11 @@ SpurTracer relies on the following software stack:
 
 1.) Perl 5
 2.) Perl modules
+
+    - XML::Writer
     - Net::Server
     - Redis
+
 3.) Redis
 
 
@@ -20,7 +23,7 @@ You can install the following distribution specific packages
 
    Debian: 
 
-	apt-get install libnet-server-perl libredis-perl redis-server
+	apt-get install libxml-writer-perl libnet-server-perl libredis-perl redis-server
 
 
 Installing Perl Modules from CPAN
@@ -34,6 +37,7 @@ modules via CPAN. Launch the CPAN shell as following:
 
 And install the packages by typing the following at the prompt
 
+	> install XML::Writer
 	> install Net::Server
 	> install Redis
 

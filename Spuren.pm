@@ -1,4 +1,4 @@
-# Data acess object for SpurTracer
+# Simple data acess object for SpurTracer
 
 package Spuren;
 
