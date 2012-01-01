@@ -144,10 +144,21 @@ sub process_http_request {
 	$uri =~ s/%(\w\w)/chr(hex($1))/eg;
 	1 while $uri =~ s|^\.\./+||; # can't go below doc root
 
+	$uri =~ s/^\///;	# strip leading slash
+
+	# Handle static content (currently only XSLT)
+	if ($uri =~ m#^xslt/#) {
+		unless (-f $uri) {
+			return $self->send_error(400, "Malformed URL");
+		} else {
+			`cat $uri`;	# FIXME: arg!
+		}
+	}
+
 	# Handle get/set requests...
-	if ($uri =~ m#/set#) {
+	if ($uri eq "set") {
 		$self->process_data_submission ($ENV{'QUERY_STRING'});
-	} elsif ($uri =~ m#/get#) {
+	} elsif ($uri eq "get") {
 		$self->process_query ($ENV{'QUERY_STRING'});
 	} else {
 		return $self->send_error (404, "$uri not found!");

@@ -24,7 +24,7 @@ sub new {
 }
 
 ################################################################################
-# Dump XML response
+# Dump XML response on STDOUT
 #
 # Returns 0 on success
 ################################################################################
@@ -32,7 +32,7 @@ sub print {
 	my ($this) = @_;
 
 	# FIXME: XSLT base path from package!
-	unless(-f "xslt/" . $this->{name} .".xslt") {
+	unless(-f "xslt/" . $this->{name} .".xsl") {
 		print "Content-type: text/html\r\n\r\n";
 		print "ERROR: Stylesheet missing!";
 		return 1;
@@ -40,8 +40,13 @@ sub print {
 
 	print "Content-type: application/xml\r\n\r\n";
 
-	my $writer = new XML::Writer( OUTPUT => STDOUT );
+	my $writer = new XML::Writer(
+		OUTPUT => STDOUT,
+		DATA_MODE => 1,
+		DATA_INDENT => 3
+	);
 	$writer->xmlDecl('UTF-8');
+	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{name}.'.xsl"');
 	$writer->startTag('Spuren');
 
 	# require Data::Dumper;
