@@ -106,8 +106,6 @@ sub fetch_data {
 	my @results = $this->{redis}->keys($filter);
 	my @decoded = ();
 	foreach my $key (@results) {
-		print STDERR "result: $key\n";
-
 		# Decode value store key according to schema 
 		#
 		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
@@ -119,7 +117,6 @@ sub fetch_data {
 				'ctxt'		=> $4,
 				'type'		=> $5
 			);
-print STDERR "got result: ". join(",", values %result) . "\n";
 			$result{$status} = $6 if(defined($6));
 			push(@decoded, \%result);
 		} else {

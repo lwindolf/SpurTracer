@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -T
+#!/usr/bin/perl -T
 
 # Net::Server::HTTP based SpurTracer server
 
@@ -15,6 +15,23 @@ __PACKAGE__->run;
 my $debug = 1;
 
 sub default_port { 8080 };
+
+################################################################################
+# Net::Server:HTTP initialization
+#
+# Setting up needed MIME types
+################################################################################
+sub configure_hook {
+	my $self = shift;
+
+	$self->{mime_types}    = {
+		gif => 'image/gif',
+		jpg => 'image/jpeg',
+		png => 'image/png',
+		xsl => 'application/xslt+xml'
+	};
+	$self->{mime_default} = 'text/plain';
+}
 
 ################################################################################
 # Net::Server::HTTP initialization
@@ -124,7 +141,11 @@ sub send_error {
 ################################################################################
 # Net::Server:HTTP request handler hook
 #
-# Distinguishes between data submission and query requests
+# Distinguishes between
+#
+#   - data submission
+#   - data queries
+#   - static content (XSLT, CSS, images)
 ################################################################################
 sub process_http_request {
 	my $self = shift;
@@ -151,7 +172,16 @@ sub process_http_request {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {
-			`cat $uri`;	# FIXME: arg!
+			print STDERR "Request for file $uri...\n";
+
+			$self->send_status(200);
+			open(my $fh, '<', $uri) || return $self->send_501("Can't open file [$!]");
+			my $type = $uri =~ /([^\.]+)$/ ? $1 : '';
+			$type = $self->{'mime_types'}->{$type} || $self->{'mime_default'};
+			print "Content-type: $type\r\n\r\n";
+			print $_ while read $fh, $_, 8192;
+			close $fh;
+			return;
 		}
 	}
 
