@@ -11,6 +11,8 @@ require "./Spuren.pm";
 
 __PACKAGE__->run;
 
+my $debug = 1;
+
 sub default_port { 8080 };
 
 ################################################################################
@@ -43,6 +45,29 @@ sub process_data_submission {
 		$data{$1} = $2 if(/(\w+)=(.+)/);
 	}
 
+	# Check for mandatory fields
+	unless(defined($data{host}) &&
+	       defined($data{component}) &&
+	       defined($data{type}) &&
+	       defined($data{ctxt}) &&
+	       defined($data{time})) {
+
+		$this->send_status(400);
+		print "Content-type: text/plain\r\n\r\n";
+		print "Invalid data submission!";
+
+		if($debug) {
+			print STDERR "Invalid data submission. Only the following fields where given:\n";
+			foreach (keys(%data)) {
+				print STDERR "	$_ => $data{$_}\n";
+			}
+		}
+		return;
+	}
+
+	# FIXME: Validate important fields!
+
+
 	if($this->{server}->{spuren}->add_data(%data) == 0) {
 		$this->send_status(200);
 		print "Content-type: text/plain\r\n\r\n";
@@ -50,21 +75,32 @@ sub process_data_submission {
 	} else {
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
-		print "Invalid data";
+		print "Adding data failed!";
 	}
 }
 
 ################################################################################
 # Data submission request handler
 #
-# $2	HTTP URI paramaters
+# $2	HTTP URI parameters
 ################################################################################
 sub process_query {
 	my ($this, $query) = @_;
 
-	$this->send_status(200);
-	print "Content-type: text/html\r\n\r\n";
-	print "query $1\n";
+	my %fields;
+	foreach(split(/\&/, $query)) {
+		$fields{$1} = $2 if(/(\w+)=(.+)/);
+	}
+
+	if($this->{server}->{spuren}->fetch_data(%fields) == 0) {
+		$this->send_status(200);
+		print "Content-type: text/html\r\n\r\n";
+		print "query $query\n";
+	} else {
+		$this->send_status(400);
+		print "Content-type: text/plain\r\n\r\n";
+		print "Invalid query";
+	}
 }
 
 ################################################################################

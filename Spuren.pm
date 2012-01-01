@@ -29,24 +29,6 @@ sub new {
 sub add_data {
 	my ($this, %data) = @_;
 
-	# Check for mandatory fields
-	unless(defined($data{host}) &&
-	       defined($data{component}) &&
-	       defined($data{type}) &&
-	       defined($data{ctxt}) &&
-	       defined($data{time})) {
-
-		if($debug) {
-			print STDERR "Invalid request:\n";
-			foreach (keys(%data)) {
-				print STDERR "	$_ => $data{$_}\n";
-			}
-		}
-		return 1;
-	}
-
-	# FIXME: Validate important fields!
-
 	if($debug) {
 		print STDERR "New notification:\n";
 		foreach(keys(%data)) {
@@ -58,7 +40,7 @@ sub add_data {
 	#
 	# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
 	my $key = "";
-	$key .= "d".$data{time};
+	$key .= "d".$data{time}."::";
 	$key .= "h".$data{host}."::";
 	$key .= "n".$data{component}."::";
 	$key .= "c".$data{ctxt}."::";
@@ -76,6 +58,53 @@ sub add_data {
 	# Submit value
 	print STDERR "Adding to value store >>>$key<<< = >>>$value<<<\n" if($debug);
 	$this->{redis}->set($key, $value);
+
+	return 0;
+}
+
+################################################################################
+# Generic fetching method providing filtering. We heavily rely on Redis
+# key matching and hope for it to be performing well... The Redis documentation
+# warns to not use the KEYS method for production, so this might not work
+# on the long term.
+#
+# Supported patterns see: http://redis.io/commands/keys
+#
+# $2	Hash with Redis glob patterns. Can be empty to fetch the
+#	latest n results. Otherwise it has a glob pattern for each field 
+#	to be filtered. Not each fields needs to be given.
+#
+#	Example: Get all CMS notification for all appservers
+#
+#		("host" => "appserver?", "component" => "cms")
+#
+# Returns 0 on success
+################################################################################
+sub fetch_data {
+	my ($this, %regex, $max_results) = @_;
+
+	# Build fetching regex
+	my $filter = "";
+	$filter .= "d".$regex{time}."::*"	if(defined($regex{time}));
+
+	$filter = "*::" if($filter eq "");	# Avoid starting wildcard if possible
+
+	$filter .= "h".$regex{host}."::*"	if(defined($regex{host}));
+	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
+	$filter .= "c".$regex{ctxt}."::*"	if(defined($regex{ctxt}));
+	$filter .= "t".$regex{type}."::*"	if(defined($regex{type}));
+	$filter .= "*s".$regex{status}		if(defined($regex{status}));
+
+	$filter =~ s/\*\*/*/g;	# The status pattern from above might cause 
+				# double *
+
+	print STDERR "Querying for >>>$filter<<<\n";
+
+	my @results = $this->{redis}->keys($filter);
+
+	foreach(@results) {
+		print STDERR "result: $_\n";
+	}
 
 	return 0;
 }
