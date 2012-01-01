@@ -165,7 +165,7 @@ sub process_http_request {
 	$uri =~ s/%(\w\w)/chr(hex($1))/eg;
 	1 while $uri =~ s|^\.\./+||; # can't go below doc root
 
-	$uri =~ s/^\///;	# strip leading slash
+	$uri =~ s/^\/+//;	# strip leading slash
 
 	# Handle static content (currently only XSLT)
 	if ($uri =~ m#^xslt/#) {
