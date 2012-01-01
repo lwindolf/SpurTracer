@@ -117,7 +117,7 @@ sub fetch_data {
 				'ctxt'		=> $4,
 				'type'		=> $5
 			);
-			$result{$status} = $6 if(defined($6));
+			$result{status} = $6 if(defined($6));
 			push(@decoded, \%result);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
