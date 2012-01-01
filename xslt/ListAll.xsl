@@ -3,6 +3,10 @@
 
 <xsl:template match="/Spuren">
 <html>
+<head>
+	<title>All Recent Notifications</title>
+	<meta http-equiv="refresh" content="10"/>
+</head>
 <body>
 	<div class="header">
 		<h3>List of All Recent Notifications</h3>
@@ -16,13 +20,16 @@
 			<th>Type</th>
 			<th>Time</th>
 		</tr>
-		<xsl:apply-templates/>
+		<xsl:for-each select="Notification">
+			<xsl:sort select="@time" order="descending"/>
+			<xsl:call-template name="Notification"/>
+		</xsl:for-each>
 	</table>
 </body>
 </html>
 </xsl:template>
 
-<xsl:template match="Notification">
+<xsl:template name="Notification">
 	<tr class="notification">
 		<td><a href="/get?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><a href="/get?component={@component}"><xsl:value-of select="@component"/></a></td>
