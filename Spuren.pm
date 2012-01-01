@@ -96,10 +96,9 @@ sub fetch_data {
 	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
 	$filter .= "c".$regex{ctxt}."::*"	if(defined($regex{ctxt}));
 	$filter .= "t".$regex{type}."::*"	if(defined($regex{type}));
-	$filter .= "*s".$regex{status}		if(defined($regex{status}));
+	$filter .= "s".$regex{status}		if(defined($regex{status}));
 
-	$filter =~ s/\*\*/*/g;	# The status pattern from above might cause 
-				# double *
+	$filter .= "*" unless(defined($regex{status}));
 
 	print STDERR "Querying for >>>$filter<<<\n";
 
