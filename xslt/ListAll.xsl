@@ -19,9 +19,10 @@
 			<th>Ctxt</th>
 			<th>Type</th>
 			<th>Time</th>
+			<th>Status</th>
 		</tr>
 		<xsl:for-each select="Notification">
-			<xsl:sort select="@time" order="descending"/>
+			<xsl:sort select="@time" order="descending" data-type="number"/>
 			<xsl:call-template name="Notification"/>
 		</xsl:for-each>
 	</table>
@@ -36,6 +37,7 @@
 		<td><a href="/get?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><xsl:value-of select="@type"/></td>
 		<td><xsl:value-of select="@time"/></td>
+		<td><xsl:value-of select="@status"/></td>
 	</tr>
 </xsl:template>
 
