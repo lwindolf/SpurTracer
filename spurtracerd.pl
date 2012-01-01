@@ -120,6 +120,7 @@ sub process_query {
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
 		print "Invalid query";
+		return;
 	}
 
 	$this->send_status(200);
@@ -168,7 +169,7 @@ sub process_http_request {
 	$uri =~ s/^\/+//;	# strip leading slash
 
 	# Handle static content (currently only XSLT)
-	if ($uri =~ m#^xslt/#) {
+	if ($uri =~ m#^xslt/\w+\.xsl$#) {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {
