@@ -3,6 +3,7 @@
 package Spuren;
 
 $debug = 1;
+$expiration = 3600*8;	# Expire keys after 1 day
 
 ################################################################################
 # Constructor
@@ -52,12 +53,25 @@ sub add_data {
 	if($data{type} eq "n") {
 		$value = $data{desc} if(defined($data{desc}));
 	} else {
-		$value = $data{newctxt};
+		$value = $data{newcomponent}."::".$data{newctxt};
 	}
 
 	# Submit value
 	print STDERR "Adding to value store >>>$key<<< = >>>$value<<<\n" if($debug);
 	$this->{redis}->set($key, $value);
+	$this->{redis}->expire($key, $expiration);
+
+	if($data{type} eq "c") {
+		# For context announcements
+		my $akey = "announce::";
+		$akey .= "n".$data{newcomponent}."::";
+		$akey .= "c".$data{newctxt};
+		$this->{redis}->set($akey, $key);
+		$this->{redis}->expire($akey, $expiration);
+	} else {
+		# Delete announcement on any notification
+		$this->{redis}->del($key);
+	}
 
 	return 0;
 }
@@ -90,7 +104,7 @@ sub fetch_data {
 	my $filter = "";
 	$filter .= "d".$regex{time}."::*"	if(defined($regex{time}));
 
-	$filter = "*::" if($filter eq "");	# Avoid starting wildcard if possible
+	$filter = "d*::" if($filter eq "");	# Avoid starting wildcard if possible
 
 	$filter .= "h".$regex{host}."::*"	if(defined($regex{host}));
 	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
@@ -158,6 +172,10 @@ Each notification has the following type specific properties:
 
      - newctxt				New expected context identifier
 			 		used to correlate two different 
+					notification series
+
+     - newcomponent			New expected component identifier
+					used to correlate two different
 					notification series
 
 =end text
