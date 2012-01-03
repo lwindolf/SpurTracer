@@ -70,7 +70,7 @@ sub add_data {
 		$this->{redis}->expire($akey, $expiration);
 	} else {
 		# Delete announcement on any notification
-		$this->{redis}->del($key);
+		$this->{redis}->del("announce::".$key);
 	}
 
 	return 0;
@@ -118,7 +118,10 @@ sub fetch_data {
 
 	my @results = $this->{redis}->keys($filter);
 	my @decoded = ();
+	my $i = 0;
 	foreach my $key (@results) {
+		next if($key =~ /skipped because its mtime/);
+
 		# Decode value store key according to schema 
 		#
 		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
@@ -135,6 +138,8 @@ sub fetch_data {
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
+
+		last if($i++ > 100);
 	}
 
 	return (0, \@decoded);
