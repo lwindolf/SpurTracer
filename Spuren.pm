@@ -2,19 +2,20 @@
 
 package Spuren;
 
+use Error qw(:try);
+
 $debug = 1;
-$expiration = 3600*8;	# Expire keys after 1 day
+$expiration = 3600*8;	# Expire keys after 8h
 
 ################################################################################
 # Constructor
-#
-# $2	Redis connection
 ################################################################################
 sub new {
 	my $type = shift;
 	my $this = { };
 
-	$this->{redis} = shift;
+	# For now simply require a local Redis instance
+	$this->{redis} = Redis->new;
 
 	return bless $this, $type;
 }
@@ -116,7 +117,15 @@ sub fetch_data {
 
 	print STDERR "Querying for >>>$filter<<<\n";
 
-	my @results = $this->{redis}->keys($filter);
+	my @results;
+	try {
+		@results = $this->{redis}->keys($filter);
+	} catch Error with {
+		my $ex = shift;
+		print STDERR "Query failed!\n";
+		#print STDERR $ex->getMessage(). "\n";
+	}
+
 	my @decoded = ();
 	my $i = 0;
 	foreach my $key (@results) {

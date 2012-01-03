@@ -34,29 +34,15 @@ sub configure_hook {
 }
 
 ################################################################################
-# Net::Server::HTTP initialization
-#
-# Set up Redis connection.
-################################################################################
-sub post_configure_hook {
-	my $self = shift;
-	my $prop = $self->{'server'};
-
-	# For now simply require a local Redis instance
-	print "Using Redis on 127.0.0.1:6379...\n";
-	my $redis = Redis->new;
-
-	# Prepare data access
-	$prop->{spuren} = new Spuren($redis);
-}
-
-################################################################################
 # Data submission request handler
 #
 # $2	HTTP URI paramaters
 ################################################################################
 sub process_data_submission {
 	my ($this, $data) = @_;
+
+	# Prepare data access
+	my $spuren = new Spuren();
 
 	my %data;
 	foreach(split(/\&/, $data)) {
@@ -86,7 +72,7 @@ sub process_data_submission {
 	# FIXME: Validate important fields!
 
 
-	if($this->{server}->{spuren}->add_data(%data) == 0) {
+	if($spuren->add_data(%data) == 0) {
 		$this->send_status(200);
 		print "Content-type: text/plain\r\n\r\n";
 		print "OK";
@@ -105,6 +91,9 @@ sub process_data_submission {
 sub process_query {
 	my ($this, $query) = @_;
 
+	# Prepare data access
+	my $spuren = new Spuren();
+
 	my %fields = ();
 
 	if(defined($query)) {
@@ -114,7 +103,7 @@ sub process_query {
 		}
 	}
 
-	my ($status, @results) = $this->{server}->{spuren}->fetch_data(%fields);
+	my ($status, @results) = $spuren->fetch_data(%fields);
 
 	unless($status == 0) {
 		$this->send_status(400);
