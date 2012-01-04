@@ -51,8 +51,8 @@ sub print {
 
 	my %data = %{$this->{data}};
 
-	require Data::Dumper;
-	print STDERR Data::Dumper->Dump([\%data], ['data'])."\n";
+	# require Data::Dumper;
+	# print STDERR Data::Dumper->Dump([\%data], ['data'])."\n";
 
 	foreach my $key (keys %{$data{'Spuren'}}) {
 		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {

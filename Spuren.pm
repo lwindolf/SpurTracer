@@ -58,7 +58,7 @@ sub add_data {
 	}
 
 	# Submit value
-	print STDERR "Adding to value store >>>$key<<< = >>>$value<<<\n" if($debug);
+	print STDERR "Adding value >>>$key<<< = >>>$value<<<\n" if($debug);
 	$this->{redis}->set($key, $value);
 	$this->{redis}->expire($key, $expiration);
 
@@ -69,9 +69,11 @@ sub add_data {
 		$akey .= "c".$data{newctxt};
 		$this->{redis}->set($akey, $key);
 		$this->{redis}->expire($akey, $expiration);
+		print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
 	} else {
 		# Delete announcement on any notification
-		$this->{redis}->del("announce::".$key);
+		$this->{redis}->del("announce::n$data{component}::c$data{ctxt}");
+		print STDERR "Clearing announcement >>>announce::n$data{component}::c$data{ctxt}<<<\n" if($debug);
 	}
 
 	return 0;
