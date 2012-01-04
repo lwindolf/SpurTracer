@@ -123,7 +123,6 @@ sub fetch_data {
 	} catch Error with {
 		my $ex = shift;
 		print STDERR "Query failed!\n";
-		#print STDERR $ex->getMessage(). "\n";
 	}
 
 	my @decoded = ();
@@ -134,7 +133,7 @@ sub fetch_data {
 		# Decode value store key according to schema 
 		#
 		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
-		if($key =~ /d(\d+)::h(\w+)::n(\w+)::c(\w+)::t([nc])::(s(\w+))?/) {
+		if($key =~ /d(\d+)::h([^:]+)::n([^:]+)::c([^:]+)::t([nc])::(s(\w+))?/) {
 			my %result = (
 				'time'		=> $1,
 				'host'		=> $2,
