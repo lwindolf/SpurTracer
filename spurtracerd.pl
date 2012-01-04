@@ -6,10 +6,11 @@ use strict;
 use CGI;
 use Redis;
 use URI::Escape;
+use Error qw(:try);
 use base qw(Net::Server::HTTP);
 use lib ".";
+use SpurQuery;
 use Spuren;
-use SpurView;
 
 __PACKAGE__->run;
 
@@ -92,10 +93,6 @@ sub process_data_submission {
 ################################################################################
 sub process_query {
 	my ($this, $query, $mode) = @_;
-
-	# Prepare data access
-	my $spuren = new Spuren();
-
 	my %fields = ();
 
 	if(defined($query)) {
@@ -105,26 +102,15 @@ sub process_query {
 		}
 	}
 
-	my ($status, @results, $name);
-	if($mode eq "get") {
-		($status, @results) = $spuren->fetch_data(%fields);
-		$name = "ListAll";
-	} elsif($mode eq "getAnnouncements") {
-		($status, @results) = $spuren->fetch_announcements(%fields);
-		$name = "ListAnnouncements";
-	}
-
-	unless($status == 0) {
-		$this->send_status(400);
-		print "Content-type: text/plain\r\n\r\n";
-		print "Invalid query";
-		return;
-	}
-
-	$this->send_status(200);
-
-	my $view = new SpurView($name, @results);
-	$view->print();
+#	try {
+		my $query = new SpurQuery($mode, \%fields);
+		$this->send_status(200);
+		$query->execute();
+#	} catch Error with {
+#		$this->send_status(400);
+#		print "Content-type: text/plain\r\n\r\n";
+#		print "Invalid query";
+#	}
 }
 
 ################################################################################
