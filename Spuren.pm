@@ -2,6 +2,7 @@
 
 package Spuren;
 
+use Notification;
 use Error qw(:try);
 
 $debug = 1;
@@ -38,24 +39,8 @@ sub add_data {
 		}
 	}
 
-	# Create value store key according to schema 
-	#
-	# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
-	my $key = "";
-	$key .= "d".$data{time}."::";
-	$key .= "h".$data{host}."::";
-	$key .= "n".$data{component}."::";
-	$key .= "c".$data{ctxt}."::";
-	$key .= "t".$data{type}."::";
-	$key .= "s".$data{status} if(defined($data{status}));
-
-	# Create value depending on type
-	my $value = "";
-	if($data{type} eq "n") {
-		$value = $data{desc} if(defined($data{desc}));
-	} else {
-		$value = $data{newcomponent}."::".$data{newctxt};
-	}
+	my $key = notification_build_key(\%data);
+	my $value = notification_build_value(\%data);
 
 	# Submit value
 	print STDERR "Adding value >>>$key<<< = >>>$value<<<\n" if($debug);
@@ -63,20 +48,60 @@ sub add_data {
 	$this->{redis}->expire($key, $expiration);
 
 	if($data{type} eq "c") {
-		# For context announcements
-		my $akey = "announce::";
-		$akey .= "n".$data{newcomponent}."::";
-		$akey .= "c".$data{newctxt};
-		$this->{redis}->set($akey, $key);
-		$this->{redis}->expire($akey, $expiration);
-		print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
+		# For context announcements:
+		
+		# Check if any notifications already exist, to avoid
+		# adding announcements on races...
+		my ($status, @notifications) = $this->_query_redis(
+			('component' => $data{component},
+			'ctxt' => $data{ctxt})
+		);
+
+		if($#notifications == 0) {
+			my $akey = "announce::";
+			$akey .= "n".$data{newcomponent}."::";
+			$akey .= "c".$data{newctxt};
+			$this->{redis}->set($akey, $key);
+			$this->{redis}->expire($akey, $expiration);
+			print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
+		} else {
+			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
+		}
 	} else {
+		# For normal notifications:
+
 		# Delete announcement on any notification
 		$this->{redis}->del("announce::n$data{component}::c$data{ctxt}");
 		print STDERR "Clearing announcement >>>announce::n$data{component}::c$data{ctxt}<<<\n" if($debug);
 	}
 
 	return 0;
+}
+
+################################################################################
+# Run a query agains Redis.
+#
+# $2	List with filter rules as supported by notification_build_filter()
+#
+# Returns 	
+#
+# status code 			0 on success
+# array of result hashes	(undefined on error)
+################################################################################
+sub _query_redis {
+	my ($this, %glob) = @_;
+
+	my $filter = notification_build_filter(%glob);
+	print STDERR "Querying for >>>$filter<<<\n" if($debug);
+
+	my @results;
+	try {
+		@results = $this->{redis}->keys($filter);
+	} catch Error with {
+		my $ex = shift;
+		print STDERR "Query >>>$filter<<< failed!\n";
+	}
+
 }
 
 ################################################################################
@@ -87,9 +112,7 @@ sub add_data {
 #
 # Supported patterns see: http://redis.io/commands/keys
 #
-# $2	Hash with Redis glob patterns. Can be empty to fetch the
-#	latest n results. Otherwise it has a glob pattern for each field 
-#	to be filtered. Not each fields needs to be given.
+# $2	List with filter rules as supported by notification_build_filter()
 #
 #	Example: Get all CMS notification for all appservers
 #
@@ -101,31 +124,8 @@ sub add_data {
 # array of result hashes	(undefined on error)
 ################################################################################
 sub fetch_data {
-	my ($this, %regex, $max_results) = @_;
-
-	# Build fetching regex
-	my $filter = "";
-	$filter .= "d".$regex{time}."::*"	if(defined($regex{time}));
-
-	$filter = "d*::" if($filter eq "");	# Avoid starting wildcard if possible
-
-	$filter .= "h".$regex{host}."::*"	if(defined($regex{host}));
-	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
-	$filter .= "c".$regex{ctxt}."::*"	if(defined($regex{ctxt}));
-	$filter .= "t".$regex{type}."::*"	if(defined($regex{type}));
-	$filter .= "s".$regex{status}		if(defined($regex{status}));
-
-	$filter .= "*" unless(defined($regex{status}));
-
-	print STDERR "Querying for >>>$filter<<<\n";
-
-	my @results;
-	try {
-		@results = $this->{redis}->keys($filter);
-	} catch Error with {
-		my $ex = shift;
-		print STDERR "Query failed!\n";
-	}
+	my ($this, %glob) = @_;
+	my ($status, @results) = $this->_query_redis(%glob);
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
@@ -164,7 +164,7 @@ sub fetch_data {
 		last if($i > 10000);
 	}
 
-	return (0, \%results);
+	return ($status, \%results);
 }
 
 ################################################################################
@@ -184,16 +184,16 @@ sub fetch_data {
 # array of result hashes	(undefined on error)
 ################################################################################
 sub fetch_announcements {
-	my ($this, %regex, $max_results) = @_;
+	my ($this, %glob, $max_results) = @_;
 
-	# Build fetching regex
+	# Build fetching glob
 	my $filter = "announce::";
-	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
+	$filter .= "n".$glob{component}."::*"	if(defined($glob{component}));
 
 	$filter = "announce::*::" if($filter eq "");	# Avoid starting wildcard if possible
 
-	$filter .= "c".$regex{ctxt}."::*"	if(defined($regex{ctxt}));
-	$filter .= "*" unless(defined($regex{ctc}));
+	$filter .= "c".$glob{ctxt}."::*"	if(defined($glob{ctxt}));
+	$filter .= "*" unless(defined($glob{ctc}));
 
 	print STDERR "Querying for >>>$filter<<<\n";
 

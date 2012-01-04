@@ -7,8 +7,9 @@ use CGI;
 use Redis;
 use URI::Escape;
 use base qw(Net::Server::HTTP);
-require "./Spuren.pm";
-require "./SpurView.pm";
+use lib ".";
+use Spuren;
+use SpurView;
 
 __PACKAGE__->run;
 
