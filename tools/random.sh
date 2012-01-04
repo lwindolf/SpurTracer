@@ -1,5 +1,3 @@
-#!/bin/bash
-
 
 # Helper script generating random events. Simulates multiple senders
 # be forking one background process for each, sleeping in between 
@@ -23,7 +21,7 @@ if [ "$1" == "" ]; then
 	done
 
 	while [ 1 ]; do
-		:
+		sleep 100000
 	done
 else 
 	theHost=$1
