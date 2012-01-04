@@ -49,19 +49,25 @@ sub print {
 	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{name}.'.xsl"');
 	$writer->startTag('Spuren');
 
-	# require Data::Dumper;
-	# print STDERR Data::Dumper->Dump([\%{$this->{data}}], ['data'])."\n";
+	my %data = %{$this->{data}};
 
-	foreach my $key (keys %{$this->{data}}) {
+	require Data::Dumper;
+	print STDERR Data::Dumper->Dump([\%data], ['data'])."\n";
+
+	foreach my $key (keys %{$data{'Spuren'}}) {
 		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {
-			my $spur = $this->{data}->{$key};
 			$writer->startTag("Spur", 'host' => $1, 'component' => $2, 'ctxt' => $3);
-			foreach my $event (@{$spur}) {
+			foreach my $event (@{$data{'Spuren'}{$key}}) {
 				$writer->emptyTag('Event', %{$event});				
 			}
 			$writer->endTag();
 		}
 	}
+
+	foreach (@{$data{'Announcements'}}) {
+		$writer->emptyTag("Announcement", %{$_});
+	}
+
 	$writer->endTag();
 	return 0;
 }

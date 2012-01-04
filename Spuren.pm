@@ -128,7 +128,7 @@ sub fetch_data {
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
 	# be a list of such sets...
-	my %sets = ();
+	my %results = ();
 	my $i = 0;
 	foreach my $key (@results) {
 		next if($key =~ /skipped because its mtime/);
@@ -142,9 +142,9 @@ sub fetch_data {
 			my $type = $5;
 			my $status = $7;
 
-			unless(defined($sets{$id})) {
-				next if(keys %sets > 100);
-				$sets{$id} = ();
+			unless(defined($results{'Spuren'}{$id})) {
+				next if(keys %{$results{'Spuren'}} > 100);
+				$results{'Spuren'}{$id} = ();
 				$i++;
 			}
 
@@ -154,7 +154,7 @@ sub fetch_data {
 			$event{time} = $time;
 			$event{status} = $status if(defined($status));
 
-			push(@{$sets{$id}}, \%event);
+			push(@{$results{'Spuren'}{$id}}, \%event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
@@ -162,7 +162,75 @@ sub fetch_data {
 		last if($i > 10000);
 	}
 
-	return (0, \%sets);
+	return (0, \%results);
+}
+
+################################################################################
+# Generic announcement fetching method. Provides filtering as fetch_data() does.
+#
+# $2	Hash with Redis glob patterns. Can be empty to fetch the
+#	latest n results. Otherwise it has a glob pattern for each field 
+#	to be filtered. Not each fields needs to be given.
+#
+#	Example: Get all announced DB sync jobs
+#
+#		("ctxt" => "sync?", "component" => "db")
+#
+# Returns 	
+#
+# status code 			0 on success
+# array of result hashes	(undefined on error)
+################################################################################
+sub fetch_announcements {
+	my ($this, %regex, $max_results) = @_;
+
+	# Build fetching regex
+	my $filter = "announce::";
+	$filter .= "n".$regex{component}."::*"	if(defined($regex{component}));
+
+	$filter = "announce::*::" if($filter eq "");	# Avoid starting wildcard if possible
+
+	$filter .= "c".$regex{ctxt}."::*"	if(defined($regex{ctxt}));
+	$filter .= "*" unless(defined($regex{ctc}));
+
+	print STDERR "Querying for >>>$filter<<<\n";
+
+	my @results;
+	try {
+		@results = $this->{redis}->keys($filter);
+	} catch Error with {
+		my $ex = shift;
+		print STDERR "Query failed!\n";
+	}
+
+	# Deserialize query results into a list of events grouped
+	# for spur (a host, component, context) sets.
+	my %results = ();
+	my $i = 0;
+	foreach my $key (@results) {
+		next if($key =~ /skipped because its mtime/);
+
+		# Decode value store key according to schema 
+		#
+		# announce::n<component>::c<ctxt>
+		if($key =~ /announce::n([^:]+)::c([^:]+)$/) {
+			$i++;
+
+			# Add event to set
+			my %event = ();
+			$event{component} = $1;
+			$event{ctxt} = $2;
+			# FIXME: get value
+
+			push(@{$results{'Announcements'}}, \%event);
+		} else {
+			print STDERR "Invalid key encoding: >>>$key<<<!\n";
+		}
+
+		last if($i > 100);
+	}
+
+	return (0, \%results);
 }
 
 1;

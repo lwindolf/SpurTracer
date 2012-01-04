@@ -87,9 +87,10 @@ sub process_data_submission {
 # Data submission request handler
 #
 # $2	HTTP URI parameters
+# $3	request mode
 ################################################################################
 sub process_query {
-	my ($this, $query) = @_;
+	my ($this, $query, $mode) = @_;
 
 	# Prepare data access
 	my $spuren = new Spuren();
@@ -103,7 +104,14 @@ sub process_query {
 		}
 	}
 
-	my ($status, @results) = $spuren->fetch_data(%fields);
+	my ($status, @results, $name);
+	if($mode eq "get") {
+		($status, @results) = $spuren->fetch_data(%fields);
+		$name = "ListAll";
+	} elsif($mode eq "getAnnouncements") {
+		($status, @results) = $spuren->fetch_announcements(%fields);
+		$name = "ListAnnouncements";
+	}
 
 	unless($status == 0) {
 		$this->send_status(400);
@@ -114,7 +122,7 @@ sub process_query {
 
 	$this->send_status(200);
 
-	my $view = new SpurView("ListAll", @results);
+	my $view = new SpurView($name, @results);
 	$view->print();
 }
 
@@ -178,7 +186,9 @@ sub process_http_request {
 	# Handle get/set requests...
 	if ($uri eq "set") {
 		$self->process_data_submission ($ENV{'QUERY_STRING'});
-	} elsif ($uri eq "get") {
+	} elsif ($uri =~ /^(get|getAnnouncements)$/) {
+		$self->process_query ($ENV{'QUERY_STRING'}, $1);
+	} elsif ($uri eq "getAnnouncements") {
 		$self->process_query ($ENV{'QUERY_STRING'});
 	} else {
 		return $self->send_error (404, "$uri not found!");
