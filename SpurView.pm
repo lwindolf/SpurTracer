@@ -50,10 +50,17 @@ sub print {
 	$writer->startTag('Spuren');
 
 	# require Data::Dumper;
-	# print STDERR Data::Dumper->Dump([\@{$this->{data}}], ['data'])."\n";
+	# print STDERR Data::Dumper->Dump([\%{$this->{data}}], ['data'])."\n";
 
-	foreach(@{$this->{data}}) {
-		$writer->emptyTag('Notification', %{$_});
+	foreach my $key (keys %{$this->{data}}) {
+		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {
+			my $spur = $this->{data}->{$key};
+			$writer->startTag("Spur", 'host' => $1, 'component' => $2, 'ctxt' => $3);
+			foreach my $event (@{$spur}) {
+				$writer->emptyTag('Event', %{$event});				
+			}
+			$writer->endTag();
+		}
 	}
 	$writer->endTag();
 	return 0;

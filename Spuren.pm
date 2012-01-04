@@ -125,7 +125,10 @@ sub fetch_data {
 		print STDERR "Query failed!\n";
 	}
 
-	my @decoded = ();
+	# Deserialize query results into a list of events
+	# for (host, component, context) sets. The results will
+	# be a list of such sets...
+	my %sets = ();
 	my $i = 0;
 	foreach my $key (@results) {
 		next if($key =~ /skipped because its mtime/);
@@ -134,23 +137,32 @@ sub fetch_data {
 		#
 		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
 		if($key =~ /d(\d+)::h([^:]+)::n([^:]+)::c([^:]+)::t([nc])::(s(\w+))?/) {
-			my %result = (
-				'time'		=> $1,
-				'host'		=> $2,
-				'component'	=> $3,
-				'ctxt'		=> $4,
-				'type'		=> $5
-			);
-			$result{status} = $7 if(defined($7));
-			push(@decoded, \%result);
+			my $time = $1;
+			my $id = $2."::".$3."::".$4;
+			my $type = $5;
+			my $status = $7;
+
+			unless(defined($sets{$id})) {
+				next if(keys %sets > 100);
+				$sets{$id} = ();
+				$i++;
+			}
+
+			# Add event to set
+			my %event = ();
+			$event{type} = $type;
+			$event{time} = $time;
+			$event{status} = $status if(defined($status));
+
+			push(@{$sets{$id}}, \%event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
 
-		last if($i++ > 100);
+		last if($i > 10000);
 	}
 
-	return (0, \@decoded);
+	return (0, \%sets);
 }
 
 1;
