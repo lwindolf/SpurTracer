@@ -2,9 +2,10 @@
 
 package Spuren;
 
-use Notification;
-#use Interfaces;
 use Error qw(:try);
+use Notification;
+use Stats;
+#use Interfaces;
 
 $debug = 1;
 $expiration = 3600*8;	# Expire keys after 8h
@@ -75,6 +76,10 @@ sub add_data {
 		$this->{redis}->del("announce::n$data{component}::c$data{ctxt}");
 		print STDERR "Clearing announcement >>>announce::n$data{component}::c$data{ctxt}<<<\n" if($debug);
 	}
+
+	# And finally the statistics
+	stats_add_start_notification($this->{redis}, $data{host}, $data{component}) if($data{status} eq "started");
+	stats_add_error_notification($this->{redis}, $data{host}, $data{component}) if($data{status} eq "failed");
 
 	return 0;
 }
