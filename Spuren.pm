@@ -55,11 +55,11 @@ sub add_data {
 		# Check if any notifications already exist, to avoid
 		# adding announcements on races...
 		my ($status, @notifications) = $this->_query_redis(
-			('component' => $data{component},
-			'ctxt' => $data{ctxt})
+			('component' => $data{newcomponent},
+			'ctxt' => $data{newctxt})
 		);
 
-		if($#notifications == 0) {
+		if($#notifications < 0) {
 			my $akey = "announce::";
 			$akey .= "n".$data{newcomponent}."::";
 			$akey .= "c".$data{newctxt};
@@ -103,11 +103,12 @@ sub _query_redis {
 	my @results;
 	try {
 		@results = $this->{redis}->keys($filter);
+		return (0, @results);
 	} catch Error with {
 		my $ex = shift;
 		print STDERR "Query >>>$filter<<< failed!\n";
+		return (1, undef);
 	}
-
 }
 
 ################################################################################
@@ -161,6 +162,7 @@ sub fetch_data {
 			$event{type} = $type;
 			$event{time} = $time;
 			$event{status} = $status if(defined($status));
+			$event{desc} = $this->{redis}->get($key);
 
 			push(@{$results{'Spuren'}{$id}}, \%event);
 		} else {

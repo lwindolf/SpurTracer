@@ -20,6 +20,7 @@
 			<th>Type</th>
 			<th>Time</th>
 			<th>Status</th>
+			<th>Description</th>
 		</tr>
 		<xsl:for-each select="Spur">
 			<xsl:sort select="@time" order="descending" data-type="number"/>
@@ -47,6 +48,7 @@
 			<td><xsl:value-of select="@type"/></td>
 			<td><xsl:value-of select="@time"/></td>
 			<td><xsl:value-of select="@status"/></td>
+			<td><xsl:value-of select="@desc"/></td>
 		</tr>
 	</xsl:for-each>
 </xsl:template>
