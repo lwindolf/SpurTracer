@@ -38,10 +38,10 @@
 </xsl:template>
 
 <xsl:template name="Announcement">
-	<tr class="announcement">
+	<tr class="announcement running">
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
-		<td><xsl:value-of select="@time"/></td>
+		<td><xsl:value-of select="@date"/></td>
 		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
 		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
 		<td><a href="/getDetails?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>

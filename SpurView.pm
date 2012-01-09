@@ -56,7 +56,7 @@ sub print {
 
 	foreach my $key (keys %{$data{'Spuren'}}) {
 		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {
-			$writer->startTag("Spur", 'host' => $1, 'component' => $2, 'ctxt' => $3);
+			$writer->startTag("Spur", 'host' => $1, 'component' => $2, 'ctxt' => $3, 'started' => ${$data{'Spuren'}{$key}}[0]->{time});
 			foreach my $event (@{$data{'Spuren'}{$key}}) {
 				$writer->emptyTag('Event', %{$event});				
 			}

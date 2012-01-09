@@ -174,8 +174,7 @@ sub fetch_data {
 				$event{newcomponent} = $1;
 
 				$event{status} = "announced";
-				my @tmp = @{$this->{redis}->get("announce::n".$event{newcomponent}."::c".$event{newctxt})};
-				$event{status} = "finished" if(-1 == $#tmp);
+				$event{status} = "finished" unless($this->{redis}->exists("announce::n".$event{newcomponent}."::c".$event{newctxt}));
 			}
 
 			push(@{$results{'Spuren'}{$id}}, \%event);
@@ -207,6 +206,7 @@ sub fetch_data {
 ################################################################################
 sub fetch_announcements {
 	my ($this, %glob, $max_results) = @_;
+	my $today = strftime("%F", localtime());
 
 	# Build fetching glob
 	my $filter = "announce::";
@@ -247,10 +247,13 @@ sub fetch_announcements {
 
 			# Extract additional info from value
 			if($this->{redis}->get($key) =~ /^d(\d+)::h(\w+)::n([^:]+)::c([^:]+)::/) {	# FIXME: Isolate parsing into Notification.pm
-				$event{time} = $1;
 				$event{sourceHost} = $2;
 				$event{sourceComponent} = $3;
 				$event{sourceCtxt} = $4;
+
+				$event{time} = $1;
+				$event{date} = strftime("%F %T", localtime($1));
+				$event{date} =~ s/^$today //;	# shorten time if possible
 			}
 
 			push(@{$results{'Announcements'}}, \%event);

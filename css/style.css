@@ -21,11 +21,15 @@ tr.notification td:empty {
 }
 
 tr.announcement {
-	background:#aaf;
+	background:#eee;
 }
 
 tr.announcement td:empty {
 	background:white;
+}
+
+tr.running {
+	background:#AAF;
 }
 
 tr.error {

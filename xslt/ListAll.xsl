@@ -18,12 +18,11 @@
 	<table border="0" class="notifications">
 		<tr>
 			<th>Source</th>
-			<th>Time</th>
-			<th>Status</th>
-			<th>Description</th>
+			<th>Component</th>
+			<th colspan="2">Context</th>
 		</tr>
 		<xsl:for-each select="Spur">
-			<xsl:sort select="@time" order="descending" data-type="number"/>
+			<xsl:sort select="@started" order="descending" data-type="number"/>
 			<xsl:call-template name="Spur"/>
 		</xsl:for-each>
 	</table>
@@ -41,10 +40,8 @@
 			</xsl:choose>
 		</xsl:attribute>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
-		<td colspan="100">
-			<a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a>, ctxt
-			<a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a>
-		</td>
+		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td colspan="100"><a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 	</xsl:element>
 
 	<xsl:for-each select="Event">
@@ -63,12 +60,13 @@
 			</xsl:when>
 			<xsl:otherwise>
 				<xsl:if test="@status != 'finished'">
-				<tr class="announcement">
+				<xsl:element name="tr">
+					<xsl:attribute name="class">announcement <xsl:if test="@status!='finished'">running</xsl:if></xsl:attribute>
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td>Component <a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
-				</tr>
+				</xsl:element>
 				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
