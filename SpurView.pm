@@ -64,8 +64,14 @@ sub print {
 		}
 	}
 
-	foreach (@{$data{'Announcements'}}) {
-		$writer->emptyTag("Announcement", %{$_});
+	foreach my $tag (("Announcement", "Host", "Interface", "Component")) {
+		next unless defined($data{$tag . 's'});
+
+		$writer->startTag($tag . 's');
+		foreach (@{$data{$tag .'s'}}) {
+			$writer->emptyTag($tag, %{$_});
+		}
+		$writer->endTag();
 	}
 
 	$writer->endTag();

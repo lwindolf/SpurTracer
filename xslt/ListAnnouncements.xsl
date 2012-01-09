@@ -23,7 +23,7 @@
 			<th>Comp</th>
 			<th>Ctxt</th>
 		</tr>
-		<xsl:for-each select="Announcement">
+		<xsl:for-each select="Announcements/Announcement">
 			<xsl:sort select="@time" order="descending" data-type="number"/>
 			<xsl:call-template name="Announcement"/>
 		</xsl:for-each>
@@ -34,8 +34,8 @@
 
 <xsl:template name="Announcement">
 	<tr class="announcement">
-		<td><a href="?component={@component}"><xsl:value-of select="@component"/></a></td>
-		<td><a href="?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td><a href="get?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td><a href="get?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 	</tr>
 </xsl:template>
 

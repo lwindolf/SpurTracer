@@ -93,17 +93,17 @@ sub process_data_submission {
 ################################################################################
 sub process_query {
 	my ($this, $query, $mode) = @_;
-	my %fields = ();
+	my %glob = ();
 
 	if(defined($query)) {
 		# Decode filtering fields if we got some
 		foreach(split(/\&/, $query)) {
-			$fields{$1} = $2 if(/(\w+)=(.+)/);
+			$glob{$1} = $2 if(/(\w+)=(.+)/);
 		}
 	}
 
 #	try {
-		my $query = new SpurQuery($mode, \%fields);
+		my $query = new SpurQuery($mode, %glob);
 		$this->send_status(200);
 		$query->execute();
 #	} catch Error with {
@@ -173,7 +173,7 @@ sub process_http_request {
 	# Handle get/set requests...
 	if ($uri eq "set") {
 		$self->process_data_submission ($ENV{'QUERY_STRING'});
-	} elsif ($uri =~ /^(get|getAnnouncements)$/) {
+	} elsif ($uri =~ /^(get\w*)$/) {
 		$self->process_query ($ENV{'QUERY_STRING'}, $1);
 	} elsif ($uri eq "getAnnouncements") {
 		$self->process_query ($ENV{'QUERY_STRING'});

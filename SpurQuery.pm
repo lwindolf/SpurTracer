@@ -4,11 +4,15 @@ package SpurQuery;
 
 use Spuren;
 use SpurView;
+use Stats;
 
 # Map request names to views
 my %viewMapping = (
 	"get"			=> "ListAll",
-	"getAnnouncements"	=> "ListAnnouncements"
+	"getAnnouncements"	=> "ListAnnouncements",
+	"getComponents"		=> "ComponentList",
+	"getInterfaces"		=> "InterfaceList",
+	"getHosts"		=> "HostList"
 );
 
 ################################################################################
@@ -19,12 +23,13 @@ my %viewMapping = (
 ################################################################################
 sub new {
 	my $type = shift;
-	my ($name, %fields) = @_;
+	my ($name, %glob) = @_;
 
 	die "No such view mapping '$name'!" unless(defined($viewMapping{$name}));
 
 	my $this = ();
 	$this->{name} = $name;
+	$this->{glob} = \%glob;
 
 	return bless $this, $type;
 }
@@ -39,9 +44,12 @@ sub execute {
 
 	my ($status, @results);
 	if($this->{name} eq "get") {
-		($status, @results) = $spuren->fetch_data(%fields);
+		($status, @results) = $spuren->fetch_data(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
-		($status, @results) = $spuren->fetch_announcements(%fields);
+		($status, @results) = $spuren->fetch_announcements(%{$this->{glob}});
+	} elsif($this->{name} =~ "get(Host|Interface|Component)s") {
+		my @hosts = stats_get_object_list($spuren->{redis}, lc($1));
+		push(@results, {"${1}s" => \@hosts});
 	} else {
 		die "This cannot happen!\n";
 	}

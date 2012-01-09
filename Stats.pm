@@ -32,6 +32,7 @@ sub stats_count_object {
 	my $key = join("::", @_);
 
 	$redis->incr("stats::".$key);
+	print STDERR "Adding stats::".$key."\n";
 }
 
 ################################################################################
@@ -94,24 +95,32 @@ sub stats_get_object {
 	my %results = ();
 
 	foreach(('error', 'started', 'timeout')) {
-		$results{$_} = $redis->get($key_prefix . "::" . $_);
+		$results{$_} = $redis->get("stats::" . $key_prefix . "::" . $_);
+		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
 	return %results;
 }
 
 ################################################################################
-# Get a list of all known objects of a type
+# Get a list of all known objects of a type and their properties as returned
+# by stats_get_object()
 #
 # $1	Redis handle
 # $2	object type ('interface', 'component' or 'host')
+#
+# Returns a list of ('name' => '<hostname>') pairs
 ################################################################################
 sub stats_get_object_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats::$type::*")) {
-		push(@results, $1) if(/stats::$type::(\w+)$/);
+	foreach($redis->keys("stats::".$type."::*::started")) {
+		next unless(/^stats::$type\:\:([^:]+)::\w+$/);
+		my %tmp = stats_get_object($redis, $type, $1);
+		$tmp{'name'} = $1;
+		push(@results, \%tmp); 
+
 	}
 
 	return @results;
