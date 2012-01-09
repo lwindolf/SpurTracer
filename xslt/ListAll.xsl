@@ -9,23 +9,37 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 <body>
-	<div class="header">
-		<h3>List of All Recent Notifications</h3>
+	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
+
+	<div class="content">
+		<div class="menu">
+			<span class="menuitem activemenu"><a href="get">Recent Events</a></span>
+			<span class="menuitem"><a href="getHosts">Hosts</a></span>
+			<span class="menuitem"><a href="getComponents">Components</a></span>
+			<span class="menuitem"><a href="getInterfaces">Interfaces</a></span>
+			<span class="menuitem"><a href="getAnnouncements">Announcements</a></span>
+		</div>
+
+		<div class="header">
+			<h3>List of All Recent Notifications</h3>
+		</div>
+
+		<p>Click on a context link to follow a spur/trace.</p>
+
+		<p><a href="/getDetails">Show Details</a></p>
+
+		<table border="0" class="notifications">
+			<tr>
+				<th>Source</th>
+				<th>Component</th>
+				<th colspan="2">Context</th>
+			</tr>
+			<xsl:for-each select="Spur">
+				<xsl:sort select="@started" order="descending" data-type="number"/>
+				<xsl:call-template name="Spur"/>
+			</xsl:for-each>
+		</table>
 	</div>
-
-	<p><a href="/getDetails">Show Details</a></p>
-
-	<table border="0" class="notifications">
-		<tr>
-			<th>Source</th>
-			<th>Component</th>
-			<th colspan="2">Context</th>
-		</tr>
-		<xsl:for-each select="Spur">
-			<xsl:sort select="@started" order="descending" data-type="number"/>
-			<xsl:call-template name="Spur"/>
-		</xsl:for-each>
-	</table>
 </body>
 </html>
 </xsl:template>

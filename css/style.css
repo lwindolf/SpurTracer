@@ -1,3 +1,50 @@
+body {
+	background:#202020;
+	font-family: Helvetica;
+	padding-top:20px;
+}
+
+.title {
+	color: white;
+	font-size: 24pt;
+}
+
+.title a {
+	color: white;
+	text-decoration:none;
+}
+
+div.menu {
+	background:
+}
+
+.menuitem {
+	background:#CCC;
+	padding:3px 12px;
+	margin-right:6px;
+}
+
+.menuitem:hover {
+	background:#AAA;
+}
+
+.menuitem a {
+	text-decoration:none;
+	color:black;
+}
+
+.activemenu {
+	background:#444;
+}
+.activemenu a {
+	color:white;
+}
+
+div.content {
+	margin-top:3px;
+	background:white;
+	padding:12px;
+}
 
 table.notifications * {
 	font-family:Arial,Helvetica;

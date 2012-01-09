@@ -9,30 +9,42 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 <body>
-	<div class="header">
-		<h3>List of All Recent Announcements</h3>
+	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
+
+	<div class="content">
+		<div class="menu">
+			<span class="menuitem"><a href="get">Recent Events</a></span>
+			<span class="menuitem"><a href="getHosts">Hosts</a></span>
+			<span class="menuitem"><a href="getComponents">Components</a></span>
+			<span class="menuitem"><a href="getInterfaces">Interfaces</a></span>
+			<span class="menuitem activemenu"><a href="getAnnouncements">Announcements</a></span>
+		</div>
+
+		<div class="header">
+			<h3>List of All Recent Announcements</h3>
+		</div>
+
+		<p>Each announcement does indicate an interface that was triggered by one
+		component, while not yet being processed by the component implementation
+		the interface.</p>
+
+		<p>An overdue announcement usually indicates a component failure.</p>
+
+		<table border="0" class="notifications">
+			<tr>
+				<th>Component</th>
+				<th>Context</th>
+				<th>Time</th>
+				<th>Source Host</th>
+				<th>Source Component</th>
+				<th>Source Context</th>
+			</tr>
+			<xsl:for-each select="Announcements/Announcement">
+				<xsl:sort select="@time" order="descending" data-type="number"/>
+				<xsl:call-template name="Announcement"/>
+			</xsl:for-each>
+		</table>
 	</div>
-
-	<p>Each announcement does indicate an interface that was triggered by one
-	component, while not yet being processed by the component implementation
-	the interface.</p>
-
-	<p>An overdue announcement usually indicates a component failure.</p>
-
-	<table border="0" class="notifications">
-		<tr>
-			<th>Component</th>
-			<th>Context</th>
-			<th>Time</th>
-			<th>Source Host</th>
-			<th>Source Component</th>
-			<th>Source Context</th>
-		</tr>
-		<xsl:for-each select="Announcements/Announcement">
-			<xsl:sort select="@time" order="descending" data-type="number"/>
-			<xsl:call-template name="Announcement"/>
-		</xsl:for-each>
-	</table>
 </body>
 </html>
 </xsl:template>
