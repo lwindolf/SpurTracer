@@ -30,7 +30,9 @@ sub configure_hook {
 		gif => 'image/gif',
 		jpg => 'image/jpeg',
 		png => 'image/png',
-		xsl => 'application/xslt+xml'
+		css => 'text/css',
+		xsl => 'application/xslt+xml',
+		js => 'application/javascript'
 	};
 	$self->{mime_default} = 'text/plain';
 }
@@ -153,7 +155,7 @@ sub process_http_request {
 	$uri =~ s/^\/+//;	# strip leading slash
 
 	# Handle static content (currently only XSLT)
-	if ($uri =~ m#^xslt/\w+\.xsl$#) {
+	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/\w+\.js)$#) {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {

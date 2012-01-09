@@ -6,6 +6,7 @@
 <head>
 	<title>All Recent Notifications</title>
 	<meta http-equiv="refresh" content="10"/>
+	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 <body>
 	<div class="header">
@@ -14,10 +15,7 @@
 
 	<table border="0" class="notifications">
 		<tr>
-			<th>Host</th>
-			<th>Comp</th>
-			<th>Ctxt</th>
-			<th>Type</th>
+			<th>Source</th>
 			<th>Time</th>
 			<th>Status</th>
 			<th>Description</th>
@@ -32,24 +30,42 @@
 </xsl:template>
 
 <xsl:template name="Spur">
+	<xsl:element name="tr">
+		<xsl:attribute name="class">
+			source
+			<xsl:choose>
+				<xsl:when test="Event[@status = 'failed']">error</xsl:when>
+				<xsl:when test="Event[@status = 'finished']">finished</xsl:when> 
+			</xsl:choose>
+		</xsl:attribute>
+		<td><a href="/get?host={@host}"><xsl:value-of select="@host"/></a></td>
+		<td colspan="100">
+			<a href="/get?component={@component}"><xsl:value-of select="@component"/></a>, ctxt
+			<a href="/get?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a>
+		</td>
+	</xsl:element>
+
 	<xsl:for-each select="Event">
 		<xsl:sort select="@time" order="ascending" data-type="number"/>
-		<tr class="spur">
-			<xsl:choose>
-				<xsl:when test="position() = 1">
-					<td><a href="/get?host={../@host}"><xsl:value-of select="../@host"/></a></td>
-					<td><a href="/get?component={../@component}"><xsl:value-of select="../@component"/></a></td>
-					<td><a href="/get?ctxt={../@ctxt}"><xsl:value-of select="../@ctxt"/></a></td>
-				</xsl:when>
-				<xsl:otherwise>
-					<td colspan="3"/>
-				</xsl:otherwise>
-			</xsl:choose>
-			<td><xsl:value-of select="@type"/></td>
-			<td><xsl:value-of select="@time"/></td>
-			<td><xsl:value-of select="@status"/></td>
-			<td><xsl:value-of select="@desc"/></td>
-		</tr>
+		<xsl:choose>
+			<xsl:when test="@type = 'n'">
+				<xsl:element name="tr">
+					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
+					<td/>
+					<td><xsl:value-of select="@date"/></td>
+					<td><xsl:value-of select="@status"/></td>
+					<td><xsl:value-of select="@desc"/></td>
+				</xsl:element>
+			</xsl:when>
+			<xsl:otherwise>
+				<tr class="announcement">
+					<td/>
+					<td><xsl:value-of select="@date"/></td>
+					<td>announced</td>
+					<td>Component <a href="/get?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/get?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
+				</tr>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:for-each>
 </xsl:template>
 

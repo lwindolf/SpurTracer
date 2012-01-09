@@ -2,6 +2,8 @@
 
 package Spuren;
 
+use locale;
+use POSIX qw(strftime);
 use Error qw(:try);
 use Notification;
 use Stats;
@@ -133,6 +135,7 @@ sub _query_redis {
 sub fetch_data {
 	my ($this, %glob) = @_;
 	my ($status, @results) = $this->_query_redis(%glob);
+	my $today = strftime("%F", localtime());
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
@@ -161,8 +164,17 @@ sub fetch_data {
 			my %event = ();
 			$event{type} = $type;
 			$event{time} = $time;
+			$event{date} = strftime("%F %T", localtime($time));
+			$event{date} =~ s/^$today //;	# shorten time if possible
+
 			$event{status} = $status if(defined($status));
-			$event{desc} = $this->{redis}->get($key);
+			if($type eq "n") {
+				$event{desc} = $this->{redis}->get($key);
+			} else {
+				$this->{redis}->get($key) =~ /^(\w+)::(\w+)$/;
+				$event{newctxt} = $2;
+				$event{newcomponent} = $1;
+			}
 
 			push(@{$results{'Spuren'}{$id}}, \%event);
 		} else {

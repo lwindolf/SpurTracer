@@ -1,0 +1,37 @@
+
+table.notifications * {
+	font-family:Arial,Helvetica;
+}
+
+table.notifications th {
+	background:#666;
+	color:white;
+}
+
+tr.source {
+	background:#ccc;
+}
+
+tr.notification {
+	background:#eee;
+}
+
+tr.notification td:empty {
+	background:white;
+}
+
+tr.announcement {
+	background:#aaf;
+}
+
+tr.announcement td:empty {
+	background:white;
+}
+
+tr.error {
+	background:#F77;
+}
+
+tr.finished {
+	background:#7F7;
+}
