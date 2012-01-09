@@ -13,6 +13,8 @@
 		<h3>List of All Recent Notifications</h3>
 	</div>
 
+	<p><a href="/getDetails">Show Details</a></p>
+
 	<table border="0" class="notifications">
 		<tr>
 			<th>Source</th>
@@ -38,10 +40,10 @@
 				<xsl:when test="Event[@status = 'finished']">finished</xsl:when> 
 			</xsl:choose>
 		</xsl:attribute>
-		<td><a href="/get?host={@host}"><xsl:value-of select="@host"/></a></td>
+		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td colspan="100">
-			<a href="/get?component={@component}"><xsl:value-of select="@component"/></a>, ctxt
-			<a href="/get?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a>
+			<a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a>, ctxt
+			<a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a>
 		</td>
 	</xsl:element>
 
@@ -49,6 +51,7 @@
 		<xsl:sort select="@time" order="ascending" data-type="number"/>
 		<xsl:choose>
 			<xsl:when test="@type = 'n'">
+				<xsl:if test="@status = 'failed'">
 				<xsl:element name="tr">
 					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
 					<td/>
@@ -56,13 +59,14 @@
 					<td><xsl:value-of select="@status"/></td>
 					<td><xsl:value-of select="@desc"/></td>
 				</xsl:element>
+				</xsl:if>
 			</xsl:when>
 			<xsl:otherwise>
 				<tr class="announcement">
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td>announced</td>
-					<td>Component <a href="/get?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/get?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
+					<td>Component <a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</tr>
 			</xsl:otherwise>
 		</xsl:choose>

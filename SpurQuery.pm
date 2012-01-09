@@ -9,6 +9,7 @@ use Stats;
 # Map request names to views
 my %viewMapping = (
 	"get"			=> "ListAll",
+	"getDetails"		=> "ListAllDetails",
 	"getAnnouncements"	=> "ListAnnouncements",
 	"getComponents"		=> "ComponentList",
 	"getInterfaces"		=> "InterfaceList",
@@ -43,7 +44,7 @@ sub execute {
 	my $spuren = new Spuren();
 
 	my ($status, @results);
-	if($this->{name} eq "get") {
+	if($this->{name} =~ /^(get|getDetails)$/) {
 		($status, @results) = $spuren->fetch_data(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
 		($status, @results) = $spuren->fetch_announcements(%{$this->{glob}});

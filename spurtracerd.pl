@@ -50,7 +50,12 @@ sub process_data_submission {
 
 	my %data;
 	foreach(split(/\&/, $data)) {
-		$data{$1} = $2 if(/(\w+)=(.+)/);
+		if(/(\w+)=(.+)/) {
+			my $key = $1;
+			$data{$key} = $2;
+			$data{$key} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+			$data{$key} =~ s/\+/ /g;
+		}
 	}
 
 	# Check for mandatory fields
