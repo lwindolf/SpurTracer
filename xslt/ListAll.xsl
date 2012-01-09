@@ -62,12 +62,14 @@
 				</xsl:if>
 			</xsl:when>
 			<xsl:otherwise>
+				<xsl:if test="@status != 'finished'">
 				<tr class="announcement">
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
-					<td>announced</td>
+					<td><xsl:value-of select="@status"/></td>
 					<td>Component <a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</tr>
+				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:for-each>

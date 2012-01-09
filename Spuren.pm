@@ -47,7 +47,6 @@ sub add_data {
 	my $value = notification_build_value(\%data);
 
 	# Submit value
-	print STDERR "Adding value >>>$key<<< = >>>$value<<<\n" if($debug);
 	$this->{redis}->set($key, $value);
 	$this->{redis}->expire($key, $expiration);
 
@@ -76,7 +75,6 @@ sub add_data {
 
 		# Delete announcement on any notification
 		$this->{redis}->del("announce::n$data{component}::c$data{ctxt}");
-		print STDERR "Clearing announcement >>>announce::n$data{component}::c$data{ctxt}<<<\n" if($debug);
 	}
 
 	# And finally the statistics
@@ -100,7 +98,7 @@ sub _query_redis {
 	my ($this, %glob) = @_;
 
 	my $filter = notification_build_filter(%glob);
-	print STDERR "Querying for >>>$filter<<<\n" if($debug);
+	#print STDERR "Querying for >>>$filter<<<\n" if($debug);
 
 	my @results;
 	try {
@@ -174,6 +172,10 @@ sub fetch_data {
 				$this->{redis}->get($key) =~ /^(\w+)::(\w+)$/;
 				$event{newctxt} = $2;
 				$event{newcomponent} = $1;
+
+				$event{status} = "announced";
+				my @tmp = @{$this->{redis}->get("announce::n".$event{newcomponent}."::c".$event{newctxt})};
+				$event{status} = "finished" if(-1 == $#tmp);
 			}
 
 			push(@{$results{'Spuren'}{$id}}, \%event);
@@ -242,7 +244,14 @@ sub fetch_announcements {
 			my %event = ();
 			$event{component} = $1;
 			$event{ctxt} = $2;
-			# FIXME: get value
+
+			# Extract additional info from value
+			if($this->{redis}->get($key) =~ /^d(\d+)::h(\w+)::n([^:]+)::c([^:]+)::/) {	# FIXME: Isolate parsing into Notification.pm
+				$event{time} = $1;
+				$event{sourceHost} = $2;
+				$event{sourceComponent} = $3;
+				$event{sourceCtxt} = $4;
+			}
 
 			push(@{$results{'Announcements'}}, \%event);
 		} else {

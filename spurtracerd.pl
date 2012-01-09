@@ -164,8 +164,6 @@ sub process_http_request {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {
-			print STDERR "Request for file $uri...\n";
-
 			$self->send_status(200);
 			open(my $fh, '<', $uri) || return $self->send_501("Can't open file [$!]");
 			my $type = $uri =~ /([^\.]+)$/ ? $1 : '';

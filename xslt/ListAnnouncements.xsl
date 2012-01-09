@@ -6,6 +6,7 @@
 <head>
 	<title>All Recent Announcements</title>
 	<meta http-equiv="refresh" content="10"/>
+	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 <body>
 	<div class="header">
@@ -20,8 +21,12 @@
 
 	<table border="0" class="notifications">
 		<tr>
-			<th>Comp</th>
-			<th>Ctxt</th>
+			<th>Component</th>
+			<th>Context</th>
+			<th>Time</th>
+			<th>Source Host</th>
+			<th>Source Component</th>
+			<th>Source Context</th>
 		</tr>
 		<xsl:for-each select="Announcements/Announcement">
 			<xsl:sort select="@time" order="descending" data-type="number"/>
@@ -34,8 +39,12 @@
 
 <xsl:template name="Announcement">
 	<tr class="announcement">
-		<td><a href="get?component={@component}"><xsl:value-of select="@component"/></a></td>
-		<td><a href="get?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td><a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td><xsl:value-of select="@time"/></td>
+		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
+		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
+		<td><a href="/getDetails?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
 	</tr>
 </xsl:template>
 

@@ -32,7 +32,6 @@ sub stats_count_object {
 	my $key = join("::", @_);
 
 	$redis->incr("stats::".$key);
-	print STDERR "Adding stats::".$key."\n";
 }
 
 ################################################################################
