@@ -15,7 +15,7 @@ body {
 }
 
 div.menu {
-	background:
+	margin-bottom:12px;
 }
 
 .menuitem {
@@ -50,39 +50,67 @@ table.notifications * {
 	font-family:Arial,Helvetica;
 }
 
+table.notifications * a {
+	text-decoration:none;
+}
+
 table.notifications th {
 	background:#666;
 	color:white;
 }
 
-tr.source {
+.source {
 	background:#ccc;
 }
 
-tr.notification {
+.notification {
 	background:#eee;
 }
 
-tr.notification td:empty {
+.notification td:empty {
 	background:white;
 }
 
-tr.announcement {
+.announcement {
 	background:#eee;
 }
 
-tr.announcement td:empty {
+.announcement td:empty {
 	background:white;
 }
 
-tr.running {
+.running {
 	background:#AAF;
 }
 
-tr.error {
+.error {
 	background:#F77;
 }
 
-tr.finished {
+.finished {
 	background:#7F7;
+}
+
+.started {
+	background:#eee;
+}
+
+.announced {
+	background:#FF7;
+}
+
+.legend {
+	border:1px solid black;
+	float:right;
+	padding:6px;
+	margin:6px;
+}
+
+.legend span {
+	margin:6px;
+	padding:0 3px;
+}
+
+.clear {
+	clear:both;
 }

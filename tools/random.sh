@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # Helper script generating random events. Simulates multiple senders
 # be forking one background process for each, sleeping in between 
@@ -45,13 +46,24 @@ else
 		while [ $i -lt $steps ];
 		do
 			i=$(($i + 1))
-			sleep $(($RANDOM % 3 + 1))
+			sleep $(($RANDOM % 5 + 1))
 			curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=running&desc=step $i/$steps"
 		done
+
+		# Finally perform a context creation
+		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=c&ctxt=${ctxt}_${nr}&newcomponent=comp2&newctxt=${ctxt}_${nr}"
 
 		sleep 2
 
 		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+request+done"
+
+		sleep $(($RANDOM % 10 + 5))
+
+		curl -s "$SERVER/set?host=$theHost&component=comp2&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+invocation"
+		sleep 5
+
+		curl -s "$SERVER/set?host=$theHost&component=comp2&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+invocation+done"
+
 		nr=$(($nr + 1))
 	done
 fi

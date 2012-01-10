@@ -21,8 +21,25 @@ sub new {
 
 	# For now simply require a local Redis instance
 	$this->{redis} = Redis->new;
+	$this->{today} = strftime("%F", localtime());
 
 	return bless $this, $type;
+}
+
+################################################################################
+# Time formatting helper
+#
+# $1	Unix time stamp
+#
+# Returns string with formatted date
+################################################################################
+sub nice_time {
+	my ($this, $ts) = @_;
+
+	my $result = strftime("%F %T", localtime($ts));
+	$result =~ s/^$this->{today} //;	# shorten time if possible
+
+	return $result;
 }
 
 ################################################################################
@@ -133,7 +150,6 @@ sub _query_redis {
 sub fetch_data {
 	my ($this, %glob) = @_;
 	my ($status, @results) = $this->_query_redis(%glob);
-	my $today = strftime("%F", localtime());
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
@@ -154,17 +170,19 @@ sub fetch_data {
 
 			unless(defined($results{'Spuren'}{$id})) {
 				next if(keys %{$results{'Spuren'}} > 100);
-				$results{'Spuren'}{$id} = ();
+				$results{'Spuren'}{$id}{source}{host} = $2;
+				$results{'Spuren'}{$id}{source}{component} = $3;
+				$results{'Spuren'}{$id}{source}{ctxt} = $4;
+				$results{'Spuren'}{$id}{source}{started} = $time;
+				$results{'Spuren'}{$id}{source}{startDate} = $this->nice_time($time);
+				$results{'Spuren'}{$id}{events} = ();
 				$i++;
 			}
 
-			# Add event to set
 			my %event = ();
 			$event{type} = $type;
 			$event{time} = $time;
-			$event{date} = strftime("%F %T", localtime($time));
-			$event{date} =~ s/^$today //;	# shorten time if possible
-
+			$event{date} = $this->nice_time($time);
 			$event{status} = $status if(defined($status));
 			if($type eq "n") {
 				$event{desc} = $this->{redis}->get($key);
@@ -177,7 +195,8 @@ sub fetch_data {
 				$event{status} = "finished" unless($this->{redis}->exists("announce::n".$event{newcomponent}."::c".$event{newctxt}));
 			}
 
-			push(@{$results{'Spuren'}{$id}}, \%event);
+			# Add event to spur set
+			push(@{$results{'Spuren'}{$id}{events}}, \%event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
@@ -252,8 +271,7 @@ sub fetch_announcements {
 				$event{sourceCtxt} = $4;
 
 				$event{time} = $1;
-				$event{date} = strftime("%F %T", localtime($1));
-				$event{date} =~ s/^$today //;	# shorten time if possible
+				$event{date} = $this->nice_time($1)
 			}
 
 			push(@{$results{'Announcements'}}, \%event);
