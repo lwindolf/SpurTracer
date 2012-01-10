@@ -79,7 +79,7 @@
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td><xsl:value-of select="@status"/></td>
-					<td>Component <a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
+					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a> Context <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</xsl:element>
 				</xsl:if>
 			</xsl:otherwise>

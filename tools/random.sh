@@ -8,15 +8,20 @@
 # Configuration
 SENDER_COUNT=3
 SERVER="http://localhost:8080"		# the SpurTracer server
+PIDFILE=/tmp/spt_random.pid
+
+trap "cat $PIDFILE | xargs kill -9; exit" SIGINT SIGTERM
 
 if [ "$1" == "" ]; then
 	# Fork mode
 	echo "Concurrency set to $SENDER_COUNT..."
+	rm $PIDFILE 2>/dev/null
 	i=0
 	while [ $i -lt $SENDER_COUNT ]; 
 	do
 		echo "Starting sender $i..."
 		( $0 host$i ) &
+		echo "$! " >> $PIDFILE
 		i=$(($i + 1))
 	done
 
@@ -33,7 +38,7 @@ else
 		sleep $(($RANDOM % 20 + 3))
 		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+request"
 
-		sleep 2
+		sleep 4
 		
 		steps=$(($RANDOM % 5 + 1))
 		i=0
@@ -50,3 +55,5 @@ else
 		nr=$(($nr + 1))
 	done
 fi
+
+
