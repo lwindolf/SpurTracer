@@ -28,7 +28,7 @@
 
 		<table border="0" class="notifications">
 			<tr>
-				<th>Source</th>
+				<th>Host</th>
 				<th>Time</th>
 				<th>Status</th>
 				<th>Description</th>

@@ -30,7 +30,7 @@
 
 		<table border="0" class="notifications">
 			<tr>
-				<th>Source</th>
+				<th>Host</th>
 				<th>Component</th>
 				<th colspan="2">Context</th>
 			</tr>
