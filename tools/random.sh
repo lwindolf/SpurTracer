@@ -7,7 +7,8 @@
 # Require curl to work.
 
 # Configuration
-SENDER_COUNT=3
+SENDER_COUNT=3				# nr of concurrent hosts
+CHAIN_LEN=3				# length of invocation chain
 SERVER="http://localhost:8080"		# the SpurTracer server
 PIDFILE=/tmp/spt_random.pid
 
@@ -36,34 +37,36 @@ else
 
 	# Worker mode
 	while [ 1 ]; do
-		sleep $(($RANDOM % 20 + 3))
-		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+request"
+		j=1
+		while [ $j -le $CHAIN_LEN ]; do
+	
+			sleep $(($RANDOM % 20 + 3))
+			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+request"
 
-		sleep 4
+			sleep 4
 		
-		steps=$(($RANDOM % 5 + 1))
-		i=0
-		while [ $i -lt $steps ];
-		do
-			i=$(($i + 1))
-			sleep $(($RANDOM % 5 + 1))
-			curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=running&desc=step $i/$steps"
+			steps=$(($RANDOM % 4 + 1))
+			i=0
+			while [ $i -lt $steps ];
+			do
+				i=$(($i + 1))
+				sleep $(($RANDOM % 5 + 1))
+				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=running&desc=step $i/$steps"
+			done
+
+			if [ $j -lt $CHAIN_LEN ]; then
+				# Trigger interface
+				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=c&ctxt=${ctxt}_${nr}&newcomponent=comp$(($j + 1))&newctxt=${ctxt}_${nr}"
+	
+				sleep 2
+			fi
+	
+			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+request+done"
+	
+	
+			j=`expr $j + 1`
+
 		done
-
-		# Finally perform a context creation
-		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=c&ctxt=${ctxt}_${nr}&newcomponent=comp2&newctxt=${ctxt}_${nr}"
-
-		sleep 2
-
-		curl -s "$SERVER/set?host=$theHost&component=comp&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+request+done"
-
-		sleep $(($RANDOM % 10 + 5))
-
-		curl -s "$SERVER/set?host=$theHost&component=comp2&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+invocation"
-		sleep 5
-
-		curl -s "$SERVER/set?host=$theHost&component=comp2&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+invocation+done"
-
 		nr=$(($nr + 1))
 	done
 fi
