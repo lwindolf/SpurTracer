@@ -71,7 +71,7 @@
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td colspan="100">
 			<b><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></b>, ctxt
-			<b><a href="/getDetails?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b>
+			<b><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b>
 		</td>
 	</xsl:element>
 
@@ -94,7 +94,7 @@
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td><xsl:value-of select="@status"/></td>
-					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a>, ctxt <a href="/getDetails?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
+					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a>, ctxt <a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</xsl:element>
 			</xsl:otherwise>
 		</xsl:choose>

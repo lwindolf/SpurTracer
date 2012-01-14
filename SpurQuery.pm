@@ -10,6 +10,7 @@ use Stats;
 my %viewMapping = (
 	"get"			=> "ListAll",
 	"getDetails"		=> "ListAllDetails",
+	"getSpur"		=> "Spur",
 	"getAnnouncements"	=> "ListAnnouncements",
 	"getComponents"		=> "ComponentList",
 	"getInterfaces"		=> "InterfaceList",
@@ -44,7 +45,7 @@ sub execute {
 	my $spuren = new Spuren();
 
 	my ($status, @results);
-	if($this->{name} =~ /^(get|getDetails)$/) {
+	if($this->{name} =~ /^(get|getDetails|getSpur)$/) {
 		($status, @results) = $spuren->fetch_data(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
 		($status, @results) = $spuren->fetch_announcements(%{$this->{glob}});

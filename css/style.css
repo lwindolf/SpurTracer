@@ -114,3 +114,9 @@ table.notifications th {
 .clear {
 	clear:both;
 }
+
+#mapCanvas {
+	border:1px solid black;
+	margin:6px;
+	padding:6px;
+}

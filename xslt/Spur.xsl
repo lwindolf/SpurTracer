@@ -4,16 +4,24 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>All Recent Notifications</title>
-	<meta http-equiv="refresh" content="5"/>
+	<title>Spur Trace</title>
+	<xsl:if test="count(//Spur) != count(//Spur/Event[@status = 'finished' and @type = 'n'])">
+		<!-- Only refresh if one Spur isn't finished -->
+		<meta http-equiv="refresh" content="5"/>
+	</xsl:if>
+
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+
+	<script type="text/javascript" src="js/raphael-min.js"></script>
+	<script type="text/javascript" src="js/dracula_graffle.js"></script>
+	<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="js/dracula_graph.js"></script>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
-
 	<div class="content">
 		<div class="menu">
-			<span class="menuitem activemenu"><a href="get">Recent Events</a></span>
+			<span class="menuitem"><a href="get">Recent Events</a></span>
 			<span class="menuitem"><a href="getHosts">Hosts</a></span>
 			<span class="menuitem"><a href="getComponents">Components</a></span>
 			<span class="menuitem"><a href="getInterfaces">Interfaces</a></span>
@@ -21,13 +29,8 @@
 		</div>
 
 		<div class="info">
-			<div class="header">
-				<h3>List of Recent Notifications</h3>
-			</div>
 
-			<p>Click on a context link to follow a spur/trace.</p>
-
-			<p><a href="/getDetails">Show Details</a></p>
+			<div id="mapCanvas"></div>
 
 			<div class="legend">
 				<table>
@@ -44,15 +47,17 @@
 		<table border="0" class="notifications">
 			<tr>
 				<th>Host</th>
-				<th>Component</th>
 				<th>Time</th>
-				<th colspan="2">Context</th>
+				<th>Status</th>
+				<th>Description</th>
 			</tr>
 			<xsl:for-each select="Spur">
 				<xsl:sort select="@started" order="descending" data-type="number"/>
 				<xsl:call-template name="Spur"/>
 			</xsl:for-each>
 		</table>
+
+		<xsl:call-template name="SpurKarte"/>
 	</div>
 </body>
 </html>
@@ -69,16 +74,16 @@
 			</xsl:choose>
 		</xsl:attribute>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
-		<td><b><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></b></td>
-		<td><xsl:value-of select="@startDate"/></td>
-		<td colspan="100"><b><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b></td>
+		<td colspan="100">
+			<b><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></b>, ctxt
+			<b><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b>
+		</td>
 	</xsl:element>
 
 	<xsl:for-each select="Event">
 		<xsl:sort select="@time" order="ascending" data-type="number"/>
 		<xsl:choose>
 			<xsl:when test="@type = 'n'">
-				<xsl:if test="@status = 'failed'">
 				<xsl:element name="tr">
 					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
 					<td/>
@@ -86,22 +91,69 @@
 					<td><xsl:value-of select="@status"/></td>
 					<td><xsl:value-of select="@desc"/></td>
 				</xsl:element>
-				</xsl:if>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:if test="@status != 'finished'">
 				<xsl:element name="tr">
 					<xsl:attribute name="class">announcement <xsl:if test="@status!='finished'">announced</xsl:if></xsl:attribute>
-					<td/>
+
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a>, ctxt <a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</xsl:element>
-				</xsl:if>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:for-each>
 </xsl:template>
+
+<xsl:template name="SpurKarte">
+
+	<script type="text/javascript">	
+		var redraw, g, renderer;
+
+		function nice_duration(duration, alternativeText) {
+			if(isNaN(duration)) {
+				return alternativeText;
+			}
+
+			if(duration &lt; 1000) {
+				duration += " ms";
+			} else {
+				duration = duration/1000 + " s";
+			}
+
+			return duration;
+		}
+
+		window.onload = function() {
+			/* FIXME: use JQuery canvas dimensions */
+			var width = 600;
+			var height = 200;
+
+			g = new Graph();
+
+			<xsl:for-each select="//Spur">
+				<xsl:sort select="@time" order="ascending" data-type="number"/>
+				duration = <xsl:value-of select="Event[@status='finished']/@time - Event[@status='started']/@time"/>
+				g.addNode("<xsl:value-of select="@component"/>",
+					  { label : "<xsl:value-of select="@component"/> @ <xsl:value-of select='@host'/>\n "+nice_duration(duration, "pending")});
+			</xsl:for-each>
+
+			<xsl:for-each select="//Spur/Event[@type = 'c']">
+				<xsl:variable name="component"><xsl:value-of select="@newcomponent"/></xsl:variable>
+				duration = <xsl:value-of select="//Spur[@component=$component]/Event[@status='started']/@time - @time"/>
+				g.addEdge("<xsl:value-of select="../@component"/>","<xsl:value-of select="@newcomponent"/>", 
+				          { directed:true, label : nice_duration(duration, "announced") });
+			</xsl:for-each>
+
+			/* layout the graph using the Spring layout implementation */
+			var layouter = new Graph.Layout.Spring(g);
+
+			/* draw the graph using the RaphaelJS draw implementation */
+			renderer = new Graph.Renderer.Raphael('mapCanvas', g, width, height);
+		};
+	</script>
+</xsl:template>
+
 
 </xsl:stylesheet>
