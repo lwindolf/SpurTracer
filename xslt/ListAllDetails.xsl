@@ -4,7 +4,7 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>All Recent Notifications</title>
+	<title>All Recent Events</title>
 	<meta http-equiv="refresh" content="5"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
