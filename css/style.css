@@ -103,7 +103,7 @@ table.notifications th {
 	border:1px solid black;
 	float:right;
 	padding:6px;
-	margin:6px;
+	margin:6px 0;
 }
 
 .legend span {
@@ -117,6 +117,6 @@ table.notifications th {
 
 #mapCanvas {
 	border:1px solid black;
-	margin:6px;
+	margin:6px 0;
 	padding:6px;
 }
