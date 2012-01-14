@@ -50,7 +50,7 @@
 </xsl:template>
 
 <xsl:template name="Announcement">
-	<tr class="announcement running">
+	<tr class="announcement announced">
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><xsl:value-of select="@date"/></td>
