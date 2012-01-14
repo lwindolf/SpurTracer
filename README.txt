@@ -1,3 +1,24 @@
+About
+=====
+
+SpurTrace 
+
+License
+=======
+
+The SpurTracer code is licensed as GPLv3. The code comprises everything
+except for the js/ subdirectory in this source distribution.
+
+Please note that the js/ subdirectory contains Javascript libraries which 
+do have other licenses listed below:
+
+	JQuery 1.4.2		MIT or GPL Version 2 licensed
+	Raphael			MIT licensed
+	Dracula			MIT licensed
+
+Thanks to the respective authors allowing to use these versatile GUI libraries!
+
+
 Installation
 ============
 
