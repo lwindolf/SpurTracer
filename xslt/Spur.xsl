@@ -137,14 +137,14 @@
 				<xsl:sort select="@time" order="ascending" data-type="number"/>
 				duration = <xsl:value-of select="Event[@status='finished']/@time - Event[@status='started']/@time"/>
 				g.addNode("<xsl:value-of select="@component"/>",
-					  { label : "<xsl:value-of select="@component"/> @ <xsl:value-of select='@host'/>\n "+nice_duration(duration, "pending")});
+					  { label:"<xsl:value-of select="@component"/> @ <xsl:value-of select='@host'/>\n "+nice_duration(duration, "pending")});
 			</xsl:for-each>
 
 			<xsl:for-each select="//Spur/Event[@type = 'c']">
 				<xsl:variable name="component"><xsl:value-of select="@newcomponent"/></xsl:variable>
 				duration = <xsl:value-of select="//Spur[@component=$component]/Event[@status='started']/@time - @time"/>
 				g.addEdge("<xsl:value-of select="../@component"/>","<xsl:value-of select="@newcomponent"/>", 
-				          { directed:true, label : nice_duration(duration, "announced") });
+				          { directed:true, stroke: (isNaN(duration)?"#CCC":"black"), label : nice_duration(duration, "announced") });
 			</xsl:for-each>
 
 			/* layout the graph using the Spring layout implementation */
