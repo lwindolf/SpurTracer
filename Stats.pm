@@ -4,12 +4,9 @@
 #
 # - per host name
 # - per component name
-# - per interface name (component1+component2)
-#
-# To be added in future versions:
-#
 # - per component instance (host+component)
-# - per interface instance (host1+component1+host2+component2)
+# - per interface name (component1+component2)
+# - per interface instance (host1+component1+component2)
 
 package Stats;
 
@@ -17,10 +14,10 @@ require Exporter;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_get_object stats_get_object_list);
+@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list);
 
 ################################################################################
-# Generic counter method. Increases counter by 1.
+# Generic object counter method. Increases counter by 1.
 #
 # $1	Redis handle
 # $2	object type ('interface', 'component' or 'host')
@@ -31,7 +28,22 @@ sub stats_count_object {
 	my $redis = shift;
 	my $key = join("::", @_);
 
-	$redis->incr("stats::".$key);
+	$redis->incr("stats::object::".$key);
+}
+
+################################################################################
+# Generic instance counter method. Increases counter by 1.
+#
+# $1	Redis handle
+# $2	object type ('interface', 'component')
+# $3	object name
+# $4	event that is counted ('error', 'started' or 'timeout')
+################################################################################
+sub stats_count_instance {
+	my $redis = shift;
+	my $key = join("::", @_);
+
+	$redis->incr("stats::instance::".$key);
 }
 
 ################################################################################
@@ -46,7 +58,7 @@ sub stats_add_start_notification {
 	stats_count_object($_[0], 'host', $_[1], 'started');
 	stats_count_object($_[0], 'component', $_[2], 'started');
 
-	# Todo: Also count starts for component instance
+	stats_count_instance($_[0], 'component', join("::", ($_[1], $_[2])), 'started');
 }
 
 ################################################################################
@@ -61,7 +73,22 @@ sub stats_add_error_notification {
 	stats_count_object($_[0], 'host', $_[1], 'failed');
 	stats_count_object($_[0], 'component', $_[2], 'failed');
 
-	# Todo: Also count error for component instance
+	stats_count_instance($_[0], 'component', join("::", ($_[1], $_[2])), 'failed');
+}
+
+################################################################################
+# Generic error counter method. Increases the error for all relevant counters.
+#
+# $1	Redis handle
+# $2	Source Host
+# $3	Source Component
+# $4	Target Component
+################################################################################
+sub stats_add_interface_announced {
+
+	stats_count_object($_[0], 'interface', join("::", ($_[2], $_[3])), 'announced');
+
+	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3])), 'announced');
 }
 
 ################################################################################
@@ -77,7 +104,7 @@ sub stats_add_interface_timeout {
 
 	stats_count_object($_[0], 'interface', $_[2] . "::" . $_[4], 'timeout');
 
-	# Todo: Also count error for interface instance
+	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
 }
 
 ################################################################################
@@ -94,7 +121,7 @@ sub stats_get_object {
 	my %results = ();
 
 	foreach(('error', 'started', 'timeout')) {
-		$results{$_} = $redis->get("stats::" . $key_prefix . "::" . $_);
+		$results{$_} = $redis->get("stats::object::" . $key_prefix . "::" . $_);
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -114,15 +141,15 @@ sub stats_get_object_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats::".$type."::*::started")) {
-		next unless(/^stats::$type\:\:([^:]+)::\w+$/);
+	foreach($redis->keys("stats::object::".$type."::*::started")) {
+		next unless(/^stats::object::$type\:\:([^:]+)::\w+$/);
 		my %tmp = stats_get_object($redis, $type, $1);
 		$tmp{'name'} = $1;
 		push(@results, \%tmp); 
 
 	}
 
-	return @results;
+	return \@results;
 }
 
 1;

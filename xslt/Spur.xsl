@@ -21,6 +21,7 @@
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
 	<div class="content">
 		<div class="menu">
+			<span class="menuitem"><a href="getMap">System Map</a></span>
 			<span class="menuitem"><a href="get">Recent Events</a></span>
 			<span class="menuitem"><a href="getHosts">Hosts</a></span>
 			<span class="menuitem"><a href="getComponents">Components</a></span>

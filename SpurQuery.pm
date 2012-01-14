@@ -8,6 +8,7 @@ use Stats;
 
 # Map request names to views
 my %viewMapping = (
+	"getMap"		=> "Map",
 	"get"			=> "ListAll",
 	"getDetails"		=> "ListAllDetails",
 	"getSpur"		=> "Spur",
@@ -44,19 +45,23 @@ sub execute {
 
 	my $spuren = new Spuren();
 
-	my ($status, @results);
-	if($this->{name} =~ /^(get|getDetails|getSpur)$/) {
-		($status, @results) = $spuren->fetch_data(%{$this->{glob}});
+	my ($status, %results, @tmp);
+	if($this->{name} =~ /^getMap$/) {
+		# Simply collect all infos about all object types...
+		foreach my $type ('Host', 'Interface', 'Component') {
+			$results{"${type}s"} = stats_get_object_list($spuren->{redis}, lc($type));
+		}
+	} elsif($this->{name} =~ /^(get|getDetails|getSpur)$/) {
+		($status, $results{"Spuren"}) = $spuren->fetch_data(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
-		($status, @results) = $spuren->fetch_announcements(%{$this->{glob}});
-	} elsif($this->{name} =~ "get(Host|Interface|Component)s") {
-		my @hosts = stats_get_object_list($spuren->{redis}, lc($1));
-		push(@results, {"${1}s" => \@hosts});
+		($status, $results{"Announcements"}) = $spuren->fetch_announcements(%{$this->{glob}});
+	} elsif($this->{name} =~ /^get(Host|Interface|Component)s$/) {
+		$results{"${1}s"} = stats_get_object_list($spuren->{redis}, lc($1));
 	} else {
 		die "This cannot happen!\n";
 	}
 
-	my $view = new SpurView($viewMapping{$this->{name}}, @results);
+	my $view = new SpurView($viewMapping{$this->{name}}, \%results);
 	$view->print();
 }
 

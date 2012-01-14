@@ -52,7 +52,7 @@ sub print {
 	my %data = %{$this->{data}};
 
 	# require Data::Dumper;
-	# print STDERR Data::Dumper->Dump([\%data], ['data'])."\n";
+	# print STDERR Data::Dumper->Dump([\$this], ['data'])."\n";
 
 	foreach my $key (keys %{$data{'Spuren'}}) {
 		my %spur = %{$data{'Spuren'}{$key}};
@@ -66,7 +66,7 @@ sub print {
 		}
 	}
 
-	foreach my $tag (("Announcement", "Host", "Interface", "Component")) {
+	foreach my $tag ("Announcement", "Host", "Interface", "Component") {
 		next unless defined($data{$tag . 's'});
 
 		$writer->startTag($tag . 's');

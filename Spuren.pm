@@ -84,6 +84,7 @@ sub add_data {
 			$this->{redis}->set($akey, $key);
 			$this->{redis}->expire($akey, $expiration);
 			print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
+			stats_add_interface_announced($this->{redis}, $data{host}, $data{component}, $data{newcomponent});
 		} else {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
@@ -149,14 +150,14 @@ sub _query_redis {
 ################################################################################
 sub fetch_data {
 	my ($this, %glob) = @_;
-	my ($status, @results) = $this->_query_redis(%glob);
+	my ($status, @keys) = $this->_query_redis(%glob);
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
 	# be a list of such sets...
-	my %results = ();
+	my %results;
 	my $i = 0;
-	foreach my $key (@results) {
+	foreach my $key (@keys) {
 		next if($key =~ /skipped because its mtime/);
 
 		# Decode value store key according to schema 
@@ -168,14 +169,14 @@ sub fetch_data {
 			my $type = $5;
 			my $status = $7;
 
-			unless(defined($results{'Spuren'}{$id})) {
-				next if(keys %{$results{'Spuren'}} > 100);
-				$results{'Spuren'}{$id}{source}{host} = $2;
-				$results{'Spuren'}{$id}{source}{component} = $3;
-				$results{'Spuren'}{$id}{source}{ctxt} = $4;
-				$results{'Spuren'}{$id}{source}{started} = $time;
-				$results{'Spuren'}{$id}{source}{startDate} = $this->nice_time($time);
-				$results{'Spuren'}{$id}{events} = ();
+			unless(defined($results{$id})) {
+				next if(keys %results > 100);
+				$results{$id}{source}{host} = $2;
+				$results{$id}{source}{component} = $3;
+				$results{$id}{source}{ctxt} = $4;
+				$results{$id}{source}{started} = $time;
+				$results{$id}{source}{startDate} = $this->nice_time($time);
+				$results{$id}{events} = ();
 				$i++;
 			}
 
@@ -196,7 +197,7 @@ sub fetch_data {
 			}
 
 			# Add event to spur set
-			push(@{$results{'Spuren'}{$id}{events}}, \%event);
+			push(@{$results{$id}{events}}, \%event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
@@ -238,19 +239,20 @@ sub fetch_announcements {
 
 	print STDERR "Querying for >>>$filter<<<\n";
 
-	my @results;
+	my @keys;
 	try {
-		@results = $this->{redis}->keys($filter);
+		@keys = $this->{redis}->keys($filter);
 	} catch Error with {
 		my $ex = shift;
 		print STDERR "Query failed!\n";
+		return (1, undef);
 	}
 
 	# Deserialize query results into a list of events grouped
 	# for spur (a host, component, context) sets.
-	my %results = ();
+	my @results = ();
 	my $i = 0;
-	foreach my $key (@results) {
+	foreach my $key (@keys) {
 		next if($key =~ /skipped because its mtime/);
 
 		# Decode value store key according to schema 
@@ -274,7 +276,7 @@ sub fetch_announcements {
 				$event{date} = $this->nice_time($1)
 			}
 
-			push(@{$results{'Announcements'}}, \%event);
+			push(@results, \%event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n";
 		}
@@ -282,7 +284,7 @@ sub fetch_announcements {
 		last if($i > 100);
 	}
 
-	return (0, \%results);
+	return (0, \@results);
 }
 
 1;
