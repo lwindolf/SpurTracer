@@ -120,3 +120,11 @@ table.notifications th {
 	margin:6px 0;
 	padding:6px;
 }
+
+.systemMap {
+	border:1px solid black;
+	float:left;
+	margin:6px 6px 0 0;
+	padding:6px;
+
+}

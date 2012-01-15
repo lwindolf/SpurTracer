@@ -49,14 +49,16 @@ sub execute {
 	if($this->{name} =~ /^getMap$/) {
 		# Simply collect all infos about all object types...
 		foreach my $type ('Host', 'Interface', 'Component') {
-			$results{"${type}s"} = stats_get_object_list($spuren->{redis}, lc($type));
+			$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
+			$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
 		}
 	} elsif($this->{name} =~ /^(get|getDetails|getSpur)$/) {
 		($status, $results{"Spuren"}) = $spuren->fetch_data(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
 		($status, $results{"Announcements"}) = $spuren->fetch_announcements(%{$this->{glob}});
 	} elsif($this->{name} =~ /^get(Host|Interface|Component)s$/) {
-		$results{"${1}s"} = stats_get_object_list($spuren->{redis}, lc($1));
+		$results{"${1}s"}		= stats_get_object_list($spuren->{redis}, lc($1));
+		$results{"${1}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($1));
 	} else {
 		die "This cannot happen!\n";
 	}

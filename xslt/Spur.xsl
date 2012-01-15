@@ -23,9 +23,7 @@
 		<div class="menu">
 			<span class="menuitem"><a href="getMap">System Map</a></span>
 			<span class="menuitem"><a href="get">Recent Events</a></span>
-			<span class="menuitem"><a href="getHosts">Hosts</a></span>
 			<span class="menuitem"><a href="getComponents">Components</a></span>
-			<span class="menuitem"><a href="getInterfaces">Interfaces</a></span>
 			<span class="menuitem"><a href="getAnnouncements">Announcements</a></span>
 		</div>
 
@@ -59,6 +57,8 @@
 		</table>
 
 		<xsl:call-template name="SpurKarte"/>
+
+		<div class="clear"/>
 	</div>
 </body>
 </html>

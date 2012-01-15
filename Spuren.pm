@@ -237,8 +237,6 @@ sub fetch_announcements {
 	$filter .= "c".$glob{ctxt}."::*"	if(defined($glob{ctxt}));
 	$filter .= "*" unless(defined($glob{ctc}));
 
-	print STDERR "Querying for >>>$filter<<<\n";
-
 	my @keys;
 	try {
 		@keys = $this->{redis}->keys($filter);

@@ -47,7 +47,7 @@ sub print {
 	);
 	$writer->xmlDecl('UTF-8');
 	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{name}.'.xsl"');
-	$writer->startTag('Spuren');
+	$writer->startTag('Spuren', ('now' => time()));
 
 	my %data = %{$this->{data}};
 
@@ -69,11 +69,23 @@ sub print {
 	foreach my $tag ("Announcement", "Host", "Interface", "Component") {
 		next unless defined($data{$tag . 's'});
 
+		# Dump objects
 		$writer->startTag($tag . 's');
 		foreach (@{$data{$tag .'s'}}) {
 			$writer->emptyTag($tag, %{$_});
 		}
 		$writer->endTag();
+
+		# Hosts and Announcements have no instances...
+		next if($tag eq "Host" or $tag eq "Announcement");
+
+		# Dump instances
+		$writer->startTag($tag . 'Instances');
+		foreach (@{$data{$tag .'Instances'}}) {
+			$writer->emptyTag('Instance', %{$_});
+		}
+		$writer->endTag();
+
 	}
 
 	$writer->endTag();

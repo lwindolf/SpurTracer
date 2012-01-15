@@ -14,7 +14,7 @@ require Exporter;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list);
+@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list stats_get_instance_list);
 
 ################################################################################
 # Generic object counter method. Increases counter by 1.
@@ -147,9 +147,71 @@ sub stats_get_object_list {
 	foreach($redis->keys("stats::object::".$type."::*::started")) {
 		next unless(/^stats::object::$type\:\:(.+)::\w+$/);
 		my %tmp = stats_get_object($redis, $type, $1);
-		$tmp{'name'} = $1;
+		
+		# We must distinguish between interfaces and other object
+		# as interface names are <from>::<to> pairs...
+		if($type eq "interface") {
+			next unless($1 =~ /^([^:]+)::([^:]+)$/);
+			$tmp{'from'} = $1;
+			$tmp{'to'} = $2;
+		} else {
+			$tmp{'name'} = $1;
+		}
 		push(@results, \%tmp); 
 
+	}
+
+	return \@results;
+}
+
+################################################################################
+# Generic counter getter. Returns all interesting fields per instance+type as
+# a hash.
+#
+# $1	Redis handle
+# $2	instance type ('interface', 'component')
+# $3	instance name
+################################################################################
+sub stats_get_instance {
+	my $redis = shift;
+	my $key_prefix = join("::", @_);
+	my %results = ();
+
+	foreach(('error', 'started', 'timeout')) {
+		$results{$_} = $redis->get("stats::instance::" . $key_prefix . "::" . $_);
+		$results{$_} = 0 unless(defined($results{$_}));
+	}
+
+	return %results;
+}
+
+################################################################################
+# Get a list of all known objects of a type and their properties as returned
+# by stats_get_instance()
+#
+# $1	Redis handle
+# $2	object type ('interface', 'component')
+#
+# Returns a list of FIXME pairs
+################################################################################
+sub stats_get_instance_list {
+	my ($redis, $type) = @_;
+	my @results = ();
+
+	foreach($redis->keys("stats::instance::".$type."::*::started")) {
+		next unless(/^stats::instance::$type\:\:(.+)::\w+$/);
+		my %tmp = stats_get_instance($redis, $type, $1);
+
+		# Split instance name into it's parts. E.g.
+		#
+		# 	host0::comp1		for a component instance
+		#	host0::comp1::comp2	for an interface instance
+		if($1 =~ /^([^:]+)::([^:]+)(::([^:]+))?$/) {
+			$tmp{'host'} = $1;
+			$tmp{'component'} = $2;
+			$tmp{'newcomponent'} = $4 if(defined($4));
+			push(@results, \%tmp); 
+		}
 	}
 
 	return \@results;

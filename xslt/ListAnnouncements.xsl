@@ -15,9 +15,7 @@
 		<div class="menu">
 			<span class="menuitem"><a href="getMap">System Map</a></span>
 			<span class="menuitem"><a href="get">Recent Events</a></span>
-			<span class="menuitem"><a href="getHosts">Hosts</a></span>
 			<span class="menuitem"><a href="getComponents">Components</a></span>
-			<span class="menuitem"><a href="getInterfaces">Interfaces</a></span>
 			<span class="menuitem activemenu"><a href="getAnnouncements">Announcements</a></span>
 		</div>
 
@@ -33,12 +31,12 @@
 
 		<table border="0" class="notifications">
 			<tr>
-				<th>Component</th>
-				<th>Context</th>
 				<th>Time</th>
-				<th>Source Host</th>
-				<th>Source Component</th>
+				<th colspan="2">From</th>
+				<th>To</th>
 				<th>Source Context</th>
+				<th>New Context</th>
+				<th>Since</th>
 			</tr>
 			<xsl:for-each select="Announcements/Announcement">
 				<xsl:sort select="@time" order="descending" data-type="number"/>
@@ -52,12 +50,13 @@
 
 <xsl:template name="Announcement">
 	<tr class="announcement announced">
-		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
-		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><xsl:value-of select="@date"/></td>
 		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
 		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
+		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
+		<td><xsl:value-of select="/Spuren/@now - @time"/>s</td>
 	</tr>
 </xsl:template>
 
