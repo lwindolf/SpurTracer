@@ -86,9 +86,12 @@ sub stats_add_error_notification {
 ################################################################################
 sub stats_add_interface_announced {
 
-	stats_count_object($_[0], 'interface', join("::", ($_[2], $_[3])), 'announced');
+	# Note: for a simpler and generic processing we use 'started'
+	# instead of 'announced' as the counter name...
 
-	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3])), 'announced');
+	stats_count_object($_[0], 'interface', join("::", ($_[2], $_[3])), 'started');
+
+	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3])), 'started');
 }
 
 ################################################################################
@@ -142,7 +145,7 @@ sub stats_get_object_list {
 	my @results = ();
 
 	foreach($redis->keys("stats::object::".$type."::*::started")) {
-		next unless(/^stats::object::$type\:\:([^:]+)::\w+$/);
+		next unless(/^stats::object::$type\:\:(.+)::\w+$/);
 		my %tmp = stats_get_object($redis, $type, $1);
 		$tmp{'name'} = $1;
 		push(@results, \%tmp); 
