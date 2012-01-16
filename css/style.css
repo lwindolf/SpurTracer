@@ -54,9 +54,10 @@ table.notifications * a {
 	text-decoration:none;
 }
 
-table.notifications th {
+table.notifications th, .systemMap table th {
 	background:#666;
 	color:white;
+	font-weight:normal;
 }
 
 .source {
@@ -127,4 +128,39 @@ table.notifications th {
 	margin:6px 6px 0 0;
 	padding:6px;
 
+}
+
+.systemMap table * td a {
+	text-decoration:none;
+	display:block;
+	color:black;
+}
+
+.systemMap table * td a:hover {
+	background:#444;
+	color:white;
+}
+
+tr.host, tr.interface {
+	background:#ccc;
+}
+
+tr.componentInstance td:first-child, tr.interfaceInstance td:first-child {
+	padding-left:24px;
+}
+
+td.calls {
+	background:#7f7;
+}
+
+tr.componentInstance td.calls, tr.interfaceInstance td.calls {
+	background:#afa;
+}
+
+td.error {
+	background:#f77;
+}
+
+tr.componentInstance td.error, tr.interfaceInstance td.error {
+	background:#faa;
 }
