@@ -123,7 +123,7 @@ sub stats_get_object {
 	my $key_prefix = join("::", @_);
 	my %results = ();
 
-	foreach(('error', 'started', 'timeout')) {
+	foreach(('failed', 'started', 'timeout')) {
 		$results{$_} = $redis->get("stats::object::" . $key_prefix . "::" . $_);
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
@@ -177,7 +177,7 @@ sub stats_get_instance {
 	my $key_prefix = join("::", @_);
 	my %results = ();
 
-	foreach(('error', 'started', 'timeout')) {
+	foreach(('failed', 'started', 'timeout')) {
 		$results{$_} = $redis->get("stats::instance::" . $key_prefix . "::" . $_);
 		$results{$_} = 0 unless(defined($results{$_}));
 	}

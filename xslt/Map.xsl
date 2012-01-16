@@ -19,10 +19,6 @@
 			<span class="menuitem"><a href="getAnnouncements">Announcements</a></span>
 		</div>
 
-		<div class="header">
-			<h3>System Map</h3>
-		</div>
-
 		<div class="systemMap">
 			<b>Hosts</b>
 			<br/>
@@ -49,7 +45,6 @@
 				<tr>
 					<th>Interface / From</th>
 					<th>Calls</th>
-					<th>Errors</th>
 					<th>Timeouts</th>
 				</tr>
 				<xsl:for-each select="Interfaces/Interface">
@@ -69,7 +64,7 @@
 	<tr class="host">
 		<td><a href="get?host={@name}"><xsl:value-of select="@name"/></a></td>
 		<td class='calls'><a href="get?host={@name}&amp;status=started"><xsl:value-of select="@started"/></a></td>
-		<td class='error'><a href="get?host={@name}&amp;status=error"><xsl:value-of select="@error"/></a></td>
+		<td class='error'><a href="get?host={@name}&amp;status=failed"><xsl:value-of select="@failed"/></a></td>
 		<td class='error'><a href="get?host={@name}&amp;status=timeout"><xsl:value-of select="@timeout"/></a></td>
 	</tr>
 	<xsl:variable name="host"><xsl:value-of select="@name"/></xsl:variable>
@@ -77,9 +72,9 @@
 		<xsl:sort select="@component" order="ascending"/>			
 		<tr class="componentInstance">
 			<td><a href="get?host={@host}&amp;component={@component}"><xsl:value-of select="@component"/></a></td>
-			<td class='calls'><a href="get?host={@name}&amp;component={@component}&amp;status=started"><xsl:value-of select="@started"/></a></td>
-			<td class='error'><a href="get?host={@name}&amp;component={@component}&amp;status=error"><xsl:value-of select="@error"/></a></td>
-			<td class='error'><a href="get?host={@name}&amp;component={@component}&amp;status=timeout"><xsl:value-of select="@timeout"/></a></td>
+			<td class='calls'><a href="get?host={@host}&amp;component={@component}&amp;status=started"><xsl:value-of select="@started"/></a></td>
+			<td class='error'><a href="get?host={@host}&amp;component={@component}&amp;status=failed"><xsl:value-of select="@failed"/></a></td>
+			<td class='error'><a href="get?host={@host}&amp;component={@component}&amp;status=timeout"><xsl:value-of select="@timeout"/></a></td>
 		</tr>
 	</xsl:for-each>
 </xsl:template>
@@ -88,7 +83,6 @@
 	<tr class="interface">
 		<td><xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></td>
 		<td class='calls'><xsl:value-of select="@started"/></td>
-		<td class='error'><xsl:value-of select="@error"/></td>
 		<td class='error'><xsl:value-of select="@timeout"/></td>
 
 		<xsl:variable name="from"><xsl:value-of select="@from"/></xsl:variable>
@@ -98,7 +92,6 @@
 			<tr class="interfaceInstance">
 				<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a> </td>
 				<td class='calls'><xsl:value-of select="@started"/></td>
-				<td class='error'><xsl:value-of select="@error"/></td>
 				<td class='error'><xsl:value-of select="@timeout"/></td>
 			</tr>
 		</xsl:for-each>
