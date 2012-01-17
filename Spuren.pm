@@ -9,7 +9,7 @@ use Notification;
 use Stats;
 #use Interfaces;
 
-$debug = 1;
+$debug = 0;
 $expiration = 3600*8;	# Expire keys after 8h
 
 ################################################################################
@@ -143,12 +143,9 @@ sub _query_redis {
 #
 #		("host" => "appserver?", "component" => "cms")
 #
-# Returns 	
-#
-# status code 			0 on success
-# array of result hashes	(undefined on error)
+# Returns an array of result hashes	(undefined on error)
 ################################################################################
-sub fetch_data {
+sub fetch {
 	my ($this, %glob) = @_;
 	my ($status, @keys) = $this->_query_redis(%glob);
 
@@ -199,17 +196,39 @@ sub fetch_data {
 			# Add event to spur set
 			push(@{$results{$id}{events}}, \%event);
 		} else {
-			print STDERR "Invalid key encoding: >>>$key<<<!\n";
+			print STDERR "Invalid key encoding: >>>$key<<<!\n" if($debug);
 		}
 
 		last if($i > 10000);
 	}
 
-	return ($status, \%results);
+	return \%results;
 }
 
 ################################################################################
-# Generic announcement fetching method. Provides filtering as fetch_data() does.
+# Generic fetching for statistics applying to a glob pattern.
+#
+# $2	List with filter rules as supported by notification_build_filter()
+#
+# Returns an array of result hashes	(undefined on error)
+################################################################################
+sub fetch_statistics {
+	my ($this, %glob) = @_;
+	my %results;
+
+	foreach my $interval (stats_get_interval_definitions()) {
+		next unless($$interval{'name'} eq 'hour');	# FIXME: Allow user to select
+		foreach	my $object (keys %glob) {
+			next unless($object =~ /^(host|component)$/);
+			$results{$$interval{name}}{$object}{values} = stats_get_interval($this->{redis}, $$interval{name}, "object::$object\::$glob{$object}::started");
+		}
+	}
+
+	return \%results;
+}
+
+################################################################################
+# Generic announcement fetching method. Provides filtering as fetch() does.
 #
 # $2	Hash with Redis glob patterns. Can be empty to fetch the
 #	latest n results. Otherwise it has a glob pattern for each field 
@@ -219,10 +238,7 @@ sub fetch_data {
 #
 #		("ctxt" => "sync?", "component" => "db")
 #
-# Returns 	
-#
-# status code 			0 on success
-# array of result hashes	(undefined on error)
+# Returns an array of result hashes	(undefined on error)
 ################################################################################
 sub fetch_announcements {
 	my ($this, %glob, $max_results) = @_;

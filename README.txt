@@ -15,6 +15,8 @@ do have other licenses listed below:
 	JQuery 1.4.2		MIT or GPL Version 2 licensed
 	Raphael			MIT licensed
 	Dracula			MIT licensed
+	Visualize		MIT or GPL Version 2 licensed
+	
 
 Thanks to the respective authors allowing to use these versatile GUI libraries!
 
@@ -34,7 +36,7 @@ SpurTracer relies on the following software stack:
     - Net::Server
     - Redis
 
-3.) Redis
+3.) Redis 1.3 or later
 
 
 Installing via OS-Packages

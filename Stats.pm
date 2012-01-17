@@ -7,6 +7,9 @@
 # - per component instance (host+component)
 # - per interface name (component1+component2)
 # - per interface instance (host1+component1+component2)
+#
+# These counters are kept for different intervals using one
+# Redis ZSET for each interval. 
 
 package Stats;
 
@@ -14,7 +17,91 @@ require Exporter;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list stats_get_instance_list);
+@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list stats_get_instance_list stats_get_interval stats_get_interval_definitions);
+
+my @INTERVALS = (
+	{ 'name' => 'hour',	'resolution' => 60,	step => 60 },
+	{ 'name' => 'day',	'resolution' => 24*60,	step => 60 },
+	{ 'name' => 'week',	'resolution' => 7*144,	step => 600 },
+	{ 'name' => 'year',	'resolution' => 365,	step => 24*60*60 }
+);
+
+################################################################################
+# Simple returns the interval definitions as an array
+################################################################################
+sub stats_get_interval_definitions {
+	return @INTERVALS;
+}
+
+################################################################################
+# Generic interval counter method. Increases counter by 1 for all configured
+# intervals. To be used by stats_count_object/interface() only.
+#
+# $1	Redis handle
+# $2	Key
+################################################################################
+sub stats_count_interval {
+	my ($redis, $key) = @_;
+
+	# Writing to an interval set of resolution m at time slot n
+	# is done by incrementing slot n and resetting slot n+1
+	# based on server time where
+	#
+	#	n = time() % m
+	#	m = interval resolution + 1
+	#
+	# The resulting error rate is the sum of all values in
+	# the interval array. The array (excluding the n+1) field
+	# can be used for a graphical
+	foreach $interval (@INTERVALS) {
+		# All interval sizes are minute based: so 1000*60
+		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
+		
+		$redis->hsetnx("stats$$interval{name}\::$key", $n, 0);
+		$redis->hincrby("stats$$interval{name}\::$key", $n, 1);
+		$redis->hset("stats$$interval{name}\::$key", ($n + 1) % ($$interval{resolution} + 1), 0);
+	}
+}
+
+################################################################################
+# Generic interval counter query method. Returns an hash of all value slots.
+# If data processing is just starting slots might be missing from the result.
+#
+# $1	Redis handle
+# $2	Key
+################################################################################
+sub stats_get_interval {
+	my ($redis, $intervalName, $key) = @_;
+	
+	my %tmp = $redis->hgetall("stats${intervalName}\::$key");
+
+	# Get interval definition
+	my $interval;
+	foreach my $i (@INTERVALS) {
+		if($$i{'name'} eq $intervalName) {
+			$interval = $i;
+			last;
+		}
+	}
+
+	return undef unless(defined($interval));
+
+	# Drop unused 0 element used for ring buffer semantic from result!
+	my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1) + 1;
+print STDERR "0 slot is $n\n";
+
+print STDERR "start slot is ".(($n + 1) % $$interval{resolution} + 1)."\n";
+	# Sort all elements, fill in missing zeros and output starting at
+	# correct ring buffer offset n
+	my %results;
+	for($i = 1; $i <= ($$interval{'resolution'} + 1); $i++) {
+		my $offset = 
+		$results{$i} = $tmp{(($n + $i) % ($$interval{resolution} + 1))};
+		$results{$i} = 0 unless(defined($results{$i}));
+	}
+print STDERR "last slot is ".(($n + $i) % $$interval{resolution} + 1)."\n";
+	return \%results;
+}
 
 ################################################################################
 # Generic object counter method. Increases counter by 1.
@@ -28,7 +115,8 @@ sub stats_count_object {
 	my $redis = shift;
 	my $key = join("::", @_);
 
-	$redis->incr("stats::object::".$key);
+	$redis->incr("stats::object::$key");
+	stats_count_interval($redis, "object::$key");
 }
 
 ################################################################################
@@ -44,6 +132,7 @@ sub stats_count_instance {
 	my $key = join("::", @_);
 
 	$redis->incr("stats::instance::".$key);
+	stats_count_interval($redis, "instance::$key");
 }
 
 ################################################################################
@@ -55,6 +144,7 @@ sub stats_count_instance {
 ################################################################################
 sub stats_add_start_notification {
 
+	stats_count_object($_[0], 'global', 'started');
 	stats_count_object($_[0], 'host', $_[1], 'started');
 	stats_count_object($_[0], 'component', $_[2], 'started');
 
@@ -70,6 +160,7 @@ sub stats_add_start_notification {
 ################################################################################
 sub stats_add_error_notification {
 
+	stats_count_object($_[0], 'global', 'failed');
 	stats_count_object($_[0], 'host', $_[1], 'failed');
 	stats_count_object($_[0], 'component', $_[2], 'failed');
 
@@ -87,8 +178,8 @@ sub stats_add_error_notification {
 sub stats_add_interface_announced {
 
 	# Note: for a simpler and generic processing we use 'started'
-	# instead of 'announced' as the counter name...
-
+	# instead of 'announced' as the counter name for interfaces...
+	stats_count_object($_[0], 'global', 'interface', 'announced');
 	stats_count_object($_[0], 'interface', join("::", ($_[2], $_[3])), 'started');
 
 	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3])), 'started');
@@ -105,6 +196,7 @@ sub stats_add_interface_announced {
 ################################################################################
 sub stats_add_interface_timeout {
 
+	stats_count_object($_[0], 'global', 'interface', 'timeout');
 	stats_count_object($_[0], 'interface', $_[2] . "::" . $_[4], 'timeout');
 
 	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
@@ -136,7 +228,7 @@ sub stats_get_object {
 # by stats_get_object()
 #
 # $1	Redis handle
-# $2	object type ('interface', 'component' or 'host')
+# $2	object type ('global', 'interface', 'component' or 'host')
 #
 # Returns a list of ('name' => '<hostname>') pairs
 ################################################################################

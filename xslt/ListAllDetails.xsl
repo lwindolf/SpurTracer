@@ -6,7 +6,10 @@
 <head>
 	<title>All Recent Events</title>
 	<meta http-equiv="refresh" content="5"/>
+	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -26,18 +29,7 @@
 
 			<p>Click on a context link to follow a spur/trace.</p>
 
-			<p><a href="/get">Show Details</a></p>
-
-			<div class="legend">
-				<table>
-					<tr><th>Legend</th></tr>
-					<tr><td class='started'>started</td></tr>
-					<tr><td class='running'>running</td></tr>
-					<tr><td class='error'>error</td></tr>
-					<tr><td class='announced'>announced</td></tr>
-					<tr><td class='finished'>finished</td></tr>
-				</table>
-			</div>
+			<p><a href="/get">Hide Details</a></p>
 		</div>
 
 		<table border="0" class="notifications">
@@ -52,6 +44,21 @@
 				<xsl:call-template name="Spur"/>
 			</xsl:for-each>
 		</table>
+
+		<xsl:for-each select="IntervalStatistics/Interval">
+			<xsl:call-template name="Interval"/>
+		</xsl:for-each>
+
+		<div class="legend">
+			<table>
+				<tr><th>Legend</th></tr>
+				<tr><td class='started'>started</td></tr>
+				<tr><td class='running'>running</td></tr>
+				<tr><td class='error'>error</td></tr>
+				<tr><td class='announced'>announced</td></tr>
+				<tr><td class='finished'>finished</td></tr>
+			</table>
+		</div>
 
 		<div class="clear"/>
 	</div>
@@ -100,6 +107,41 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:for-each>
+</xsl:template>
+
+<xsl:template name="Interval">
+	<xsl:for-each select="Object">
+		<xsl:call-template name="Graph"/>
+	</xsl:for-each>
+</xsl:template>
+
+<xsl:template name="Graph">
+	<table class="graph" id="graph{@type}{../@name}">
+		<caption>Last <xsl:value-of select="../@name"/></caption>
+		<thead>
+			<td></td>
+			<xsl:for-each select="Value">
+				<th scope='col'><xsl:value-of select="@slot"/></th>
+			</xsl:for-each>
+		</thead>
+		<tbody>
+			<tr>
+			<th scope='row'>calls/min</th>
+			<xsl:for-each select="Value">
+				<td><xsl:value-of select="@value"/></td>
+			</xsl:for-each>
+			</tr>
+		</tbody>
+	</table>
+
+	<script type="text/javascript">
+		$(function(){
+			var id = "#graph<xsl:value-of select="@type"/><xsl:value-of select="../@name"/>";
+			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '2', colors: ['#0F0', 'F77']});
+			$(id).addClass('accessHide');
+		});
+	</script>
+				
 </xsl:template>
 
 </xsl:stylesheet>

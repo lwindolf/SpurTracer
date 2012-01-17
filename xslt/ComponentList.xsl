@@ -35,6 +35,8 @@
 				<xsl:call-template name="Component"/>
 			</xsl:for-each>
 		</table>
+
+		<div class="clear"/>
 	</div>
 </body>
 </html>

@@ -52,10 +52,17 @@ sub execute {
 			$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
 			$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
 		}
+		foreach my $interval ('hour') {
+			$results{'IntervalStatistics'}{$interval}{started}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::started");
+			$results{'IntervalStatistics'}{$interval}{failed}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::failed");
+			$results{'IntervalStatistics'}{$interval}{announced}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::interface::announced");
+			$results{'IntervalStatistics'}{$interval}{timeout}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::interface::timeout");
+		}
 	} elsif($this->{name} =~ /^(get|getDetails|getSpur)$/) {
-		($status, $results{"Spuren"}) = $spuren->fetch_data(%{$this->{glob}});
+		$results{'Spuren'}		= $spuren->fetch(%{$this->{glob}});
+		$results{'IntervalStatistics'}	= $spuren->fetch_statistics(%{$this->{glob}});
 	} elsif($this->{name} eq "getAnnouncements") {
-		($status, $results{"Announcements"}) = $spuren->fetch_announcements(%{$this->{glob}});
+		$results{"Announcements"}	= $spuren->fetch_announcements(%{$this->{glob}});
 	} elsif($this->{name} =~ /^get(Host|Interface|Component)s$/) {
 		$results{"${1}s"}		= stats_get_object_list($spuren->{redis}, lc($1));
 		$results{"${1}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($1));

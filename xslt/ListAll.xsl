@@ -27,17 +27,6 @@
 			<p>Click on a context link to follow a spur/trace.</p>
 
 			<p><a href="/getDetails">Show Details</a></p>
-
-			<div class="legend">
-				<table>
-					<tr><th>Legend</th></tr>
-					<tr><td class='started'>started</td></tr>
-					<tr><td class='running'>running</td></tr>
-					<tr><td class='error'>error</td></tr>
-					<tr><td class='announced'>announced</td></tr>
-					<tr><td class='finished'>finished</td></tr>
-				</table>
-			</div>
 		</div>
 
 		<table border="0" class="notifications">
@@ -52,6 +41,17 @@
 				<xsl:call-template name="Spur"/>
 			</xsl:for-each>
 		</table>
+
+		<div class="legend">
+			<table>
+				<tr><th>Legend</th></tr>
+				<tr><td class='started'>started</td></tr>
+				<tr><td class='running'>running</td></tr>
+				<tr><td class='error'>error</td></tr>
+				<tr><td class='announced'>announced</td></tr>
+				<tr><td class='finished'>finished</td></tr>
+			</table>
+		</div>
 
 		<div class="clear"/>
 	</div>
@@ -82,6 +82,7 @@
 				<xsl:if test="@status = 'failed'">
 				<xsl:element name="tr">
 					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
+					<td/>
 					<td/>
 					<td><xsl:value-of select="@date"/></td>
 					<td><xsl:value-of select="@status"/></td>

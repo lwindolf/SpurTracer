@@ -43,6 +43,8 @@
 				<xsl:call-template name="Announcement"/>
 			</xsl:for-each>
 		</table>
+
+		<div class="clear"/>
 	</div>
 </body>
 </html>

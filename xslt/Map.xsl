@@ -5,8 +5,11 @@
 <html>
 <head>
 	<title>System Map</title>
-	<meta http-equiv="refresh" content="10"/>
+	<meta http-equiv="refresh" content="5"/>
+	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -54,6 +57,10 @@
 			</table>
 		</div>
 
+		<xsl:for-each select="IntervalStatistics/Interval">
+			<xsl:call-template name="Interval"/>
+		</xsl:for-each>
+
 		<div class="clear"/>
 	</div>
 </body>
@@ -84,18 +91,62 @@
 		<td><xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></td>
 		<td class='calls'><xsl:value-of select="@started"/></td>
 		<td class='error'><xsl:value-of select="@timeout"/></td>
-
-		<xsl:variable name="from"><xsl:value-of select="@from"/></xsl:variable>
-		<xsl:variable name="to"><xsl:value-of select="@to"/></xsl:variable>
-		<xsl:for-each select="/Spuren/InterfaceInstances/Instance[@component = $from and @newcomponent = $to]">
-			<xsl:sort select="@host" order="ascending"/>			
-			<tr class="interfaceInstance">
-				<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a> </td>
-				<td class='calls'><xsl:value-of select="@started"/></td>
-				<td class='error'><xsl:value-of select="@timeout"/></td>
-			</tr>
-		</xsl:for-each>
 	</tr>
+	<xsl:variable name="from"><xsl:value-of select="@from"/></xsl:variable>
+	<xsl:variable name="to"><xsl:value-of select="@to"/></xsl:variable>
+	<xsl:for-each select="/Spuren/InterfaceInstances/Instance[@component = $from and @newcomponent = $to]">
+		<xsl:sort select="@host" order="ascending"/>			
+		<tr class="interfaceInstance">
+			<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a></td>
+			<td class='calls'><xsl:value-of select="@started"/></td>
+			<td class='error'><xsl:value-of select="@timeout"/></td>
+		</tr>
+	</xsl:for-each>
+</xsl:template>
+
+<xsl:template name="Interval">
+	<div class="systemMap">
+		<b>Last <xsl:value-of select="@name"/></b>
+		<br/>
+		<br/>
+
+	<table class="graph" id="graph{@name}">
+		<thead>
+			<td></td>
+			<xsl:for-each select="Object[@type = 'started']/Value">
+				<th scope='col'><xsl:value-of select="@slot"/></th>
+			</xsl:for-each>
+		</thead>
+		<tbody>
+			<tr>
+				<th scope='row'>started/min</th>
+				<xsl:for-each select="Object[@type = 'started']/Value">
+					<td><xsl:value-of select="@value"/></td>
+				</xsl:for-each>
+			</tr>
+			<tr>
+				<th scope='row'>failed/min</th>
+				<xsl:for-each select="Object[@type = 'failed']/Value">
+					<td><xsl:value-of select="@value"/></td>
+				</xsl:for-each>
+			</tr>
+			<tr>
+				<th scope='row'>announces/min</th>
+				<xsl:for-each select="Object[@type = 'announced']/Value">
+					<td><xsl:value-of select="@value"/></td>
+				</xsl:for-each>
+			</tr>
+		</tbody>
+	</table>
+
+	<script type="text/javascript">
+		$(function(){
+			var id = "#graph<xsl:value-of select="@name"/>";
+			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '2', colors: ['#0F0', '#F00', '#CC0']});
+			$(id).addClass('accessHide');
+		});
+	</script>
+	</div>
 </xsl:template>
 
 </xsl:stylesheet>

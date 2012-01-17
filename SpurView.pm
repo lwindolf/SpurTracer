@@ -55,15 +55,37 @@ sub print {
 	# print STDERR Data::Dumper->Dump([\$this], ['data'])."\n";
 
 	foreach my $key (keys %{$data{'Spuren'}}) {
-		my %spur = %{$data{'Spuren'}{$key}};
 
 		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {
+			my %spur = %{$data{'Spuren'}{$key}};
+
 			$writer->startTag("Spur", %{$spur{source}});
 			foreach my $event (@{$spur{events}}) {
 				$writer->emptyTag('Event', %{$event});				
 			}
 			$writer->endTag();
 		}
+	}
+
+	if(defined(${data{'IntervalStatistics'}})) {
+		my %stats = %{$data{'IntervalStatistics'}};
+
+		$writer->startTag("IntervalStatistics");
+		foreach my $interval (keys %stats) {
+
+			$writer->startTag('Interval', ( 'name' => $interval ));
+			foreach my $object (keys %{$stats{$interval}}) {
+				my %values = %{${stats}{$interval}{$object}{values}};
+
+				$writer->startTag('Object',  ('type' => $object ));
+				foreach my $slot (sort { $a <=> $b } keys(%values)) {
+					$writer->emptyTag('Value', ( 'slot' => $slot, 'value' => $values{$slot}));
+				}
+				$writer->endTag();
+			}
+			$writer->endTag();
+		}
+		$writer->endTag();
 	}
 
 	foreach my $tag ("Announcement", "Host", "Interface", "Component") {

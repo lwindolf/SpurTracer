@@ -46,6 +46,10 @@ div.content {
 	padding:12px;
 }
 
+table.notifications {
+	float:left;
+}
+
 table.notifications * {
 	font-family:Arial,Helvetica;
 }
@@ -163,4 +167,20 @@ td.error {
 
 tr.componentInstance td.error, tr.interfaceInstance td.error {
 	background:#faa;
+}
+
+div.visualize {
+	float: left;
+	margin-left:32px;
+	margin-bottom:32px;
+}
+
+.visualize-labels-x * {
+	display:none;
+	visibility:hidden;
+}
+
+table.graph {
+	display:none;
+	visibility:hidden;
 }
