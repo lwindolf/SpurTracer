@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+<xsl:include href="Menu.xsl"/>
+
 <xsl:template match="/Spuren">
 <html>
 <head>
 	<title>Component Overview</title>
 	<meta http-equiv="refresh" content="10"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
 
 	<div class="content">
-		<div class="menu">
-			<span class="menuitem"><a href="getMap">System Map</a></span>
-			<span class="menuitem"><a href="get">Recent Events</a></span>
-			<span class="menuitem activemenu"><a href="getComponents">Components</a></span>
-			<span class="menuitem"><a href="getAnnouncements">Announcements</a></span>
-		</div>
+		<xsl:call-template name="Menu">
+			<xsl:with-param name="active" select="'Components'"/>
+		</xsl:call-template>
 
 		<div class="header">
 			<h3>List of Known Components</h3>

@@ -184,3 +184,24 @@ table.graph {
 	display:none;
 	visibility:hidden;
 }
+
+div.config table.checks td {
+	border:1px solid black;
+	padding:3px;
+}
+
+div.config form table {
+	border-collapse:collapse;
+	border-spacing:0;
+	margin:6px 0;
+}
+
+div.config form table td {
+	border:1px solid black;
+	padding:3px;
+}
+
+div.config form table td:first-child {
+	background:#CCC;
+	padding:3px 12px;
+}

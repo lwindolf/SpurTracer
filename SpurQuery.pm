@@ -14,8 +14,7 @@ my %viewMapping = (
 	"getSpur"		=> "Spur",
 	"getAnnouncements"	=> "ListAnnouncements",
 	"getComponents"		=> "ComponentList",
-	"getInterfaces"		=> "InterfaceList",
-	"getHosts"		=> "HostList"
+	"getSettings"		=> "Settings"
 );
 
 ################################################################################
@@ -66,6 +65,8 @@ sub execute {
 	} elsif($this->{name} =~ /^get(Host|Interface|Component)s$/) {
 		$results{"${1}s"}		= stats_get_object_list($spuren->{redis}, lc($1));
 		$results{"${1}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($1));
+	} elsif($this->{name} eq "getSettings") {
+		
 	} else {
 		die "This cannot happen!\n";
 	}
