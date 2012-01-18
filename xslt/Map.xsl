@@ -112,7 +112,7 @@
 
 	<table class="graph" id="graph{@name}">
 		<thead>
-			<td></td>
+
 			<xsl:for-each select="Object[@type = 'started']/Value">
 				<th scope='col'><xsl:value-of select="@slot"/></th>
 			</xsl:for-each>
