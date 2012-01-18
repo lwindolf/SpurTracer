@@ -7,7 +7,6 @@ use POSIX qw(strftime);
 use Error qw(:try);
 use Notification;
 use Stats;
-#use Interfaces;
 
 $debug = 0;
 $expiration = 3600*8;	# Expire keys after 8h

@@ -1,20 +1,25 @@
-# Map requests to data requests and the respective view
+# Map requests to respective view
 
 package SpurQuery;
 
-use Spuren;
-use SpurView;
-use Stats;
+use SpurTracerView;
 
-# Map request names to views
+# Map request names to XSLT names
+my %xsltMapping = (
+	"Map"			=> "Map",
+	""			=> "ListAll",
+	"Details"		=> "ListAllDetails",
+	"Spur"			=> "Spur",
+	"Announcements"		=> "ListAnnouncements",
+	"Components"		=> "ComponentList",
+	"Settings"		=> "Settings"
+);
+
+# Map non-obvious request names to view names
 my %viewMapping = (
-	"getMap"		=> "Map",
-	"get"			=> "ListAll",
-	"getDetails"		=> "ListAllDetails",
-	"getSpur"		=> "Spur",
-	"getAnnouncements"	=> "ListAnnouncements",
-	"getComponents"		=> "ComponentList",
-	"getSettings"		=> "Settings"
+	""			=> "Spur",
+	"Details"		=> "Spur",
+	"Components"		=> "Objects"
 );
 
 ################################################################################
@@ -27,7 +32,9 @@ sub new {
 	my $type = shift;
 	my ($name, %glob) = @_;
 
-	die "No such view mapping '$name'!" unless(defined($viewMapping{$name}));
+	$name =~ s/^get//;
+
+	die "No XSLT mapping for '$name'!" unless(defined($xsltMapping{$name}));
 
 	my $this = ();
 	$this->{name} = $name;
@@ -42,36 +49,13 @@ sub new {
 sub execute {
 	my ($this) = @_;
 
-	my $spuren = new Spuren();
+	my $viewName = $viewMapping{$this->{name}};
+	$viewName = $this->{name} unless(defined($viewName));
+	$viewName .= "View";
 
-	my ($status, %results, @tmp);
-	if($this->{name} =~ /^getMap$/) {
-		# Simply collect all infos about all object types...
-		foreach my $type ('Host', 'Interface', 'Component') {
-			$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
-			$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
-		}
-		foreach my $interval ('hour') {
-			$results{'IntervalStatistics'}{$interval}{started}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::started");
-			$results{'IntervalStatistics'}{$interval}{failed}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::failed");
-			$results{'IntervalStatistics'}{$interval}{announced}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::interface::announced");
-			$results{'IntervalStatistics'}{$interval}{timeout}{values}	= stats_get_interval($spuren->{redis}, $interval, "object::global::interface::timeout");
-		}
-	} elsif($this->{name} =~ /^(get|getDetails|getSpur)$/) {
-		$results{'Spuren'}		= $spuren->fetch(%{$this->{glob}});
-		$results{'IntervalStatistics'}	= $spuren->fetch_statistics(%{$this->{glob}});
-	} elsif($this->{name} eq "getAnnouncements") {
-		$results{"Announcements"}	= $spuren->fetch_announcements(%{$this->{glob}});
-	} elsif($this->{name} =~ /^get(Host|Interface|Component)s$/) {
-		$results{"${1}s"}		= stats_get_object_list($spuren->{redis}, lc($1));
-		$results{"${1}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($1));
-	} elsif($this->{name} eq "getSettings") {
-		
-	} else {
-		die "This cannot happen!\n";
-	}
+	require "${viewName}.pm";
 
-	my $view = new SpurView($viewMapping{$this->{name}}, \%results);
+	my $view = ${viewName}->new($xsltMapping{$this->{name}}, $this->{name}, %{$this->{glob}});
 	$view->print();
 }
 

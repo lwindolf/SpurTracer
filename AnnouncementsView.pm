@@ -1,6 +1,6 @@
-# View for everything regarding one or more spurs
+# 'Announcements' view
 
-package SpurView;
+package AnnouncementsView;
 
 use Spuren;
 
@@ -12,8 +12,7 @@ sub new {
 	my $spuren = new Spuren();
 	my %results;
 
-	$results{'Spuren'}		= $spuren->fetch(%{$this->{glob}});
-	$results{'IntervalStatistics'}	= $spuren->fetch_statistics(%{$this->{glob}});
+	$results{"Announcements"} = $spuren->fetch_announcements(%{$this->{glob}});
 
 	$this->{results} = \%results;
 

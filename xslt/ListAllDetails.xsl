@@ -118,10 +118,12 @@
 	<table class="graph" id="graph{@type}{../@name}">
 		<caption>Last <xsl:value-of select="../@name"/></caption>
 		<thead>
-			<td></td>
-			<xsl:for-each select="Value">
-				<th scope='col'><xsl:value-of select="@slot"/></th>
-			</xsl:for-each>
+			<tr>
+				<td></td>
+				<xsl:for-each select="Value">
+					<th scope='col'><xsl:value-of select="@slot"/></th>
+				</xsl:for-each>
+			</tr>
 		</thead>
 		<tbody>
 			<tr>
