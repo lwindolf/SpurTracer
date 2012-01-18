@@ -86,20 +86,19 @@ sub stats_get_interval {
 
 	return undef unless(defined($interval));
 
-	# Drop unused 0 element used for ring buffer semantic from result!
-	my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1) + 1;
-print STDERR "0 slot is $n\n";
+	# Skip unused 0 element at (n+1) used for ring buffer semantic from 
+	# result by starting at (n+2) and wrapping around correctly...
+	my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 
-print STDERR "start slot is ".(($n + 1) % $$interval{resolution} + 1)."\n";
 	# Sort all elements, fill in missing zeros and output starting at
 	# correct ring buffer offset n
 	my %results;
-	for($i = 1; $i <= ($$interval{'resolution'} + 1); $i++) {
+	for($i = 0; $i < $$interval{'resolution'}; $i++) {
 		my $offset = 
-		$results{$i} = $tmp{(($n + $i) % ($$interval{resolution} + 1))};
+		$results{$i} = $tmp{(($n + 2 + $i) % ($$interval{resolution} + 1))};
 		$results{$i} = 0 unless(defined($results{$i}));
 	}
-print STDERR "last slot is ".(($n + $i) % $$interval{resolution} + 1)."\n";
+
 	return \%results;
 }
 
