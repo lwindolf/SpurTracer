@@ -65,7 +65,6 @@ sub stats_count_interval {
 
 ################################################################################
 # Generic interval counter query method. Returns an hash of all value slots.
-# If data processing is just starting slots might be missing from the result.
 #
 # $1	Redis handle
 # $2	Key
@@ -94,7 +93,6 @@ sub stats_get_interval {
 	# correct ring buffer offset n
 	my %results;
 	for($i = 0; $i < $$interval{'resolution'}; $i++) {
-		my $offset = 
 		$results{$i} = $tmp{(($n + 2 + $i) % ($$interval{resolution} + 1))};
 		$results{$i} = 0 unless(defined($results{$i}));
 	}
