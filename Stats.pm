@@ -40,7 +40,7 @@ sub stats_get_interval_definitions {
 # $1	Redis handle
 # $2	Key
 ################################################################################
-sub stats_count_interval {
+sub _stats_count_interval {
 	my ($redis, $key) = @_;
 
 	# Writing to an interval set of resolution m at time slot n
@@ -54,7 +54,6 @@ sub stats_count_interval {
 	# the interval array. The array (excluding the n+1) field
 	# can be used for a graphical
 	foreach $interval (@INTERVALS) {
-		# All interval sizes are minute based: so 1000*60
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
 		$redis->hsetnx("stats$$interval{name}\::$key", $n, 0);
@@ -69,7 +68,7 @@ sub stats_count_interval {
 # $1	Redis handle
 # $2	Key
 ################################################################################
-sub stats_get_interval {
+sub _stats_get_interval {
 	my ($redis, $intervalName, $key) = @_;
 	
 	my %tmp = $redis->hgetall("stats${intervalName}\::$key");
@@ -113,7 +112,7 @@ sub stats_count_object {
 	my $key = join("::", @_);
 
 	$redis->incr("stats::object::$key");
-	stats_count_interval($redis, "object::$key");
+	_stats_count_interval($redis, "object::$key");
 }
 
 ################################################################################
@@ -129,7 +128,7 @@ sub stats_count_instance {
 	my $key = join("::", @_);
 
 	$redis->incr("stats::instance::".$key);
-	stats_count_interval($redis, "instance::$key");
+	_stats_count_interval($redis, "instance::$key");
 }
 
 ################################################################################
