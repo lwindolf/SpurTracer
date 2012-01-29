@@ -56,9 +56,9 @@ sub _stats_count_interval {
 	foreach $interval (@INTERVALS) {
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
-		$redis->hsetnx("stats$$interval{name}\::$key", $n, 0);
-		$redis->hincrby("stats$$interval{name}\::$key", $n, 1);
-		$redis->hset("stats$$interval{name}\::$key", ($n + 1) % ($$interval{resolution} + 1), 0);
+		$redis->hsetnx("stats$$interval{name}\!$key", $n, 0);
+		$redis->hincrby("stats$$interval{name}\!$key", $n, 1);
+		$redis->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
 	}
 }
 
@@ -68,10 +68,10 @@ sub _stats_count_interval {
 # $1	Redis handle
 # $2	Key
 ################################################################################
-sub _stats_get_interval {
+sub stats_get_interval {
 	my ($redis, $intervalName, $key) = @_;
 	
-	my %tmp = $redis->hgetall("stats${intervalName}\::$key");
+	my %tmp = $redis->hgetall("stats${intervalName}\!$key");
 
 	# Get interval definition
 	my $interval;
@@ -109,10 +109,10 @@ sub _stats_get_interval {
 ################################################################################
 sub stats_count_object {
 	my $redis = shift;
-	my $key = join("::", @_);
+	my $key = join("!", @_);
 
-	$redis->incr("stats::object::$key");
-	_stats_count_interval($redis, "object::$key");
+	$redis->incr("stats!object!$key");
+	_stats_count_interval($redis, "object!$key");
 }
 
 ################################################################################
@@ -125,10 +125,10 @@ sub stats_count_object {
 ################################################################################
 sub stats_count_instance {
 	my $redis = shift;
-	my $key = join("::", @_);
+	my $key = join("!", @_);
 
-	$redis->incr("stats::instance::".$key);
-	_stats_count_interval($redis, "instance::$key");
+	$redis->incr("stats!instance!".$key);
+	_stats_count_interval($redis, "instance!$key");
 }
 
 ################################################################################
@@ -144,7 +144,7 @@ sub stats_add_start_notification {
 	stats_count_object($_[0], 'host', $_[1], 'started');
 	stats_count_object($_[0], 'component', $_[2], 'started');
 
-	stats_count_instance($_[0], 'component', join("::", ($_[1], $_[2])), 'started');
+	stats_count_instance($_[0], 'component', join("!", ($_[1], $_[2])), 'started');
 }
 
 ################################################################################
@@ -160,7 +160,7 @@ sub stats_add_error_notification {
 	stats_count_object($_[0], 'host', $_[1], 'failed');
 	stats_count_object($_[0], 'component', $_[2], 'failed');
 
-	stats_count_instance($_[0], 'component', join("::", ($_[1], $_[2])), 'failed');
+	stats_count_instance($_[0], 'component', join("!", ($_[1], $_[2])), 'failed');
 }
 
 ################################################################################
@@ -176,9 +176,9 @@ sub stats_add_interface_announced {
 	# Note: for a simpler and generic processing we use 'started'
 	# instead of 'announced' as the counter name for interfaces...
 	stats_count_object($_[0], 'global', 'interface', 'announced');
-	stats_count_object($_[0], 'interface', join("::", ($_[2], $_[3])), 'started');
+	stats_count_object($_[0], 'interface', join("!", ($_[2], $_[3])), 'started');
 
-	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3])), 'started');
+	stats_count_instance($_[0], 'interface', join("!", ($_[1], $_[2], $_[3])), 'started');
 }
 
 ################################################################################
@@ -193,9 +193,9 @@ sub stats_add_interface_announced {
 sub stats_add_interface_timeout {
 
 	stats_count_object($_[0], 'global', 'interface', 'timeout');
-	stats_count_object($_[0], 'interface', $_[2] . "::" . $_[4], 'timeout');
+	stats_count_object($_[0], 'interface', $_[2] . "!" . $_[4], 'timeout');
 
-	stats_count_instance($_[0], 'interface', join("::", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
+	stats_count_instance($_[0], 'interface', join("!", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
 }
 
 ################################################################################
@@ -208,11 +208,11 @@ sub stats_add_interface_timeout {
 ################################################################################
 sub stats_get_object {
 	my $redis = shift;
-	my $key_prefix = join("::", @_);
+	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $redis->get("stats::object::" . $key_prefix . "::" . $_);
+		$results{$_} = $redis->get("stats!object!" . $key_prefix . "!" . $_);
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -232,14 +232,14 @@ sub stats_get_object_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats::object::".$type."::*::started")) {
-		next unless(/^stats::object::$type\:\:(.+)::\w+$/);
+	foreach($redis->keys("stats!object!".$type."!*!started")) {
+		next unless(/^stats!object!$type!(.+)!\w+$/);
 		my %tmp = stats_get_object($redis, $type, $1);
 		
 		# We must distinguish between interfaces and other object
-		# as interface names are <from>::<to> pairs...
+		# as interface names are <from>!<to> pairs...
 		if($type eq "interface") {
-			next unless($1 =~ /^([^:]+)::([^:]+)$/);
+			next unless($1 =~ /^([^!]+)!([^!]+)$/);
 			$tmp{'from'} = $1;
 			$tmp{'to'} = $2;
 		} else {
@@ -262,11 +262,11 @@ sub stats_get_object_list {
 ################################################################################
 sub stats_get_instance {
 	my $redis = shift;
-	my $key_prefix = join("::", @_);
+	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $redis->get("stats::instance::" . $key_prefix . "::" . $_);
+		$results{$_} = $redis->get("stats!instance!" . $key_prefix . "!" . $_);
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -286,15 +286,15 @@ sub stats_get_instance_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats::instance::".$type."::*::started")) {
-		next unless(/^stats::instance::$type\:\:(.+)::\w+$/);
+	foreach($redis->keys("stats!instance!".$type."!*!started")) {
+		next unless(/^stats!instance!$type!(.+)!\w+$/);
 		my %tmp = stats_get_instance($redis, $type, $1);
 
 		# Split instance name into it's parts. E.g.
 		#
-		# 	host0::comp1		for a component instance
-		#	host0::comp1::comp2	for an interface instance
-		if($1 =~ /^([^:]+)::([^:]+)(::([^:]+))?$/) {
+		# 	host0!comp1		for a component instance
+		#	host0!comp1!comp2	for an interface instance
+		if($1 =~ /^([^!]+)!([^!]+)(!([^!]+))?$/) {
 			$tmp{'host'} = $1;
 			$tmp{'component'} = $2;
 			$tmp{'newcomponent'} = $4 if(defined($4));

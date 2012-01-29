@@ -77,8 +77,8 @@ sub add_data {
 		);
 
 		if($#notifications < 0) {
-			my $akey = "announce::";
-			$akey .= "n".$data{newcomponent}."::";
+			my $akey = "announce!";
+			$akey .= "n".$data{newcomponent}."!";
 			$akey .= "c".$data{newctxt};
 			$this->{redis}->set($akey, $key);
 			$this->{redis}->expire($akey, $expiration);
@@ -91,7 +91,7 @@ sub add_data {
 		# For normal notifications:
 
 		# Delete announcement on any notification
-		$this->{redis}->del("announce::n$data{component}::c$data{ctxt}");
+		$this->{redis}->del("announce!n$data{component}!c$data{ctxt}");
 	}
 
 	# And finally the statistics
@@ -158,10 +158,10 @@ sub fetch {
 
 		# Decode value store key according to schema 
 		#
-		# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
-		if($key =~ /d(\d+)::h([^:]+)::n([^:]+)::c([^:]+)::t([nc])::(s(\w+))?/) {
+		# d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
+		if($key =~ /d(\d+)!h([^!]+)!n([^!]+)!c([^!]+)!t([nc])!(s(\w+))?/) {
 			my $time = $1;
-			my $id = $2."::".$3."::".$4;
+			my $id = $2."!".$3."!".$4;
 			my $type = $5;
 			my $status = $7;
 
@@ -184,12 +184,12 @@ sub fetch {
 			if($type eq "n") {
 				$event{desc} = $this->{redis}->get($key);
 			} else {
-				$this->{redis}->get($key) =~ /^(\w+)::(\w+)$/;
+				$this->{redis}->get($key) =~ /^(\w+)!(\w+)$/;
 				$event{newctxt} = $2;
 				$event{newcomponent} = $1;
 
 				$event{status} = "announced";
-				$event{status} = "finished" unless($this->{redis}->exists("announce::n".$event{newcomponent}."::c".$event{newctxt}));
+				$event{status} = "finished" unless($this->{redis}->exists("announce!n".$event{newcomponent}."!c".$event{newctxt}));
 			}
 
 			# Add event to spur set
@@ -219,7 +219,7 @@ sub fetch_statistics {
 		next unless($$interval{'name'} eq 'hour');	# FIXME: Allow user to select
 		foreach	my $object (keys %glob) {
 			next unless($object =~ /^(host|component)$/);
-			$results{$$interval{name}}{$object}{values} = stats_get_interval($this->{redis}, $$interval{name}, "object::$object\::$glob{$object}::started");
+			$results{$$interval{name}}{$object}{values} = stats_get_interval($this->{redis}, $$interval{name}, "object!$object\!$glob{$object}!started");
 		}
 	}
 
@@ -244,12 +244,12 @@ sub fetch_announcements {
 	my $today = strftime("%F", localtime());
 
 	# Build fetching glob
-	my $filter = "announce::";
-	$filter .= "n".$glob{component}."::*"	if(defined($glob{component}));
+	my $filter = "announce!";
+	$filter .= "n".$glob{component}."!*"	if(defined($glob{component}));
 
-	$filter = "announce::*::" if($filter eq "");	# Avoid starting wildcard if possible
+	$filter = "announce!*!" if($filter eq "");	# Avoid starting wildcard if possible
 
-	$filter .= "c".$glob{ctxt}."::*"	if(defined($glob{ctxt}));
+	$filter .= "c".$glob{ctxt}."!*"	if(defined($glob{ctxt}));
 	$filter .= "*" unless(defined($glob{ctc}));
 
 	my @keys;
@@ -270,8 +270,8 @@ sub fetch_announcements {
 
 		# Decode value store key according to schema 
 		#
-		# announce::n<component>::c<ctxt>
-		if($key =~ /announce::n([^:]+)::c([^:]+)$/) {
+		# announce!n<component>!c<ctxt>
+		if($key =~ /announce!n([^!]+)!c([^!]+)$/) {
 			$i++;
 
 			# Add event to set
@@ -280,7 +280,7 @@ sub fetch_announcements {
 			$event{ctxt} = $2;
 
 			# Extract additional info from value
-			if($this->{redis}->get($key) =~ /^d(\d+)::h(\w+)::n([^:]+)::c([^:]+)::/) {	# FIXME: Isolate parsing into Notification.pm
+			if($this->{redis}->get($key) =~ /^d(\d+)!h(\w+)!n([^!]+)!c([^!]+)!/) {	# FIXME: Isolate parsing into Notification.pm
 				$event{sourceHost} = $2;
 				$event{sourceComponent} = $3;
 				$event{sourceCtxt} = $4;
@@ -348,7 +348,7 @@ We layout the about notification properties in Redis as following
 
 	Key Schema: 
 
-		d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
+		d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
 
 	Value Schema:
 
@@ -362,7 +362,7 @@ We layout the about notification properties in Redis as following
 
 The assumption is that filtering is only necessary by for the properties
 listed in the key schema. Prefixing each field with a character should
-allow fast matching e.g. /::ndb::/ to find all notifications for the 
+allow fast matching e.g. /!ndb!/ to find all notifications for the 
 "db" component.
 
 NOTE: DON'T RELY ON THE SCHEMA IT MIGHT CHANGE AT ANY TIME!

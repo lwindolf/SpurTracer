@@ -22,14 +22,14 @@ sub notification_build_filter {
 
 	# Build fetching glob
 	my $filter = "";
-	$filter .= "d".$glob{time}."::*"	if(defined($glob{time}));
+	$filter .= "d".$glob{time}."!*"	if(defined($glob{time}));
 
-	$filter = "d*::" if($filter eq "");	# Avoid starting wildcard if possible
+	$filter = "d*!" if($filter eq "");	# Avoid starting wildcard if possible
 
-	$filter .= "h".$glob{host}."::*"	if(defined($glob{host}));
-	$filter .= "n".$glob{component}."::*"	if(defined($glob{component}));
-	$filter .= "c".$glob{ctxt}."::*"	if(defined($glob{ctxt}));
-	$filter .= "t".$glob{type}."::*"	if(defined($glob{type}));
+	$filter .= "h".$glob{host}."!*"		if(defined($glob{host}));
+	$filter .= "n".$glob{component}."!*"	if(defined($glob{component}));
+	$filter .= "c".$glob{ctxt}."!*"		if(defined($glob{ctxt}));
+	$filter .= "t".$glob{type}."!*"		if(defined($glob{type}));
 	$filter .= "s".$glob{status}		if(defined($glob{status}));
 
 	$filter .= "*" unless(defined($glob{status}));
@@ -49,13 +49,13 @@ sub notification_build_key {
 
 	# Create value store key according to schema 
 	#
-	# d<time>::h<host>::n<component>::c<ctxt>::t<type>::[s<status>]
+	# d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
 	my $key = "";
-	$key .= "d".$data{time}."::";
-	$key .= "h".$data{host}."::";
-	$key .= "n".$data{component}."::";
-	$key .= "c".$data{ctxt}."::";
-	$key .= "t".$data{type}."::";
+	$key .= "d".$data{time}."!";
+	$key .= "h".$data{host}."!";
+	$key .= "n".$data{component}."!";
+	$key .= "c".$data{ctxt}."!";
+	$key .= "t".$data{type}."!";
 	$key .= "s".$data{status} if(defined($data{status}));
 
 	return $key;
@@ -76,7 +76,7 @@ sub notification_build_value {
 	if($data{type} eq "n") {
 		$value = $data{desc} if(defined($data{desc}));
 	} else {
-		$value = $data{newcomponent}."::".$data{newctxt};
+		$value = $data{newcomponent}."!".$data{newctxt};
 	}
 
 	return $value;

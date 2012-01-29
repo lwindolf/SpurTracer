@@ -59,7 +59,7 @@ sub print {
 
 	foreach my $key (keys %{$data{'Spuren'}}) {
 
-		if($key =~ /^([^:]+)::([^:]+)::([^:]+)$/) {
+		if($key =~ /^([^!]+)!([^!]+)!([^!]+)$/) {
 			my %spur = %{$data{'Spuren'}{$key}};
 
 			$writer->startTag("Spur", %{$spur{source}});

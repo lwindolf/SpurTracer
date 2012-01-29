@@ -1,10 +1,28 @@
-About
-=====
-
-SpurTrace 
-
-License
+Content
 =======
+
+1. ................... Introduction
+
+2. ................... License
+
+3. ................... Installation
+3.1. .................... Dependencies
+3.2. .................... Installing via OS-Packages
+3.3. .................... Installing Perl Modules from CPAN
+3.4. .................... Redis Installation
+3.5. .................... Starting SpurTracer
+
+4. ................... Support
+
+
+1. Introduction
+===============
+
+SpurTracer...
+
+
+2. License
+==========
 
 The SpurTracer code is licensed as GPLv3. The code comprises everything
 except for the js/ subdirectory in this source distribution.
@@ -21,11 +39,11 @@ do have other licenses listed below:
 Thanks to the respective authors allowing to use these versatile GUI libraries!
 
 
-Installation
-============
+3. Installation
+===============
 
-Dependencies
-------------
+3.1 Dependencies
+----------------
 
 SpurTracer relies on the following software stack:
 
@@ -39,8 +57,8 @@ SpurTracer relies on the following software stack:
 3.) Redis 1.3 or later
 
 
-Installing via OS-Packages
---------------------------
+3.2 Installing via OS-Packages
+------------------------------
 
 You can install the following distribution specific packages
 
@@ -49,8 +67,8 @@ You can install the following distribution specific packages
 	apt-get install libxml-writer-perl libnet-server-perl libredis-perl redis-server
 
 
-Installing Perl Modules from CPAN
----------------------------------
+3.3 Installing Perl Modules from CPAN
+-------------------------------------
 
 While Perl should be included in your Unix distribution it might 
 be that the modules are not available. In this case fetch the
@@ -65,8 +83,8 @@ And install the packages by typing the following at the prompt
 	> install Redis
 
 
-Redis Installation
-------------------
+3.4 Redis Installation
+----------------------
 
 If you have installed the Redis package from your distribution you probably
 have nothing to do. Please ensure that the Redis instance is up and running
@@ -85,8 +103,8 @@ If you perform a manual setup ensure that Redis is running on its default
 port and is bound only to localhost.
 
 
-Starting SpurTracer
--------------------
+3.5 Starting SpurTracer
+----------------------
 
 If everything is prepared try starting SpurTrace by running
 
@@ -97,8 +115,8 @@ via your browser or a local HTTP client. The default configuration will
 listen on http://localhost:8080
 
 
-Support
-=======
+4. Support
+==========
 
 If you have any setup problems or cannot get the code to run please use
 the project forum at the SourceForge project page.

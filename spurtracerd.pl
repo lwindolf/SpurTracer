@@ -109,15 +109,15 @@ sub process_query {
 		}
 	}
 
-#	try {
+	try {
 		my $query = new SpurQuery($mode, %glob);
 		$this->send_status(200);
 		$query->execute();
-#	} catch Error with {
-#		$this->send_status(400);
-#		print "Content-type: text/plain\r\n\r\n";
-#		print "Invalid query";
-#	}
+	} catch Error with {
+		$this->send_status(400);
+		print "Content-type: text/plain\r\n\r\n";
+		print "Invalid query";
+	}
 }
 
 ################################################################################

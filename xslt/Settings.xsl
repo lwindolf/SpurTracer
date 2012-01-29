@@ -62,15 +62,15 @@
 						</xsl:for-each>
 						<xsl:for-each select="Interfaces/Interface">
 							<xsl:sort select="@from"/>
-							<option name="n{@from}::n{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
+							<option name="n{@from}!n{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="ComponentInstances/Instance">
 							<xsl:sort select="@component"/>
-							<option name="h{@host}::n{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
+							<option name="h{@host}!n{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="InterfaceInstances/Instance">
 							<xsl:sort select="@component"/>
-							<option name="h{@host}::n{@component}::n{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
+							<option name="h{@host}!n{@component}!n{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
 						</xsl:for-each>
 					</select>
 				</td></tr>
