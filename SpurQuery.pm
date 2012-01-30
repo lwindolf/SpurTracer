@@ -2,6 +2,7 @@
 
 package SpurQuery;
 
+use Stats;
 use SpurTracerView;
 
 # Map request names to XSLT names
@@ -37,8 +38,8 @@ sub new {
 	die "No XSLT mapping for '$name'!" unless(defined($xsltMapping{$name}));
 
 	my $this = ();
-	$this->{name} = $name;
-	$this->{glob} = \%glob;
+	$this->{'name'} = $name;
+	$this->{'glob'} = \%glob;
 
 	return bless $this, $type;
 }

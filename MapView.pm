@@ -11,6 +11,7 @@ sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
 	my $spuren = new Spuren();
+	my $stats = new Stats($this->{'interval'});
 	my %results;
 
 	# Simply collect all infos about all object types...
@@ -18,16 +19,11 @@ sub new {
 		$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
 		$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
 	}
-	foreach my $interval ('hour') {
-		$results{'IntervalStatistics'}{$interval}{started}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!started");
-		$results{'IntervalStatistics'}{$interval}{failed}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!failed");
-		$results{'IntervalStatistics'}{$interval}{announced}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!interface!announced");
-		$results{'IntervalStatistics'}{$interval}{timeout}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!interface!timeout");
-	}
 
+	$results{'IntervalStatistics'} = $stats->get_interval("object!global", ("started", "failed", "announced", "timeout"));
 	$results{'Alarms'} = alarm_monitor_get_alarms($spuren->{redis});
 
-	$this->{results} = \%results;
+	$this->{'results'} = \%results;
 
 	return bless $this, $type;
 }

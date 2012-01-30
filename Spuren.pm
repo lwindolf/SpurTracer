@@ -205,28 +205,6 @@ sub fetch {
 }
 
 ################################################################################
-# Generic fetching for statistics applying to a glob pattern.
-#
-# $2	List with filter rules as supported by notification_build_filter()
-#
-# Returns an array of result hashes	(undefined on error)
-################################################################################
-sub fetch_statistics {
-	my ($this, %glob) = @_;
-	my %results;
-
-	foreach my $interval (stats_get_interval_definitions()) {
-		next unless($$interval{'name'} eq 'hour');	# FIXME: Allow user to select
-		foreach	my $object (keys %glob) {
-			next unless($object =~ /^(host|component)$/);
-			$results{$$interval{name}}{$object}{values} = stats_get_interval($this->{redis}, $$interval{name}, "object!$object\!$glob{$object}!started");
-		}
-	}
-
-	return \%results;
-}
-
-################################################################################
 # Generic announcement fetching method. Provides filtering as fetch() does.
 #
 # $2	Hash with Redis glob patterns. Can be empty to fetch the

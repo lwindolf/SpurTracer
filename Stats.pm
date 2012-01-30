@@ -26,8 +26,8 @@ require Exporter;
 	stats_get_object
 	stats_get_object_list
 	stats_get_instance_list
-	stats_get_interval
 	stats_get_interval_definitions
+	stats_get_default_interval_name
 );
 
 my @INTERVALS = (
@@ -38,9 +38,39 @@ my @INTERVALS = (
 );
 
 ################################################################################
+# Constructor
+#
+# $1	interval (optional)
+################################################################################
+sub new {
+	my ($type, $intervalName) = @_;
+	my $this = { };
+
+	# For now simply require a local Redis instance
+	$this->{'redis'} = Redis->new;
+
+	# Try to find interval with given name
+	foreach my $i (@INTERVALS) {
+		if($$i{'name'} eq $intervalName) {
+			$this->{'interval'} = $i;
+			last;
+		}
+	}
+
+	unless(defined($this->{'interval'})) {
+		# Note: We expect @INTERVALS to be sorted from smallest to largest 
+		# interval. The smallest one is considered default.
+		$this->{'interval'} = $INTERVALS[0];
+	}
+
+	return bless $this, $type;
+}
+
+################################################################################
 # Simple returns the interval definitions as an array
 ################################################################################
 sub stats_get_interval_definitions {
+
 	return @INTERVALS;
 }
 
@@ -76,35 +106,31 @@ sub _stats_count_interval {
 ################################################################################
 # Generic interval counter query method. Returns an hash of all value slots.
 #
-# $1	Redis handle
-# $2	Key
+# $2	Key 			(e.g. "object!component!comp2")
+# $*	List of counters 	(e.g. ("started", "failed"))
 ################################################################################
-sub stats_get_interval {
-	my ($redis, $intervalName, $key) = @_;
-	
-	my %tmp = $redis->hgetall("stats${intervalName}\!$key");
-
-	# Get interval definition
-	my $interval;
-	foreach my $i (@INTERVALS) {
-		if($$i{'name'} eq $intervalName) {
-			$interval = $i;
-			last;
-		}
-	}
-
-	return undef unless(defined($interval));
+sub get_interval {
+	my $this = shift;
+	my $key = shift;
+	my @counters = @_;
+	my %interval = %{$this->{'interval'}};
+	my %results;
 
 	# Skip unused 0 element at (n+1) used for ring buffer semantic from 
 	# result by starting at (n+2) and wrapping around correctly...
-	my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
+	my $n = (time() / $interval{'step'}) % ($interval{'resolution'} + 1);
 
-	# Sort all elements, fill in missing zeros and output starting at
-	# correct ring buffer offset n
-	my %results;
-	for($i = 0; $i < $$interval{'resolution'}; $i++) {
-		$results{$i} = $tmp{(($n + 2 + $i) % ($$interval{resolution} + 1))};
-		$results{$i} = 0 unless(defined($results{$i}));
+	$results{'name'} = $interval{'name'};
+
+	foreach my $counter (@counters) {
+		my %tmp = $this->{'redis'}->hgetall("stats$interval{name}!$key!$counter");
+
+		# Sort all elements, fill in missing zeros and output starting at
+		# correct ring buffer offset n
+		for($i = 0; $i < $interval{'resolution'}; $i++) {
+			$results{$counter}{$i} = $tmp{(($n + 2 + $i) % ($interval{'resolution'} + 1))};
+			$results{$counter}{$i} = 0 unless(defined($results{$counter}{$i}));
+		}
 	}
 
 	return \%results;

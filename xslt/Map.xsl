@@ -3,6 +3,7 @@
 
 <xsl:include href="Menu.xsl"/>
 <xsl:include href="Alarms.xsl"/>
+<xsl:include href="Graph.xsl"/>
 
 <xsl:template match="/Spuren">
 <html>
@@ -59,7 +60,7 @@
 			</table>
 		</div>
 
-		<xsl:for-each select="IntervalStatistics/Interval">
+		<xsl:for-each select="IntervalStatistics">
 			<xsl:call-template name="Interval"/>
 		</xsl:for-each>
 
@@ -138,52 +139,6 @@
 			</xsl:call-template>
 		</tr>
 	</xsl:for-each>
-</xsl:template>
-
-<xsl:template name="Interval">
-	<div class="systemMap">
-		<b>Last <xsl:value-of select="@name"/></b>
-		<br/>
-		<br/>
-
-	<table class="graph" id="graph{@name}">
-		<thead>
-			<tr>
-				<xsl:for-each select="Object[@type = 'started']/Value">
-					<th><xsl:value-of select="@slot"/></th>
-				</xsl:for-each>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<th scope='row'>started/min</th>
-				<xsl:for-each select="Object[@type = 'started']/Value">
-					<td><xsl:value-of select="@value"/></td>
-				</xsl:for-each>
-			</tr>
-			<tr>
-				<th scope='row'>failed/min</th>
-				<xsl:for-each select="Object[@type = 'failed']/Value">
-					<td><xsl:value-of select="@value"/></td>
-				</xsl:for-each>
-			</tr>
-			<tr>
-				<th scope='row'>announces/min</th>
-				<xsl:for-each select="Object[@type = 'announced']/Value">
-					<td><xsl:value-of select="@value"/></td>
-				</xsl:for-each>
-			</tr>
-		</tbody>
-	</table>
-
-	<script type="text/javascript">
-		$(function(){
-			var id = "#graph<xsl:value-of select="@name"/>";
-			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '2', colors: ['#0F0', '#F00', '#CC0']});
-			$(id).addClass('accessHide');
-		});
-	</script>
-	</div>
 </xsl:template>
 
 </xsl:stylesheet>
