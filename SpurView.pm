@@ -2,6 +2,7 @@
 
 package SpurView;
 
+use AlarmMonitor;
 use Spuren;
 
 @ISA = (SpurTracerView);
@@ -14,6 +15,7 @@ sub new {
 
 	$results{'Spuren'}		= $spuren->fetch(%{$this->{glob}});
 	$results{'IntervalStatistics'}	= $spuren->fetch_statistics(%{$this->{glob}});
+	$results{'Alarms'}		= alarm_monitor_get_alarms($spuren->{redis});
 
 	$this->{results} = \%results;
 

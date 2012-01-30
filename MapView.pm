@@ -3,6 +3,7 @@
 package MapView;
 
 use Stats;
+use AlarmMonitor;
 
 @ISA = (SpurTracerView);
 
@@ -23,6 +24,8 @@ sub new {
 		$results{'IntervalStatistics'}{$interval}{announced}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!interface!announced");
 		$results{'IntervalStatistics'}{$interval}{timeout}{values}	= stats_get_interval($spuren->{redis}, $interval, "object!global!interface!timeout");
 	}
+
+	$results{'Alarms'} = alarm_monitor_get_alarms($spuren->{redis});
 
 	$this->{results} = \%results;
 

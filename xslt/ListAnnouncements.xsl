@@ -2,6 +2,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
 <xsl:include href="Menu.xsl"/>
+<xsl:include href="Alarms.xsl"/>
 
 <xsl:template match="/Spuren">
 <html>
@@ -18,6 +19,8 @@
 		<xsl:call-template name="Menu">
 			<xsl:with-param name="active" select="'Announcements'"/>
 		</xsl:call-template>
+
+		<xsl:call-template name="Alarms"/>
 
 		<div class="header">
 			<h3>List of All Recent Announcements</h3>

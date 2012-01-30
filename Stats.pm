@@ -17,7 +17,18 @@ require Exporter;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(stats_add_start_notification stats_add_error_notification stats_add_interface_announced stats_add_interface_timeout stats_get_object stats_get_object_list stats_get_instance_list stats_get_interval stats_get_interval_definitions);
+@EXPORT = qw(
+	stats_add_start_notification
+	stats_add_error_notification
+	stats_add_interface_announced
+	stats_add_interface_timeout
+	stats_get_keys
+	stats_get_object
+	stats_get_object_list
+	stats_get_instance_list
+	stats_get_interval
+	stats_get_interval_definitions
+);
 
 my @INTERVALS = (
 	{ 'name' => 'hour',	'resolution' => 60,	step => 60 },
@@ -220,19 +231,42 @@ sub stats_get_object {
 }
 
 ################################################################################
+# Get a list of all known object keys of a type
+#
+# $1	Redis handle
+# $2	type ('object' or 'instance')
+# $3	value type ('global', 'interface', 'component' or 'host')
+# $4	counter name (optional, defaults to 'started')
+#
+# Returns a list of key names
+################################################################################
+sub stats_get_keys {
+	my ($redis, $type, $valueType, $counter) = @_;
+
+	$counter = "started" unless(defined($counter));
+	my @keys = $redis->keys("stats!$type!$valueType!*!$counter");
+
+	return \@keys;
+}
+
+################################################################################
 # Get a list of all known objects of a type and their properties as returned
 # by stats_get_object()
 #
 # $1	Redis handle
 # $2	object type ('global', 'interface', 'component' or 'host')
 #
-# Returns a list of ('name' => '<hostname>') pairs
+# Returns a list including
+#
+#	('name' => '<hostname>') pairs for host and components
+#	('from' => '<source component>',
+#        'to'   => '<target component>) pairs for interfaces
 ################################################################################
 sub stats_get_object_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats!object!".$type."!*!started")) {
+	foreach(@{stats_get_keys($redis, 'object', $type)}) {
 		next unless(/^stats!object!$type!(.+)!\w+$/);
 		my %tmp = stats_get_object($redis, $type, $1);
 		
@@ -286,7 +320,7 @@ sub stats_get_instance_list {
 	my ($redis, $type) = @_;
 	my @results = ();
 
-	foreach($redis->keys("stats!instance!".$type."!*!started")) {
+	foreach(@{stats_get_keys($redis, 'instance', $type)}) {
 		next unless(/^stats!instance!$type!(.+)!\w+$/);
 		my %tmp = stats_get_instance($redis, $type, $1);
 

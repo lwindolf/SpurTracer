@@ -57,17 +57,20 @@ sub print {
 	# require Data::Dumper;
 	# print STDERR Data::Dumper->Dump([\$this], ['data'])."\n";
 
+	$writer->startTag("Alarms");
+	foreach my $alarm (@{$data{'Alarms'}}) {
+		$writer->emptyTag("Alarm", %$alarm);
+	}
+	$writer->endTag();
+
 	foreach my $key (keys %{$data{'Spuren'}}) {
+		my %spur = %{$data{'Spuren'}{$key}};
 
-		if($key =~ /^([^!]+)!([^!]+)!([^!]+)$/) {
-			my %spur = %{$data{'Spuren'}{$key}};
-
-			$writer->startTag("Spur", %{$spur{source}});
-			foreach my $event (@{$spur{events}}) {
-				$writer->emptyTag('Event', %{$event});				
-			}
-			$writer->endTag();
+		$writer->startTag("Spur", %{$spur{source}});
+		foreach my $event (@{$spur{events}}) {
+			$writer->emptyTag('Event', %{$event});				
 		}
+		$writer->endTag();
 	}
 
 	if(defined(${data{'IntervalStatistics'}})) {

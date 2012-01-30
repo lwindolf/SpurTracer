@@ -2,6 +2,7 @@
 
 package AnnouncementsView;
 
+use AlarmMonitor;
 use Spuren;
 
 @ISA = (SpurTracerView);
@@ -13,6 +14,7 @@ sub new {
 	my %results;
 
 	$results{"Announcements"} = $spuren->fetch_announcements(%{$this->{glob}});
+	$results{'Alarms'} = alarm_monitor_get_alarms($spuren->{redis});
 
 	$this->{results} = \%results;
 

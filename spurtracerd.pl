@@ -11,7 +11,14 @@ use base qw(Net::Server::HTTP);
 use lib ".";
 use SpurQuery;
 use Spuren;
+use AlarmMonitor;
 
+# Before starting the httpd fork a alarm monitor
+# that runs in background to periodically perform
+# checks and alarm detections
+my $alarm_monitor_pid = alarm_monitor_create();
+
+# Start httpd
 __PACKAGE__->run;
 
 my $debug = 1;
@@ -109,25 +116,25 @@ sub process_query {
 		}
 	}
 
-	try {
+#	try {
 		my $query = new SpurQuery($mode, %glob);
 		$this->send_status(200);
 		$query->execute();
-	} catch Error with {
-		$this->send_status(400);
-		print "Content-type: text/plain\r\n\r\n";
-		print "Invalid query";
-	}
+#	} catch Error with {
+#		$this->send_status(400);
+#		print "Content-type: text/plain\r\n\r\n";
+#		print "Invalid query";
+#	}
 }
 
 ################################################################################
 # HTTP error message helper
 ################################################################################
 sub send_error {
-    my ($self, $n, $msg) = @_;
-    $self->send_status($n);
-    print "Content-type: text/html\r\n\r\n";
-    print "<h1>Error $n</h1><h3>$msg</h3>";
+	my ($self, $n, $msg) = @_;
+	$self->send_status($n);
+	print "Content-type: text/html\r\n\r\n";
+	print "<h1>Error $n</h1><h3>$msg</h3>";
 }
 
 ################################################################################
@@ -185,4 +192,12 @@ sub process_http_request {
 	} else {
 		return $self->send_error (404, "$uri not found!");
 	}
+}
+
+################################################################################
+# Net::Server shutdown hook
+################################################################################
+sub pre_server_close_hook {
+
+	kill $alarm_monitor_pid;
 }
