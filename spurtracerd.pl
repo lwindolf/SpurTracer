@@ -9,9 +9,11 @@ use URI::Escape;
 use Error qw(:try);
 use base qw(Net::Server::HTTP);
 use lib ".";
-use SpurQuery;
-use Spuren;
+
 use AlarmMonitor;
+use Settings;
+use Spuren;
+use SpurQuery;
 
 # Before starting the httpd fork a alarm monitor
 # that runs in background to periodically perform
@@ -99,8 +101,42 @@ sub process_data_submission {
 	}
 }
 
+
 ################################################################################
-# Data submission request handler
+# Settings request handler
+#
+# $2	HTTP URI parameters
+# $3	request mode
+################################################################################
+sub process_settings_query {
+	my ($this, $query, $mode) = @_;
+	my %glob = ();
+
+	if(defined($query)) {
+		# Decode filtering fields if we got some
+		foreach(split(/\&/, $query)) {
+			if(/(\w+)=(.+)/) {
+				my $key = $1;
+				$glob{$key} = $2;
+				$glob{$key} =~ s/\+/ /g;
+				$glob{$key} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+			}
+		}
+	}
+
+	# Process settings change
+	if($mode eq "add") {
+		settings_add(%glob);
+	} elsif($mode eq "del") {
+		settings_remove(%glob);
+	}
+
+	# Run the Settings view...
+	$this->process_query("", "getSettings");
+}
+
+################################################################################
+# Generic data query request handler
 #
 # $2	HTTP URI parameters
 # $3	request mode
@@ -184,11 +220,13 @@ sub process_http_request {
 
 	# Handle get/set requests...
 	if ($uri eq "set") {
-		$self->process_data_submission ($ENV{'QUERY_STRING'});
+		$self->process_data_submission($ENV{'QUERY_STRING'});
 	} elsif ($uri =~ /^(get\w*)$/) {
-		$self->process_query ($ENV{'QUERY_STRING'}, $1);
+		$self->process_query($ENV{'QUERY_STRING'}, $1);
 	} elsif ($uri eq "getAnnouncements") {
-		$self->process_query ($ENV{'QUERY_STRING'});
+		$self->process_query($ENV{'QUERY_STRING'});
+	} elsif ($uri =~ /^(add|remove)Setting$/) {
+		$self->process_settings_query($ENV{'QUERY_STRING'}, $1);
 	} else {
 		return $self->send_error (404, "$uri not found!");
 	}

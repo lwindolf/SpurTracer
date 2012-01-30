@@ -2,6 +2,8 @@ package AlarmConfig;
 
 require Exporter;
 
+use Settings;
+
 @ISA = qw(Exporter);
 
 @EXPORT = qw(alarm_config_get);
@@ -35,7 +37,7 @@ __END__
 
 =head1 AlarmConfig - Configuration of Alarm Threshold
 
-=head2 Hierachical Definitions
+=head2 Hierarchical Definitions
 
 =begin text
 

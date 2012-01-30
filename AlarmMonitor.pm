@@ -64,7 +64,6 @@ sub alarm_monitor_run {
 sub alarm_monitor_add_alarm {
 	my ($redis, $severity, $type, $name, $msg) = @_;
 
-#	print STDERR "Alarm [$severity] $type $msg\n";
 	my $key = "alarm!$type!$name";
 	$redis->hset($key, 'message', $msg);
 	$redis->hset($key, 'time', time());

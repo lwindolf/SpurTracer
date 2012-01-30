@@ -28,58 +28,87 @@
 
 		<h4>Nagios Server</h4>
 
-		<form method="POST" action="setOption">
+		<form method="POST" action="addSetting">
+			<input type="hidden" name="prefix" value="nagios"/>
+			<input type="hidden" name="name" value="server"/>
 			<table>
-				<tr><td>Nagios (NSCA) Host</td><td><input type="input" name="nagios.NSCAHost"/></td></tr>
-				<tr><td>Nagios (NSCA) Port</td><td><input type="input" name="nagios.NSCAPort" size="5"/></td></tr>	
-				<tr><td>NSCA Client Path</td><td><input type="input" name="nagios.NSCAClientPath"/></td></tr>	
-				<tr><td>NSCA Config File</td><td><input type="input" name="nagios.NSCAConfigFile"/></td></tr>	
+				<tr><td>Nagios (NSCA) Host</td><td><input type="input" name="NSCAHost"/></td></tr>
+				<tr><td>Nagios (NSCA) Port</td><td><input type="input" name="NSCAPort" size="5"/></td></tr>	
+				<tr><td>NSCA Client Path</td><td><input type="input" name="NSCAClientPath"/></td></tr>	
+				<tr><td>NSCA Config File</td><td><input type="input" name="NSCAConfigFile"/></td></tr>	
 			</table>
 			<input type="submit" value="Save"/>
 		</form>
 
-		<h4>Configured Service Checks</h4>
-
-		<xsl:if test="count(NagiosChecks/Check) = 0">
-			<p>You have not defined any checks yet! Add one using the form below...</p>
-		</xsl:if>
+		<h4>Nagios Service Checks</h4>
 
 		<table class="checks">
+			<tr>
+				<th>Statistics Object</th>
+				<th>Check Type</th>
+				<th>Check Interval [min]</th>
+				<th>Map to Host</th>
+				<th>Map to Service</th>
+				<th>Critical Threshold [%]</th>
+				<th>Warning Threshold [%]</th>
+			</tr>
+			<xsl:for-each select="Settings/Setting[@prefix='nagios.serviceChecks']">
+			<tr>
+				<td><xsl:value-of select="@name"/></td>
+				<td><xsl:value-of select="@checkType"/></td>
+				<td><xsl:value-of select="@checkInterval"/></td>
+				<td><xsl:value-of select="@mapHost"/></td>
+				<td><xsl:value-of select="@mapService"/></td>
+				<td><xsl:value-of select="@critical"/></td>
+				<td><xsl:value-of select="@warning"/></td>
+				<td>
+					<input type="submit" value="Remove"/>
+				</td>
+			</tr>
+			</xsl:for-each>
 		</table>
 
-		<form method="POST" action="addNagiosCheck">
+		<xsl:if test="count(Settings/Setting[@prefix='nagios.serviceChecks']) = 0">
+			<p>You have not defined any checks yet! Add one using the form below...</p>
+		</xsl:if>
+		<xsl:if test="count(Settings/Setting[@prefix='nagios.serviceChecks']) > 0">
+			<p>Add further checks using the form below...</p>
+		</xsl:if>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="nagios.serviceChecks"/>
 			<table>
 				<tr><td>Statistics Object</td>
 				<td>
-					<select name="check.object">
+					<select name="name">
 						<xsl:for-each select="Hosts/Host">
 							<xsl:sort select="@name"/>
-							<option name="h{@name}">[Host] <xsl:value-of select="@name"/></option>
+							<option value="h{@name}">[Host] <xsl:value-of select="@name"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="Components/Component">
 							<xsl:sort select="@name"/>
-							<option name="h{@name}">[Component] <xsl:value-of select="@name"/></option>
+							<option value="h{@name}">[Component] <xsl:value-of select="@name"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="Interfaces/Interface">
 							<xsl:sort select="@from"/>
-							<option name="n{@from}!n{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
+							<option value="n{@from}!n{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="ComponentInstances/Instance">
 							<xsl:sort select="@component"/>
-							<option name="h{@host}!n{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
+							<option value="h{@host}!n{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
 						</xsl:for-each>
 						<xsl:for-each select="InterfaceInstances/Instance">
 							<xsl:sort select="@component"/>
-							<option name="h{@host}!n{@component}!n{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
+							<option value="h{@host}!n{@component}!n{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
 						</xsl:for-each>
 					</select>
 				</td></tr>
-				<tr><td>Check Type</td><td>Error Rate</td></tr>
-				<tr><td>Check Interval [min]</td><td><input type="input" name="check.interval" size="5"/></td></tr>
-				<tr><td>Map To Host</td><td><input type="input" name="check.interval"/></td></tr>
-				<tr><td>Map To Service</td><td><input type="input" name="check.interval"/></td></tr>
-				<tr><td>Critical Threshold [%]</td><td><input type="input" name="nagios.NSCAPort" size="5"/></td></tr>	
-				<tr><td>Warning Threshold [%]</td><td><input type="input" name="nagios.NSCAPort" size="5"/></td></tr>	
+				<tr><td>Check Type</td><td>Error Rate<input type="hidden" name="checkType" value="Error Rate"/></td></tr>
+				<tr><td>Check Interval [min]</td><td><input type="input" name="checkInterval" size="5"/></td></tr>
+				<tr><td>Map To Host</td><td><input type="input" name="mapHost"/></td></tr>
+				<tr><td>Map To Service</td><td><input type="input" name="mapService"/></td></tr>
+				<tr><td>Critical Threshold [%]</td><td><input type="input" name="critical" size="5"/></td></tr>	
+				<tr><td>Warning Threshold [%]</td><td><input type="input" name="warning" size="5"/></td></tr>	
 			</table>
 			<input type="submit" value="Add New Check"/>
 		</form>
