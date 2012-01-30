@@ -7,6 +7,7 @@ require Exporter;
 @EXPORT = qw(
 	settings_get
 	settings_add
+	settings_remove
 );
 
 ################################################################################
@@ -43,6 +44,22 @@ sub settings_add {
 		print STDERR "    $key => $glob{$key}\n";
 		$redis->hset("settings!$glob{prefix}!$glob{name}", $key, $glob{$key});
 	}
+}
+
+################################################################################
+# Generic settings removal.
+#
+# $1	Redis handle
+# $2	hash of query parameters
+################################################################################
+sub settings_remove {
+	my %glob = @_;
+	my $redis = Redis->new;
+
+	return unless(defined($glob{'prefix'}) &&
+	              defined($glob{'name'}));
+
+	$redis->del("settings!$glob{prefix}!$glob{name}");
 }
 
 1;

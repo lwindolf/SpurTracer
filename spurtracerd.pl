@@ -127,7 +127,7 @@ sub process_settings_query {
 	# Process settings change
 	if($mode eq "add") {
 		settings_add(%glob);
-	} elsif($mode eq "del") {
+	} elsif($mode eq "remove") {
 		settings_remove(%glob);
 	}
 

@@ -62,7 +62,11 @@
 				<td><xsl:value-of select="@critical"/></td>
 				<td><xsl:value-of select="@warning"/></td>
 				<td>
-					<input type="submit" value="Remove"/>
+					<form action="removeSetting" method="GET">
+						<input type="hidden" name="prefix" value="{@prefix}"/>
+						<input type="hidden" name="name" value="{@name}"/>
+						<input type="submit" value="Remove"/>
+					</form>
 				</td>
 			</tr>
 			</xsl:for-each>
