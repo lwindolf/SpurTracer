@@ -18,7 +18,28 @@
 			<xsl:with-param name="active" select="'Settings'"/>
 		</xsl:call-template>
 
-		<h3>Nagios Connection</h3>
+		<h3>1. SpurTracer Alarm Thresholds</h3>
+
+		<p>
+			Configure error rate thresholds so that SpurTracer
+			can raise a warning or an error for a host, component, 
+			interface, component instance or interface instance.
+		</p>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="alarms"/>
+			<input type="hidden" name="name" value="global"/>
+			<table>
+				<tr><td>Warning Threshold [%]</td><td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global']/@warning}"/></td></tr>
+				<tr><td>Critical Threshold [%]</td><td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global']/@critical}"/></td></tr>
+			</table>
+			<input type="submit" value="Save"/>
+		</form>
+
+
+		<hr/>
+
+		<h3>2. Nagios Connection</h3>
 
 		<p>
 			You can configure SpurTracer to send Nagios alerts based 
@@ -28,14 +49,14 @@
 
 		<h4>Nagios Server</h4>
 
-		<form method="POST" action="addSetting">
+		<form method="GET" action="addSetting">
 			<input type="hidden" name="prefix" value="nagios"/>
 			<input type="hidden" name="name" value="server"/>
 			<table>
-				<tr><td>Nagios (NSCA) Host</td><td><input type="input" name="NSCAHost"/></td></tr>
-				<tr><td>Nagios (NSCA) Port</td><td><input type="input" name="NSCAPort" size="5"/></td></tr>	
-				<tr><td>NSCA Client Path</td><td><input type="input" name="NSCAClientPath"/></td></tr>	
-				<tr><td>NSCA Config File</td><td><input type="input" name="NSCAConfigFile"/></td></tr>	
+				<tr><td>Nagios (NSCA) Host</td><td><input type="input" name="NSCAHost" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAHost}"/></td></tr>
+				<tr><td>Nagios (NSCA) Port</td><td><input type="input" name="NSCAPort" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAPort}" size="5"/></td></tr>	
+				<tr><td>NSCA Client Path</td><td><input type="input" name="NSCAClientPath" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAClientPath}"/></td></tr>	
+				<tr><td>NSCA Config File</td><td><input type="input" name="NSCAConfigFile" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAConfigFile}"/></td></tr>	
 			</table>
 			<input type="submit" value="Save"/>
 		</form>

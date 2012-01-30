@@ -81,10 +81,11 @@ sub alarm_monitor_check {
 	foreach my $type ('host', 'component', 'interface') {
 		foreach my $object (@{stats_get_object_list($redis, $type)}) {
 			my %config = %{alarm_config_get($redis, $object)};
+print "ERROR: No config for $$object{name}!\n" unless(defined($config{'critical'}));
 			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
 			
-			if($errorRate > $config{'error'}) {
-				alarm_monitor_add_alarm($redis, 'error', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{error}% threshold)!", $errorRate));
+			if($errorRate > $config{'critical'}) {
+				alarm_monitor_add_alarm($redis, 'error', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
 				next;
 			}
 

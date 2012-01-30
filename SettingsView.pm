@@ -17,7 +17,7 @@ sub new {
 		$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
 		$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
 	}
-	$results{'Settings'} = settings_get($spuren->{redis});
+	$results{'Settings'} = settings_get_all($spuren->{redis});
 	$this->{results} = \%results;
 
 	return bless $this, $type;

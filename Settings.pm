@@ -5,17 +5,21 @@ require Exporter;
 @ISA = qw(Exporter);
 
 @EXPORT = qw(
+	settings_get_all
 	settings_get
 	settings_add
 	settings_remove
 );
 
+
 ################################################################################
-# Generic settings getter. Returns a representation of all settings
+# Generic settings getter.
 #
-# $1	Redis handle
+# $1		Redis handle
+#
+# Returns a list of all settings
 ################################################################################
-sub settings_get {
+sub settings_get_all {
 	my $redis = shift;
 	my @results = ();
 
@@ -25,6 +29,26 @@ sub settings_get {
 	}
 
 	return \@results;
+}
+
+################################################################################
+# Generic settings getter. Returns the first matching setting
+#
+# $1		Redis handle
+# ($2,$3)	Filter list (prefix, name)
+#
+# Returns a single hash reference (or undef)
+################################################################################
+sub settings_get {
+	my $redis = shift;
+	$filter = join("!", @_);
+
+	foreach my $key ($redis->keys("settings!$filter")) {
+		my %tmp = $redis->hgetall($key);
+		return \%tmp;
+	}
+
+	return undef;
 }
 
 ################################################################################

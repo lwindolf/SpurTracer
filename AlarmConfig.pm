@@ -9,8 +9,8 @@ use Settings;
 @EXPORT = qw(alarm_config_get);
 
 # Default error rate alarm configuration (in %)
-my %DEFAULT_ERROR_ALARM_THRESHOLDS = (
-	'error'		=> 15,
+my %DEFAULT_ALARM_THRESHOLDS = (
+	'critical'	=> 15,
 	'warning'	=> 5	
 );
 
@@ -20,15 +20,16 @@ my %DEFAULT_ERROR_ALARM_THRESHOLDS = (
 # $1	Redis handle
 # $2	object name
 #
-# Returns alarm threshold hash
+# Returns alarm threshold config hash
 ################################################################################
 sub alarm_config_get {
 	my ($redis, $object) = @_;
 
-	# FIXME: Read more specific config from Redis
+	my $settings = settings_get($redis, "alarms", "global");
+	return $settings if(defined($settings));
 
 	# If nothing else can be found return default config
-	return \%DEFAULT_ERROR_ALARM_THRESHOLDS;
+	return \%DEFAULT_ALARM_THRESHOLDS;
 }
 
 1;
