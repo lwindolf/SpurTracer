@@ -92,6 +92,10 @@ table.notifications th, .systemMap table th {
 	background:#F77;
 }
 
+.warning {
+	background:#FF7;
+}
+
 .finished {
 	background:#7F7;
 }

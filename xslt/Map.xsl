@@ -82,7 +82,13 @@
 
 <xsl:template name="Host">
 	<tr class="host">
-		<td><a href="get?host={@name}"><xsl:value-of select="@name"/></a></td>
+		<xsl:element name="td">
+			<xsl:variable name="host"><xsl:value-of select="@name"/></xsl:variable>
+			<xsl:attribute name="class">
+				<xsl:value-of select="//Alarms/Alarm[@type='host' and @name=$host]/@severity"/>
+			</xsl:attribute>
+			<a href="get?host={@name}"><xsl:value-of select="$host"/></a>
+		</xsl:element>
 		<td class='calls'><a href="get?host={@name}&amp;status=started"><xsl:value-of select="@started"/></a></td>
 		<xsl:call-template name="ErrorCell">
 			<xsl:with-param name="url">get?host=<xsl:value-of select="@name"/>&amp;status=failed</xsl:with-param>

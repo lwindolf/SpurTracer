@@ -63,9 +63,7 @@ sub settings_add {
 	return unless(defined($glob{'prefix'}) &&
 	              defined($glob{'name'}));
 
-	print STDERR "Adding setting...\n";
 	foreach my $key (keys %glob) {
-		print STDERR "    $key => $glob{$key}\n";
 		$redis->hset("settings!$glob{prefix}!$glob{name}", $key, $glob{$key});
 	}
 }
