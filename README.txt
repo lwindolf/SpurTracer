@@ -62,9 +62,15 @@ SpurTracer relies on the following software stack:
 
 You can install the following distribution specific packages
 
-   Debian Wheezy: 
+   Debian (Wheezy and later): 
 
 	apt-get install libxml-writer-perl libnet-server-perl libredis-perl redis-server
+
+If you want Nagios integration you might want to install
+
+   Debian:
+
+	apt-get install nsca
 
 
 3.3 Installing Perl Modules from CPAN
