@@ -1,4 +1,4 @@
-# AlarmMonitor.pm: SpurTracer Alarm Monitor
+# AlarmMonitor.pm: Detect and forward alarms
 #
 # Copyright (C) 2012 Lars Lindner <lars.lindner@gmail.com>
 #
@@ -21,6 +21,7 @@ require Exporter;
 
 use AlarmConfig;
 use Settings;
+use Spuren;
 use Stats;
 
 @ISA = qw(Exporter);
@@ -123,6 +124,17 @@ sub _check {
 				next;
 			}
 		}	
+	}
+
+	# Check pending announcements
+	my $now = time();
+	my $spuren = new Spuren();
+	my $timeoutSetting = settings_get($spuren->{'redis'}, "timeouts", "global");
+	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
+		if(($now - $announcement->{'time'}) > $timeoutSetting->{'interface'}) {
+			print STDERR "Announcement $announcement->{sourceComponent} -> $announcement->{component} $announcement->{ctxt} is overdue!\n";
+			# FIXME: Add timeout to spur
+		}
 	}
 }
 
