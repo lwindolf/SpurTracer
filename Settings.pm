@@ -32,15 +32,18 @@ require Exporter;
 ################################################################################
 # Generic settings getter.
 #
-# $1		Redis handle
+# $1	Redis handle
+# $2	Namespace Prefix (optional)
 #
 # Returns a list of all settings
 ################################################################################
 sub settings_get_all {
-	my $redis = shift;
+	my ($redis, $prefix) = @_;
 	my @results = ();
 
-	foreach my $key ($redis->keys("settings!*!*")) {
+	$prefix = "*" unless(defined($prefix));
+
+	foreach my $key ($redis->keys("settings!$prefix!*")) {
 		my %tmp = $redis->hgetall($key);
 		push(@results, \%tmp);
 	}

@@ -20,6 +20,7 @@ package AlarmMonitor;
 require Exporter;
 
 use AlarmConfig;
+use Settings;
 use Stats;
 
 @ISA = qw(Exporter);
@@ -63,6 +64,7 @@ sub alarm_monitor_run {
 		next unless(defined($redis));
 
 		alarm_monitor_check($redis);
+		alarm_monitor_send_nsca($redis);
 
 		$redis->quit();
 	}
@@ -98,7 +100,6 @@ sub alarm_monitor_check {
 	foreach my $type ('host', 'component', 'interface') {
 		foreach my $object (@{stats_get_object_list($redis, $type)}) {
 			my %config = %{alarm_config_get($redis, $object)};
-print "ERROR: No config for $$object{name}!\n" unless(defined($config{'critical'}));
 			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
 			
 			if($errorRate > $config{'critical'}) {
@@ -112,6 +113,34 @@ print "ERROR: No config for $$object{name}!\n" unless(defined($config{'critical'
 			}
 		}	
 	}
+}
+
+################################################################################
+# Check wether we need to send service check results to Nagios
+################################################################################
+sub alarm_monitor_send_nsca {
+	my $redis = shift;
+	my $now = time();
+
+	# Check last NSCA processing time stamp to determine wether we have
+	# new sending to do. Minimal update interval for NSCA is 60s.
+	my $last = $redis->get("alarmmonitor!lastNSCASend");
+	return if(($now - $last) < 60);
+
+	my $nagios = settings_get($redis, "nagios", "server");
+	return unless(defined($nagios->{'NSCAClientPath'}));
+
+	#print STDERR "Processing NSCA " .time() . "\n";
+	foreach my $setting (@{settings_get_all($redis, "nagios.serviceChecks")}) {
+		my $cmd = $nagios->{'NSCAClientPath'} . " ";
+		$cmd .= "-H $nagios->{NSCAHost} ";
+		$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
+		$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
+		#print STDERR "$cmd\n";
+	}
+
+	# Update last NSCA processing time stamp...
+	$redis->set("alarmmonitor!lastNSCASend", $now);
 }
 
 ################################################################################
