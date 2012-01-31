@@ -33,16 +33,7 @@ require Exporter;
 @ISA = qw(Exporter);
 
 @EXPORT = qw(
-	stats_add_start_notification
-	stats_add_error_notification
-	stats_add_interface_announced
-	stats_add_interface_timeout
-	stats_get_keys
-	stats_get_object
-	stats_get_object_list
-	stats_get_instance_list
 	stats_get_interval_definitions
-	stats_get_default_interval_name
 );
 
 my @INTERVALS = (
@@ -91,13 +82,12 @@ sub stats_get_interval_definitions {
 
 ################################################################################
 # Generic interval counter method. Increases counter by 1 for all configured
-# intervals. To be used by stats_count_object/interface() only.
+# intervals. To be used by _count_object/interface() only.
 #
-# $1	Redis handle
 # $2	Key
 ################################################################################
-sub _stats_count_interval {
-	my ($redis, $key) = @_;
+sub _count_interval {
+	my ($this, $key) = @_;
 
 	# Writing to an interval set of resolution m at time slot n
 	# is done by incrementing slot n and resetting slot n+1
@@ -112,9 +102,9 @@ sub _stats_count_interval {
 	foreach $interval (@INTERVALS) {
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
-		$redis->hsetnx("stats$$interval{name}\!$key", $n, 0);
-		$redis->hincrby("stats$$interval{name}\!$key", $n, 1);
-		$redis->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
+		$this->{'redis'}->hsetnx("stats$$interval{name}\!$key", $n, 0);
+		$this->{'redis'}->hincrby("stats$$interval{name}\!$key", $n, 1);
+		$this->{'redis'}->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
 	}
 }
 
@@ -154,117 +144,114 @@ sub get_interval {
 ################################################################################
 # Generic object counter method. Increases counter by 1.
 #
-# $1	Redis handle
 # $2	object type ('interface', 'component' or 'host')
 # $3	object name
 # $4	event that is counted ('error', 'started' or 'timeout')
 ################################################################################
-sub stats_count_object {
-	my $redis = shift;
+sub _count_object {
+	my $this = shift;
 	my $key = join("!", @_);
 
-	$redis->incr("stats!object!$key");
-	_stats_count_interval($redis, "object!$key");
+	$this->{'redis'}->incr("stats!object!$key");
+	$this->_count_interval("object!$key");
 }
 
 ################################################################################
 # Generic instance counter method. Increases counter by 1.
 #
-# $1	Redis handle
 # $2	object type ('interface', 'component')
 # $3	object name
 # $4	event that is counted ('error', 'started' or 'timeout')
 ################################################################################
-sub stats_count_instance {
-	my $redis = shift;
+sub _count_instance {
+	my $this = shift;
 	my $key = join("!", @_);
 
-	$redis->incr("stats!instance!".$key);
-	_stats_count_interval($redis, "instance!$key");
+	$this->{'redis'}->incr("stats!instance!".$key);
+	$this->_count_interval("instance!$key");
 }
 
 ################################################################################
 # Generic error counter method. Increases the error for all relevant counters.
 #
-# $1	Redis handle
 # $2	Host
 # $3	Component
 ################################################################################
-sub stats_add_start_notification {
+sub add_start_notification {
+	my $this = $_[0];
 
-	stats_count_object($_[0], 'global', 'started');
-	stats_count_object($_[0], 'host', $_[1], 'started');
-	stats_count_object($_[0], 'component', $_[2], 'started');
+	$this->_count_object('global', 'started');
+	$this->_count_object('host', $_[1], 'started');
+	$this->_count_object('component', $_[2], 'started');
 
-	stats_count_instance($_[0], 'component', join("!", ($_[1], $_[2])), 'started');
+	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'started');
 }
 
 ################################################################################
 # Generic error counter method. Increases the error for all relevant counters.
 #
-# $1	Redis handle
 # $2	Host
 # $3	Component
 ################################################################################
-sub stats_add_error_notification {
+sub add_error_notification {
+	my $this = $_[0];
 
-	stats_count_object($_[0], 'global', 'failed');
-	stats_count_object($_[0], 'host', $_[1], 'failed');
-	stats_count_object($_[0], 'component', $_[2], 'failed');
+	$this->_count_object('global', 'failed');
+	$this->_count_object('host', $_[1], 'failed');
+	$this->_count_object('component', $_[2], 'failed');
 
-	stats_count_instance($_[0], 'component', join("!", ($_[1], $_[2])), 'failed');
+	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'failed');
 }
 
 ################################################################################
 # Generic error counter method. Increases the error for all relevant counters.
 #
-# $1	Redis handle
 # $2	Source Host
 # $3	Source Component
 # $4	Target Component
 ################################################################################
-sub stats_add_interface_announced {
+sub add_interface_announced {
+	my $this = $_[0];
 
 	# Note: for a simpler and generic processing we use 'started'
 	# instead of 'announced' as the counter name for interfaces...
-	stats_count_object($_[0], 'global', 'interface', 'announced');
-	stats_count_object($_[0], 'interface', join("!", ($_[2], $_[3])), 'started');
+	$this->_count_object('global', 'interface', 'announced');
+	$this->_count_object('interface', join("!", ($_[2], $_[3])), 'started');
 
-	stats_count_instance($_[0], 'interface', join("!", ($_[1], $_[2], $_[3])), 'started');
+	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'started');
 }
 
 ################################################################################
 # Generic error counter method. Increases the error for all relevant counters.
 #
-# $1	Redis handle
 # $2	Source Host
 # $3	Source Component
 # $4	Target Host
 # $5	Target Component
 ################################################################################
-sub stats_add_interface_timeout {
+sub add_interface_timeout {
+	my $this = $_[0];
 
-	stats_count_object($_[0], 'global', 'interface', 'timeout');
-	stats_count_object($_[0], 'interface', $_[2] . "!" . $_[4], 'timeout');
+	$this->_count_object('global', 'interface', 'timeout');
+	$this->_count_object('interface', $_[2] . "!" . $_[4], 'timeout');
 
-	stats_count_instance($_[0], 'interface', join("!", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
+	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
 }
 
 ################################################################################
 # Generic counter getter. Returns all interesting fields per object+type as
 # a hash.
 #
-# $1	Redis handle
 # $2	object type ('interface', 'component' or 'host')
 # $3	object name
 ################################################################################
-sub stats_get_object {
-	my $redis = shift;
+sub get_object {
+	my $this = shift;
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $redis->get("stats!object!" . $key_prefix . "!" . $_);
+		$results{$_} = $this->{'redis'}->get("stats!object!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -274,18 +261,17 @@ sub stats_get_object {
 ################################################################################
 # Get a list of all known object keys of a type
 #
-# $1	Redis handle
 # $2	type ('object' or 'instance')
 # $3	value type ('global', 'interface', 'component' or 'host')
 # $4	counter name (optional, defaults to 'started')
 #
 # Returns a list of key names
 ################################################################################
-sub stats_get_keys {
-	my ($redis, $type, $valueType, $counter) = @_;
+sub get_keys {
+	my ($this, $type, $valueType, $counter) = @_;
 
 	$counter = "started" unless(defined($counter));
-	my @keys = $redis->keys("stats!$type!$valueType!*!$counter");
+	my @keys = $this->{'redis'}->keys("stats!$type!$valueType!*!$counter");
 
 	return \@keys;
 }
@@ -303,13 +289,13 @@ sub stats_get_keys {
 #	('from' => '<source component>',
 #        'to'   => '<target component>) pairs for interfaces
 ################################################################################
-sub stats_get_object_list {
-	my ($redis, $type) = @_;
+sub get_object_list {
+	my ($this, $type) = @_;
 	my @results = ();
 
-	foreach(@{stats_get_keys($redis, 'object', $type)}) {
+	foreach(@{$this->get_keys('object', $type)}) {
 		next unless(/^stats!object!$type!(.+)!\w+$/);
-		my %tmp = stats_get_object($redis, $type, $1);
+		my %tmp = $this->get_object($type, $1);
 		
 		# We must distinguish between interfaces and other object
 		# as interface names are <from>!<to> pairs...
@@ -331,17 +317,16 @@ sub stats_get_object_list {
 # Generic counter getter. Returns all interesting fields per instance+type as
 # a hash.
 #
-# $1	Redis handle
 # $2	instance type ('interface', 'component')
 # $3	instance name
 ################################################################################
-sub stats_get_instance {
-	my $redis = shift;
+sub get_instance {
+	my $this = shift;
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $redis->get("stats!instance!" . $key_prefix . "!" . $_);
+		$results{$_} = $this->{'redis'}->get("stats!instance!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -352,18 +337,17 @@ sub stats_get_instance {
 # Get a list of all known objects of a type and their properties as returned
 # by stats_get_instance()
 #
-# $1	Redis handle
 # $2	object type ('interface', 'component')
 #
 # Returns a list of FIXME pairs
 ################################################################################
-sub stats_get_instance_list {
-	my ($redis, $type) = @_;
+sub get_instance_list {
+	my ($this, $type) = @_;
 	my @results = ();
 
-	foreach(@{stats_get_keys($redis, 'instance', $type)}) {
+	foreach(@{$this->get_keys('instance', $type)}) {
 		next unless(/^stats!instance!$type!(.+)!\w+$/);
-		my %tmp = stats_get_instance($redis, $type, $1);
+		my %tmp = $this->get_instance($type, $1);
 
 		# Split instance name into it's parts. E.g.
 		#

@@ -35,8 +35,9 @@ sub new {
 	my $this = { };
 
 	# For now simply require a local Redis instance
-	$this->{redis} = Redis->new;
-	$this->{today} = strftime("%F", localtime());
+	$this->{'redis'} = Redis->new;
+	$this->{'stats'} = new Stats();
+	$this->{'today'} = strftime("%F", localtime());
 
 	return bless $this, $type;
 }
@@ -99,7 +100,7 @@ sub add_data {
 			$this->{redis}->set($akey, $key);
 			$this->{redis}->expire($akey, $expiration);
 			print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
-			stats_add_interface_announced($this->{redis}, $data{host}, $data{component}, $data{newcomponent});
+			$this->{'stats'}->add_interface_announced($data{host}, $data{component}, $data{newcomponent});
 		} else {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
@@ -111,8 +112,8 @@ sub add_data {
 	}
 
 	# And finally the statistics
-	stats_add_start_notification($this->{redis}, $data{host}, $data{component}) if($data{status} eq "started");
-	stats_add_error_notification($this->{redis}, $data{host}, $data{component}) if($data{status} eq "failed");
+	$this->{'stats'}->add_start_notification($data{host}, $data{component}) if($data{status} eq "started");
+	$this->{'stats'}->add_error_notification($data{host}, $data{component}) if($data{status} eq "failed");
 
 	return 0;
 }

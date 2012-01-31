@@ -72,6 +72,10 @@ If you want Nagios integration you might want to install
 
 	apt-get install nsca
 
+   RHEL:
+
+	yum install nagios-nsca-client
+
 
 3.3 Installing Perl Modules from CPAN
 -------------------------------------

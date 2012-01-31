@@ -45,28 +45,40 @@ sub alarm_monitor_create {
 		print "Created AlarmMonitor (pid $pid)\n";
 		return $pid;
 	} else {
-		alarm_monitor_run();
+		my $am = new AlarmMonitor();
+		$am->_run();
 		exit();
 	}
+}
+
+sub new {
+	my ($type) = @_;
+	my $this = { };
+
+	return bless $this, $type;
 }
 
 ################################################################################
 # Execute alarm monitor by running in a loop periodically performing the 
 # alarm detection...
 ################################################################################
-sub alarm_monitor_run {
+sub _run {
+	my $this = shift;
 
 	while(1) {
 		sleep($INTERVAL);
 
-		# Reopen Redis connection each time to avoid loosing it
-		my $redis = Redis->new;
-		next unless(defined($redis));
+		# Resetup Stats each time to avoid loosing the Redis connection
+		# FIXME: Resolve by reconnecting using DB Resource Object
+		$this->{'stats'} = new Stats();
+		next unless(defined($this->{'stats'}->{'redis'}));
 
-		alarm_monitor_check($redis);
-		alarm_monitor_send_nsca($redis);
+		$this->_check();
+		$this->_send_nsca();
 
-		$redis->quit();
+		# Force close connection to avoid exhausting connections
+		# FIXME: Resolve by reconnecting above using DB Resource Object
+		$this->{'stats'}->{'redis'}->quit();
 	}
 }
 
@@ -75,40 +87,39 @@ sub alarm_monitor_run {
 # same object (so an new error will overwrite an previous warning). Sets a
 # timeout for errors to disappear again.
 #
-# $1	Redis handle
 # $2	severity ('error' or 'warning')
 # $3	object type
 # $4	message (without trailing \n)
 ################################################################################
-sub alarm_monitor_add_alarm {
-	my ($redis, $severity, $type, $name, $msg) = @_;
+sub _add_alarm {
+	my ($this, $severity, $type, $name, $msg) = @_;
 
 	my $key = "alarm!$type!$name";
-	$redis->hset($key, 'message', $msg);
-	$redis->hset($key, 'time', time());
-	$redis->hset($key, 'severity', $severity);
-	$redis->expire($key, $INTERVAL * 10);
+	$this->{'stats'}->{'redis'}->hset($key, 'message', $msg);
+	$this->{'stats'}->{'redis'}->hset($key, 'time', time());
+	$this->{'stats'}->{'redis'}->hset($key, 'severity', $severity);
+	$this->{'stats'}->{'redis'}->expire($key, $INTERVAL * 10);
 }
 
 ################################################################################
 # Check wether we need to raise some alarms and add alarms to alarm list
 ################################################################################
-sub alarm_monitor_check {
-	my $redis = shift;
+sub _check {
+	my $this = shift;
 
 	# Check error rates
 	foreach my $type ('host', 'component', 'interface') {
-		foreach my $object (@{stats_get_object_list($redis, $type)}) {
-			my %config = %{alarm_config_get($redis, $object)};
+		foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
+			my %config = %{alarm_config_get($this->{'stats'}->{'redis'}, $object)};
 			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
 			
 			if($errorRate > $config{'critical'}) {
-				alarm_monitor_add_alarm($redis, 'error', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
+				$this->_add_alarm('error', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
 				next;
 			}
 
 			if($errorRate > $config{'warning'}) {
-				alarm_monitor_add_alarm($redis, 'warning', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}% threshold)!", $errorRate));
+				$this->_add_alarm('warning', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}% threshold)!", $errorRate));
 				next;
 			}
 		}	
@@ -118,20 +129,20 @@ sub alarm_monitor_check {
 ################################################################################
 # Check wether we need to send service check results to Nagios
 ################################################################################
-sub alarm_monitor_send_nsca {
-	my $redis = shift;
+sub _send_nsca {
+	my $this = shift;
 	my $now = time();
 
 	# Check last NSCA processing time stamp to determine wether we have
 	# new sending to do. Minimal update interval for NSCA is 60s.
-	my $last = $redis->get("alarmmonitor!lastNSCASend");
+	my $last = $this->{'stats'}->{'redis'}->get("alarmmonitor!lastNSCASend");
 	return if(($now - $last) < 60);
 
-	my $nagios = settings_get($redis, "nagios", "server");
+	my $nagios = settings_get($this->{'stats'}->{'redis'}, "nagios", "server");
 	return unless(defined($nagios->{'NSCAClientPath'}));
 
 	#print STDERR "Processing NSCA " .time() . "\n";
-	foreach my $setting (@{settings_get_all($redis, "nagios.serviceChecks")}) {
+	foreach my $setting (@{settings_get_all($this->{'stats'}->{'redis'}, "nagios.serviceChecks")}) {
 		my $cmd = $nagios->{'NSCAClientPath'} . " ";
 		$cmd .= "-H $nagios->{NSCAHost} ";
 		$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
@@ -140,11 +151,13 @@ sub alarm_monitor_send_nsca {
 	}
 
 	# Update last NSCA processing time stamp...
-	$redis->set("alarmmonitor!lastNSCASend", $now);
+	$this->{'stats'}->{'redis'}->set("alarmmonitor!lastNSCASend", $now);
 }
 
 ################################################################################
 # Returns a list of all currently active alarms
+#
+# $1	Redis handle
 ################################################################################
 sub alarm_monitor_get_alarms {
 	my $redis = shift;

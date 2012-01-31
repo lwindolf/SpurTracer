@@ -26,14 +26,17 @@ use Stats;
 sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
-	my $spuren = new Spuren();
+	my $stats = new Stats();
 	my %results;
 
+	# We need a list of all existing object to allow configuring
+	# object specific error/timeout thresholds and Nagios service
+	# checks...
 	foreach my $type ('Host', 'Interface', 'Component') {
-		$results{"${type}s"}		= stats_get_object_list($spuren->{redis}, lc($type));
-		$results{"${type}Instances"}	= stats_get_instance_list($spuren->{redis}, lc($type));
+		$results{"${type}s"}		= $stats->get_object_list(lc($type));
+		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
-	$results{'Settings'} = settings_get_all($spuren->{redis});
+	$results{'Settings'} = settings_get_all($stats->{'redis'});
 	$this->{results} = \%results;
 
 	return bless $this, $type;
