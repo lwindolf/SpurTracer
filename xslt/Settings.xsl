@@ -18,13 +18,26 @@
 			<xsl:with-param name="active" select="'Settings'"/>
 		</xsl:call-template>
 
-		<h3>1. SpurTracer Alarm Thresholds</h3>
+		<h3>Settings</h3>
+
+		<ol>
+			<li><a href="#alarms">Alarm Thresholds</a></li>
+			<li><a href="#timeouts">Timeouts</a></li>
+			<li><a href="#nagios">Nagios Integration</a></li>
+		</ol>
+
+		<hr/>
+
+		<a name="alarms"/>
+		<h3>1. Alarm Thresholds</h3>
 
 		<p>
 			Configure error rate thresholds so that SpurTracer
 			can raise a warning or an error for a host, component, 
 			interface, component instance or interface instance.
 		</p>
+
+		<b>Global Default</b>
 
 		<form method="GET" action="addSetting">
 			<input type="hidden" name="prefix" value="alarms"/>
@@ -36,15 +49,43 @@
 			<input type="submit" value="Save"/>
 		</form>
 
+		<hr/>
+
+		<a name="timeouts"/>
+		<h3>2. Timeouts</h3>
+
+		<p>
+			Configure timeouts to control when SpurTracer considers
+			a component or interface as not responding. 
+			<ul>
+				<li>For components this is the maximum duration that SpurTracer should wait for	the 'finished' event. </li>
+				<li>For interfaces this is the maximum duration that SpurTracer should wait after the interface invocation was announced.</li>
+			</ul>
+		</p>
+
+		<b>Global Default</b>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="timeouts"/>
+			<input type="hidden" name="name" value="global"/>
+			<table>
+				<tr><td>Component Timeout [s]</td><td><input type="input"  name="component" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@component}"/></td></tr>
+				<tr><td>Interface Timeout [s]</td><td><input type="input" name="interface" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@interface}"/></td></tr>
+			</table>
+			<input type="submit" value="Save"/>
+		</form>
 
 		<hr/>
 
-		<h3>2. Nagios Connection</h3>
+		<a name="nagios"/>
+		<h3>3. Nagios Integration</h3>
 
 		<p>
 			You can configure SpurTracer to send Nagios alerts based 
 			on the definitions below. For this to work you need the
-			Nagios <a href="http://nagios.sourceforge.net/docs/3_0/addons.html">NSCA addon</a> installed.
+			Nagios <a href="http://nagios.sourceforge.net/docs/3_0/addons.html">NSCA addon</a> 
+			installed on your Nagios server and the NSCA client on
+			the SpurTracer server.
 		</p>
 
 		<h4>Nagios Server</h4>
