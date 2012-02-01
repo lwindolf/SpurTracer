@@ -26,7 +26,7 @@
 		<xsl:call-template name="Alarms"/>
 
 		<div class="systemMap">
-			<b>Hosts</b>
+			<b><a href="?type=host">Hosts</a></b>
 			<br/>
 			<br/>
 			<table class="hostMap">
@@ -44,7 +44,25 @@
 		</div>
 
 		<div class="systemMap">
-			<b>Interfaces</b>
+			<b><a href="?type=component">Components</a></b>
+			<br/>
+			<br/>
+			<table class="componentMap">
+				<tr>
+					<th>Component / From</th>
+					<th>Calls</th>
+					<th>Errors</th>
+					<th>Timeouts</th>
+				</tr>
+				<xsl:for-each select="Components/Component">
+					<xsl:sort select="@component" order="ascending"/>
+					<xsl:call-template name="Component"/>
+				</xsl:for-each>
+			</table>
+		</div>
+
+		<div class="systemMap">
+			<b><a href="?type=interface">Interfaces</a></b>
 			<br/>
 			<br/>
 			<table class="interfaceMap">
@@ -112,6 +130,42 @@
 			</xsl:call-template>
 			<xsl:call-template name="ErrorCell">
 				<xsl:with-param name="url">get?host=<xsl:value-of select="@name"/>&amp;component=<xsl:value-of select="@component"/>&amp;status=timeout</xsl:with-param>
+				<xsl:with-param name="value" select="@timeout"/>
+			</xsl:call-template>
+		</tr>
+	</xsl:for-each>
+</xsl:template>
+
+<xsl:template name="Component">
+	<tr class="component">
+		<xsl:element name="td">
+			<xsl:variable name="component"><xsl:value-of select="@name"/></xsl:variable>
+			<xsl:attribute name="class">
+				<xsl:value-of select="//Alarms/Alarm[@type='component' and @name=$component]/@severity"/>
+			</xsl:attribute>
+			<a href="get?component={@name}"><xsl:value-of select="$component"/></a>
+		</xsl:element>
+		<td class='calls'><xsl:value-of select="@started"/></td>
+		<xsl:call-template name="ErrorCell">
+			<xsl:with-param name="url">get?host=<xsl:value-of select="@name"/>&amp;status=failed</xsl:with-param>
+			<xsl:with-param name="value" select="@failed"/>
+		</xsl:call-template>
+		<xsl:call-template name="ErrorCell">
+			<xsl:with-param name="value" select="@timeout"/>
+		</xsl:call-template>
+	</tr>
+	<xsl:variable name="name"><xsl:value-of select="@name"/></xsl:variable>
+	<xsl:for-each select="/Spuren/ComponentInstances/Instance[@component = $name]">
+		<xsl:sort select="@host" order="ascending"/>			
+		<tr class="componentInstance">
+			<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a></td>
+			<td class='calls'><xsl:value-of select="@started"/></td>
+			<xsl:call-template name="ErrorCell">
+				<xsl:with-param name="url">get?host=<xsl:value-of select="@host"/>&amp;component=<xsl:value-of select="@component"/>&amp;status=failed</xsl:with-param>
+				<xsl:with-param name="value" select="@failed"/>
+			</xsl:call-template>
+			<xsl:call-template name="ErrorCell">
+				<xsl:with-param name="url">get?host=<xsl:value-of select="@host"/>&amp;status=timeout</xsl:with-param>
 				<xsl:with-param name="value" select="@timeout"/>
 			</xsl:call-template>
 		</tr>

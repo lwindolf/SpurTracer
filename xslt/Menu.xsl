@@ -7,7 +7,6 @@
 	<div class="menu">
 		<span id="Map"		class="menuitem"><a href="getMap">System Map</a></span>
 		<span id="Events"	class="menuitem"><a href="get">Recent Events</a></span>
-		<span id="Components"	class="menuitem"><a href="getComponents">Components</a></span>
 		<span id="Announcements" class="menuitem"><a href="getAnnouncements">Announcements</a></span>
 		<span id="Settings"	class="menuitem"><a href="getSettings">Settings</a></span>
 	</div>

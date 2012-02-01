@@ -149,7 +149,7 @@ table.notifications th, .systemMap table th {
 	color:white;
 }
 
-tr.host, tr.interface {
+tr.host, tr.component, tr.interface {
 	background:#ccc;
 }
 
