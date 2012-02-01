@@ -107,6 +107,7 @@ sub _add_alarm {
 ################################################################################
 sub _check {
 	my $this = shift;
+	my $now = time();
 
 	# Check error rates
 	foreach my $type ('host', 'component', 'interface') {
@@ -126,8 +127,7 @@ sub _check {
 		}	
 	}
 
-	# Check pending announcements
-	my $now = time();
+	# Check overdue announcements (uncleared older announcements)
 	my $spuren = new Spuren();
 	my $timeoutSetting = settings_get($spuren->{'redis'}, "timeouts", "global");	# FIXME: Allow object specific setting
 	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
@@ -139,6 +139,9 @@ sub _check {
 		                                        $announcement->{'sourceComponent'},
 		                                        $announcement->{'component'});
 	}
+
+	# Check component timeouts (missing 'finished' event)
+	# FIXME
 }
 
 ################################################################################

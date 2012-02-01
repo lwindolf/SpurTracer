@@ -29,8 +29,8 @@
 		<p>Each announcement does indicate an interface that was triggered by one
 		component, while not yet being processed by the component implementation
 		the interface.</p>
-
-		<p>An overdue announcement usually indicates a component failure.</p>
+		<p> Overdue announcements will time out according to the 
+		<a href="getSettings#timeouts">timeout settings</a>.</p>
 
 		<table border="0" class="notifications">
 			<tr>
@@ -47,6 +47,15 @@
 			</xsl:for-each>
 		</table>
 
+		<div class="legend">
+			<table>
+				<tr><th>Legend</th></tr>
+				<tr><td class='announced'>announced</td></tr>
+				<tr><td class='error'>timeout</td></tr>
+			</table>
+		</div>
+
+
 		<div class="clear"/>
 	</div>
 </body>
@@ -54,7 +63,11 @@
 </xsl:template>
 
 <xsl:template name="Announcement">
-	<tr class="announcement announced">
+	<xsl:element name="tr">
+		<xsl:attribute name="class">announcement
+			<xsl:if test="@timeout = 0">announced</xsl:if>
+			<xsl:if test="@timeout = 1">error</xsl:if>
+		</xsl:attribute>
 		<td><xsl:value-of select="@date"/></td>
 		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
 		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
@@ -62,7 +75,7 @@
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
 		<td><xsl:value-of select="/Spuren/@now - @time"/>s</td>
-	</tr>
+	</xsl:element>
 </xsl:template>
 
 </xsl:stylesheet>
