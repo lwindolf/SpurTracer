@@ -25,58 +25,7 @@
 
 		<xsl:call-template name="Alarms"/>
 
-		<div class="systemMap">
-			<b><a href="?type=host">Hosts</a></b>
-			<br/>
-			<br/>
-			<table class="hostMap">
-				<tr>
-					<th>Host / Component</th>
-					<th>Calls</th>
-					<th>Errors</th>
-					<th>Timeouts</th>
-				</tr>
-				<xsl:for-each select="Hosts/Host">
-					<xsl:sort select="@name" order="ascending"/>
-					<xsl:call-template name="Host"/>
-				</xsl:for-each>
-			</table>
-		</div>
-
-		<div class="systemMap">
-			<b><a href="?type=component">Components</a></b>
-			<br/>
-			<br/>
-			<table class="componentMap">
-				<tr>
-					<th>Component / From</th>
-					<th>Calls</th>
-					<th>Errors</th>
-					<th>Timeouts</th>
-				</tr>
-				<xsl:for-each select="Components/Component">
-					<xsl:sort select="@component" order="ascending"/>
-					<xsl:call-template name="Component"/>
-				</xsl:for-each>
-			</table>
-		</div>
-
-		<div class="systemMap">
-			<b><a href="?type=interface">Interfaces</a></b>
-			<br/>
-			<br/>
-			<table class="interfaceMap">
-				<tr>
-					<th>Interface / From</th>
-					<th>Calls</th>
-					<th>Timeouts</th>
-				</tr>
-				<xsl:for-each select="Interfaces/Interface">
-					<xsl:sort select="@from" order="ascending"/>
-					<xsl:call-template name="Interface"/>
-				</xsl:for-each>
-			</table>
-		</div>
+		<xsl:apply-templates/>
 
 		<xsl:for-each select="IntervalStatistics">
 			<xsl:call-template name="Interval"/>
@@ -97,6 +46,26 @@
 		<xsl:if test="$value > 0"><xsl:attribute name="class">error</xsl:attribute></xsl:if>
 		<a href="{$url}"><xsl:value-of select="$value"/></a>
 	</xsl:element>	
+</xsl:template>
+
+<xsl:template match="Hosts">
+	<div class="systemMap">
+		<b><a href="?type=host">Hosts</a></b>
+		<br/>
+		<br/>
+		<table class="hostMap">
+			<tr>
+				<th>Host / Component</th>
+				<th>Calls</th>
+				<th>Errors</th>
+				<th>Timeouts</th>
+			</tr>
+			<xsl:for-each select="Host">
+				<xsl:sort select="@name" order="ascending"/>
+				<xsl:call-template name="Host"/>
+			</xsl:for-each>
+		</table>
+	</div>
 </xsl:template>
 
 <xsl:template name="Host">
@@ -136,6 +105,26 @@
 	</xsl:for-each>
 </xsl:template>
 
+<xsl:template match="Components">
+	<div class="systemMap">
+		<b><a href="?type=component">Components</a></b>
+		<br/>
+		<br/>
+		<table class="componentMap">
+			<tr>
+				<th>Component / From</th>
+				<th>Calls</th>
+				<th>Errors</th>
+				<th>Timeouts</th>
+			</tr>
+			<xsl:for-each select="Component">
+				<xsl:sort select="@component" order="ascending"/>
+				<xsl:call-template name="Component"/>
+			</xsl:for-each>
+		</table>
+	</div>
+</xsl:template>
+
 <xsl:template name="Component">
 	<tr class="component">
 		<xsl:element name="td">
@@ -170,6 +159,25 @@
 			</xsl:call-template>
 		</tr>
 	</xsl:for-each>
+</xsl:template>
+
+<xsl:template match="Interfaces">
+	<div class="systemMap">
+		<b><a href="?type=interface">Interfaces</a></b>
+		<br/>
+		<br/>
+		<table class="interfaceMap">
+			<tr>
+				<th>Interface / From</th>
+				<th>Calls</th>
+				<th>Timeouts</th>
+			</tr>
+			<xsl:for-each select="Interface">
+				<xsl:sort select="@from" order="ascending"/>
+				<xsl:call-template name="Interface"/>
+			</xsl:for-each>
+		</table>
+	</div>
 </xsl:template>
 
 <xsl:template name="Interface">

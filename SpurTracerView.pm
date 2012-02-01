@@ -117,25 +117,24 @@ sub print {
 	}
 
 	foreach my $tag ("Announcement", "Host", "Interface", "Component") {
-		next unless defined($data{$tag . 's'});
 
 		# Dump objects
-		$writer->startTag($tag . 's');
-		foreach (@{$data{$tag .'s'}}) {
-			$writer->emptyTag($tag, %{$_});
+		if(defined($data{$tag . 's'})) {
+			$writer->startTag($tag . 's');
+			foreach (@{$data{$tag .'s'}}) {
+				$writer->emptyTag($tag, %{$_});
+			}
+			$writer->endTag();
 		}
-		$writer->endTag();
-
-		# Hosts and Announcements have no instances...
-		next if($tag eq "Host" or $tag eq "Announcement");
 
 		# Dump instances
-		$writer->startTag($tag . 'Instances');
-		foreach (@{$data{$tag .'Instances'}}) {
-			$writer->emptyTag('Instance', %{$_});
+		if(defined($data{$tag . 'Instances'})) {
+			$writer->startTag($tag . 'Instances');
+			foreach (@{$data{$tag .'Instances'}}) {
+				$writer->emptyTag('Instance', %{$_});
+			}
+			$writer->endTag();
 		}
-		$writer->endTag();
-
 	}
 
 	$writer->endTag();

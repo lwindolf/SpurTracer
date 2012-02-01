@@ -28,9 +28,20 @@ sub new {
 	my $stats = new Stats($this->{'interval'});
 	my %results;
 
-	# Simply collect all infos about all object types...
-	foreach my $type ('Host', 'Interface', 'Component') {
+	my @objectTypes;
+	if(defined($this->{'glob'}{'type'})) {
+		@objectTypes = (ucfirst($this->{'glob'}{'type'}));
+	} else {
+		@objectTypes = ('Host', 'Component', 'Interface');
+	}
+
+	@instanceTypes = @objectTypes;
+	@instanceTypes = ('Component') if($this->{'glob'}{'type'} eq "host");
+
+	foreach my $type (@objectTypes) {
 		$results{"${type}s"}		= $stats->get_object_list(lc($type));
+	}
+	foreach my $type (@instanceTypes) {
 		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
 
