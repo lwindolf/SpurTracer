@@ -94,21 +94,14 @@ sub add_data {
 		);
 
 		if($#notifications < 0) {
-			my $akey = "announce!";
-			$akey .= "n".$data{newcomponent}."!";
-			$akey .= "c".$data{newctxt};
-			$this->{redis}->set($akey, $key);
-			$this->{redis}->expire($akey, $expiration);
-			print STDERR "Adding announcement >>>$akey<<<\n" if($debug);
+			$this->_add_announcement(%data);
 			$this->{'stats'}->add_interface_announced($data{host}, $data{component}, $data{newcomponent});
 		} else {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
 	} else {
-		# For normal notifications:
-
-		# Delete announcement on any notification
-		$this->{redis}->del("announce!n$data{component}!c$data{ctxt}");
+		# For normal notifications: Always clear any existing announcement
+		$this->_clear_announcement(%data);
 	}
 
 	# And finally the statistics
@@ -222,6 +215,45 @@ sub fetch {
 }
 
 ################################################################################
+# Add new announcement
+#
+# $2	the event
+################################################################################
+sub _add_announcement {
+	my ($this, %event) = @_;
+
+	my $akey = "announce!n$event{newcomponent}!c$event{newctxt}";
+	$this->{redis}->hset($akey, 'sourceHost',	$event{'host'});
+	$this->{redis}->hset($akey, 'sourceComponent',	$event{'component'});
+	$this->{redis}->hset($akey, 'sourceCtxt',	$event{'ctxt'});
+	$this->{redis}->hset($akey, 'time', time());
+	$this->{redis}->hset($akey, 'timeout', 0);
+	$this->{redis}->expire($akey, $expiration);
+}
+
+################################################################################
+# Clear existing announcement
+#
+# $2	the event
+################################################################################
+sub _clear_announcement {
+	my ($this, %event) = @_;
+
+	$this->{'redis'}->del("announce!n$event{component}!c$event{ctxt}");
+}
+
+################################################################################
+# Mark the given timeout as run into a timeout
+#
+# $2	the event
+################################################################################
+sub set_announcement_timeout {
+	my ($this, %event) = @_;
+
+	$this->{'redis'}->hset("announce!n$event{component}!c$event{ctxt}", 'timeout', 1);
+}
+
+################################################################################
 # Generic announcement fetching method. Provides filtering as fetch() does.
 #
 # $2	Hash with Redis glob patterns. Can be empty to fetch the
@@ -270,19 +302,10 @@ sub fetch_announcements {
 			$i++;
 
 			# Add event to set
-			my %event = ();
-			$event{component} = $1;
-			$event{ctxt} = $2;
-
-			# Extract additional info from value
-			if($this->{redis}->get($key) =~ /^d(\d+)!h(\w+)!n([^!]+)!c([^!]+)!/) {	# FIXME: Isolate parsing into Notification.pm
-				$event{sourceHost} = $2;
-				$event{sourceComponent} = $3;
-				$event{sourceCtxt} = $4;
-
-				$event{time} = $1;
-				$event{date} = $this->nice_time($1)
-			}
+			my %event = $this->{'redis'}->hgetall($key);
+			$event{'component'} = $1;
+			$event{'ctxt'} = $2;
+			$event{'date'} = $this->nice_time($event{'time'});
 
 			push(@results, \%event);
 		} else {

@@ -224,18 +224,19 @@ sub add_interface_announced {
 ################################################################################
 # Generic error counter method. Increases the error for all relevant counters.
 #
+# To be called only by AlarmMonitor!
+#
 # $2	Source Host
 # $3	Source Component
-# $4	Target Host
 # $5	Target Component
 ################################################################################
 sub add_interface_timeout {
 	my $this = $_[0];
 
 	$this->_count_object('global', 'interface', 'timeout');
-	$this->_count_object('interface', $_[2] . "!" . $_[4], 'timeout');
+	$this->_count_object('interface', $_[2] . "!" . $_[3], 'timeout');
 
-	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3], $_[4])), 'timeout');
+	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'timeout');
 }
 
 ################################################################################

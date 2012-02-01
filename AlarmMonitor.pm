@@ -129,12 +129,15 @@ sub _check {
 	# Check pending announcements
 	my $now = time();
 	my $spuren = new Spuren();
-	my $timeoutSetting = settings_get($spuren->{'redis'}, "timeouts", "global");
+	my $timeoutSetting = settings_get($spuren->{'redis'}, "timeouts", "global");	# FIXME: Allow object specific setting
 	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
-		if(($now - $announcement->{'time'}) > $timeoutSetting->{'interface'}) {
-			print STDERR "Announcement $announcement->{sourceComponent} -> $announcement->{component} $announcement->{ctxt} is overdue!\n";
-			# FIXME: Add timeout to spur
-		}
+		next if($announcement->{'timeout'} == 1);
+		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
+
+		$spuren->set_announcement_timeout(%{$announcement});
+		$this->{'stats'}->add_interface_timeout($announcement->{'sourceHost'},
+		                                        $announcement->{'sourceComponent'},
+		                                        $announcement->{'component'});
 	}
 }
 
