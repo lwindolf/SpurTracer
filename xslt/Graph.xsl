@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-<xsl:template name="Interval">
+<xsl:template name="Graph">
 	<div class="systemMap">
-		<b>Last <xsl:value-of select="@name"/></b>
+		<b>Last <xsl:value-of select="@interval"/>: <xsl:value-of select="@name"/></b>
 		<br/>
 		<br/>
 
-	<table class="graph" id="graph{@name}">
+	<table class="graph" id="graph{position()}">
 		<thead>
 			<tr>
 				<xsl:for-each select="Counter[@name = 'started']/Value">
@@ -39,7 +39,7 @@
 
 	<script type="text/javascript">
 		$(function(){
-			var id = "#graph<xsl:value-of select="@name"/>";
+			var id = "#graph<xsl:value-of select="position()"/>";
 			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '2', colors: ['#0F0', '#F00', '#CC0']});
 			$(id).addClass('accessHide');
 		});

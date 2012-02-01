@@ -28,15 +28,14 @@ sub new {
 	my $stats = new Stats($this->{'interval'});
 	my %results;
 
-	my @objectTypes;
-	if(defined($this->{'glob'}{'type'})) {
-		@objectTypes = (ucfirst($this->{'glob'}{'type'}));
-	} else {
-		@objectTypes = ('Host', 'Component', 'Interface');
-	}
+	my $filter = $this->{'glob'}{'type'};
+	$filter = "global" unless(defined($filter));
+
+	my @objectTypes = ('Host', 'Component', 'Interface');
+	@objectTypes = (ucfirst($filter)) if($filter ne "global");
 
 	@instanceTypes = @objectTypes;
-	@instanceTypes = ('Component') if($this->{'glob'}{'type'} eq "host");
+	@instanceTypes = ('Component') if($filter eq "host");
 
 	foreach my $type (@objectTypes) {
 		$results{"${type}s"}		= $stats->get_object_list(lc($type));
@@ -45,7 +44,32 @@ sub new {
 		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
 
-	$results{'IntervalStatistics'} = $stats->get_interval("object!global", ("started", "failed", "announced", "timeout"));
+	my @match;
+
+	if($filter ne "global") {
+		@keys = @{$stats->get_keys(('object', $filter))};
+	} else {
+		@keys = ('object!global');
+	}
+
+	foreach my $key (@keys) {
+		my (%objStat, $match);
+
+		if($filter eq 'global') {
+			$objStat{'name'} = 'Global Events';
+			$match = 'object!global';
+		} elsif($key =~ /^stats!(object!$filter!([^!]+))!started$/) {
+			$objStat{'name'} = ucfirst($filter)." $2";
+			$match = $1;
+		} else {
+			next;
+		}
+
+		$objStat{'counters'} = $stats->get_interval($match, ("started", "failed", "announced", "timeout"));
+		$objStat{'interval'} = $stats->{'interval'}->{'name'};
+		push(@{$results{'Statistics'}}, \%objStat);
+	}
+
 	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	$this->{'results'} = \%results;

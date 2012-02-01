@@ -99,17 +99,23 @@ sub print {
 		$writer->endTag();
 	}
 
-	if(defined(${data{'IntervalStatistics'}})) {
-		my %stats = %{$data{'IntervalStatistics'}};
+	if(defined(${data{'Statistics'}})) {
+		$writer->startTag('Statistics');
+		foreach my $object (@{$data{'Statistics'}}) {
 
-		$writer->startTag("IntervalStatistics", ( 'name' => $stats{'name'} ));
-		foreach my $counter (keys %stats) {
-			my %values = %{$stats{$counter}};
-			next if($counter eq 'name');
+			$writer->startTag("Object", (
+				'name'		=> $object->{'name'},
+				'interval'	=> $object->{'interval'}
+			));
+			foreach my $counter (keys %{$object->{'counters'}}) {
+				my %values = %{$object->{'counters'}{$counter}};
+				next if($counter =~ /(name|interval)/);
 
-			$writer->startTag('Counter',  ('name' => $counter ));
-			foreach my $slot (sort { $a <=> $b } keys(%values)) {
-				$writer->emptyTag('Value', ( 'slot' => $slot, 'value' => $values{$slot}));
+				$writer->startTag('Counter',  ('name' => $counter ));
+				foreach my $slot (sort { $a <=> $b } keys(%values)) {
+					$writer->emptyTag('Value', ( 'slot' => $slot, 'value' => $values{$slot}));
+				}
+				$writer->endTag();
 			}
 			$writer->endTag();
 		}

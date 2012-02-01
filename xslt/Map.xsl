@@ -27,8 +27,8 @@
 
 		<xsl:apply-templates/>
 
-		<xsl:for-each select="IntervalStatistics">
-			<xsl:call-template name="Interval"/>
+		<xsl:for-each select="Statistics/Object">
+			<xsl:call-template name="Graph"/>
 		</xsl:for-each>
 
 		<div class="clear"/>
