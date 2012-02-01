@@ -30,7 +30,7 @@ sub new {
 	my %results;
 
 	$results{"Announcements"} = $spuren->fetch_announcements(%{$this->{glob}});
-	$results{'Alarms'} = alarm_monitor_get_alarms($spuren->{redis});
+	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	$this->{results} = \%results;
 

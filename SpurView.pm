@@ -30,7 +30,7 @@ sub new {
 	my %results;
 
 	$results{'Spuren'} = $spuren->fetch(%{$this->{glob}});
-	$results{'Alarms'} = alarm_monitor_get_alarms($spuren->{redis});
+	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	foreach	my $object (keys %{$this->{'glob'}}) {
 		next unless($object =~ /^(host|component)$/);

@@ -36,7 +36,7 @@ sub new {
 		$results{"${type}s"}		= $stats->get_object_list(lc($type));
 		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
-	$results{'Settings'} = settings_get_all($stats->{'redis'});
+	$results{'Settings'} = settings_get_all();
 	$this->{results} = \%results;
 
 	return bless $this, $type;

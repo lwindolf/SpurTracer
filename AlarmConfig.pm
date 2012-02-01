@@ -34,15 +34,14 @@ my %DEFAULT_ALARM_THRESHOLDS = (
 ################################################################################
 # Get most specific alarm config value for a given object name
 #
-# $1	Redis handle
-# $2	object name
+# $1	object name
 #
 # Returns alarm threshold config hash
 ################################################################################
 sub alarm_config_get {
-	my ($redis, $object) = @_;
+	my ($object) = @_;
 
-	my $settings = settings_get($redis, "alarms", "global");
+	my $settings = settings_get("alarms", "global");
 	return $settings if(defined($settings));
 
 	# If nothing else can be found return default config

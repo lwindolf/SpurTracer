@@ -35,7 +35,7 @@ sub new {
 	}
 
 	$results{'IntervalStatistics'} = $stats->get_interval("object!global", ("started", "failed", "announced", "timeout"));
-	$results{'Alarms'} = alarm_monitor_get_alarms($stats->{'redis'});
+	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	$this->{'results'} = \%results;
 

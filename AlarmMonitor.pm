@@ -20,6 +20,7 @@ package AlarmMonitor;
 require Exporter;
 
 use AlarmConfig;
+use DB;
 use Settings;
 use Spuren;
 use Stats;
@@ -66,25 +67,21 @@ sub new {
 sub _run {
 	my $this = shift;
 
+	$this->{'stats'} = new Stats();
+
 	while(1) {
 		sleep($INTERVAL);
 
-		# Resetup Stats each time to avoid loosing the Redis connection
-		# FIXME: Resolve by reconnecting using DB Resource Object
-		$this->{'stats'} = new Stats();
-		next unless(defined($this->{'stats'}->{'redis'}));
+		# Force reconnect each time to avoid loosing the DB connection
+		DB->reconnect();
 
 		$this->_check();
 		$this->_send_nsca();
-
-		# Force close connection to avoid exhausting connections
-		# FIXME: Resolve by reconnecting above using DB Resource Object
-		$this->{'stats'}->{'redis'}->quit();
 	}
 }
 
 ################################################################################
-# Add a new alarm to the alarm sets in Redis. Overwrites old entries of the
+# Add a new alarm to the alarm sets in the DB. Overwrites old entries of the
 # same object (so an new error will overwrite an previous warning). Sets a
 # timeout for errors to disappear again.
 #
@@ -96,10 +93,10 @@ sub _add_alarm {
 	my ($this, $severity, $type, $name, $msg) = @_;
 
 	my $key = "alarm!$type!$name";
-	$this->{'stats'}->{'redis'}->hset($key, 'message', $msg);
-	$this->{'stats'}->{'redis'}->hset($key, 'time', time());
-	$this->{'stats'}->{'redis'}->hset($key, 'severity', $severity);
-	$this->{'stats'}->{'redis'}->expire($key, $INTERVAL * 10);
+	DB->hset($key, 'message', $msg);
+	DB->hset($key, 'time', time());
+	DB->hset($key, 'severity', $severity);
+	DB->expire($key, $INTERVAL * 10);
 }
 
 ################################################################################
@@ -112,7 +109,7 @@ sub _check {
 	# Check error rates
 	foreach my $type ('host', 'component', 'interface') {
 		foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
-			my %config = %{alarm_config_get($this->{'stats'}->{'redis'}, $object)};
+			my %config = %{alarm_config_get($object)};
 			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
 			
 			if($errorRate > $config{'critical'}) {
@@ -129,7 +126,7 @@ sub _check {
 
 	# Check overdue announcements (uncleared older announcements)
 	my $spuren = new Spuren();
-	my $timeoutSetting = settings_get($spuren->{'redis'}, "timeouts", "global");	# FIXME: Allow object specific setting
+	my $timeoutSetting = settings_get("timeouts", "global");	# FIXME: Allow object specific setting
 	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
 		next if($announcement->{'timeout'} == 1);
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
@@ -153,14 +150,14 @@ sub _send_nsca {
 
 	# Check last NSCA processing time stamp to determine wether we have
 	# new sending to do. Minimal update interval for NSCA is 60s.
-	my $last = $this->{'stats'}->{'redis'}->get("alarmmonitor!lastNSCASend");
+	my $last = DB->get("alarmmonitor!lastNSCASend");
 	return if(($now - $last) < 60);
 
-	my $nagios = settings_get($this->{'stats'}->{'redis'}, "nagios", "server");
+	my $nagios = settings_get("nagios", "server");
 	return unless(defined($nagios->{'NSCAClientPath'}));
 
 	#print STDERR "Processing NSCA " .time() . "\n";
-	foreach my $setting (@{settings_get_all($this->{'stats'}->{'redis'}, "nagios.serviceChecks")}) {
+	foreach my $setting (@{settings_get_all("nagios.serviceChecks")}) {
 		my $cmd = $nagios->{'NSCAClientPath'} . " ";
 		$cmd .= "-H $nagios->{NSCAHost} ";
 		$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
@@ -169,22 +166,19 @@ sub _send_nsca {
 	}
 
 	# Update last NSCA processing time stamp...
-	$this->{'stats'}->{'redis'}->set("alarmmonitor!lastNSCASend", $now);
+	DB->set("alarmmonitor!lastNSCASend", $now);
 }
 
 ################################################################################
 # Returns a list of all currently active alarms
-#
-# $1	Redis handle
 ################################################################################
 sub alarm_monitor_get_alarms {
-	my $redis = shift;
 	my @results = ();
 
-	foreach my $key ($redis->keys("alarm!*!*")) {
+	foreach my $key (DB->keys("alarm!*!*")) {
 		next unless($key =~ /^alarm!(\w+)!(\w+)$/);
 		my ($type, $name) = ($1, $2);
-		my %tmp = $redis->hgetall($key);
+		my %tmp = DB->hgetall($key);
 		$tmp{'type'} = $type;
 		$tmp{'name'} = $name;
 		push(@results, \%tmp);

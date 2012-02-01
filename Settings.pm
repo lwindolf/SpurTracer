@@ -17,6 +17,8 @@
 
 package Settings;
 
+use DB;
+
 require Exporter;
 
 @ISA = qw(Exporter);
@@ -32,19 +34,18 @@ require Exporter;
 ################################################################################
 # Generic settings getter.
 #
-# $1	Redis handle
-# $2	Namespace Prefix (optional)
+# $1	Namespace Prefix (optional)
 #
 # Returns a list of all settings
 ################################################################################
 sub settings_get_all {
-	my ($redis, $prefix) = @_;
+	my ($prefix) = @_;
 	my @results = ();
 
 	$prefix = "*" unless(defined($prefix));
 
-	foreach my $key ($redis->keys("settings!$prefix!*")) {
-		my %tmp = $redis->hgetall($key);
+	foreach my $key (DB->keys("settings!$prefix!*")) {
+		my %tmp = DB->hgetall($key);
 		push(@results, \%tmp);
 	}
 
@@ -54,17 +55,15 @@ sub settings_get_all {
 ################################################################################
 # Generic settings getter. Returns the first matching setting
 #
-# $1		Redis handle
-# ($2,$3)	Filter list (prefix, name)
+# ($1,$2)	Filter list (prefix, name)
 #
 # Returns a single hash reference (or undef)
 ################################################################################
 sub settings_get {
-	my $redis = shift;
 	$filter = join("!", @_);
 
-	foreach my $key ($redis->keys("settings!$filter")) {
-		my %tmp = $redis->hgetall($key);
+	foreach my $key (DB->keys("settings!$filter")) {
+		my %tmp = DB->hgetall($key);
 		return \%tmp;
 	}
 
@@ -78,13 +77,12 @@ sub settings_get {
 ################################################################################
 sub settings_add {
 	my %glob = @_;
-	my $redis = Redis->new;
 
 	return unless(defined($glob{'prefix'}) &&
 	              defined($glob{'name'}));
 
 	foreach my $key (keys %glob) {
-		$redis->hset("settings!$glob{prefix}!$glob{name}", $key, $glob{$key});
+		DB->hset("settings!$glob{prefix}!$glob{name}", $key, $glob{$key});
 	}
 }
 
@@ -96,12 +94,11 @@ sub settings_add {
 ################################################################################
 sub settings_remove {
 	my %glob = @_;
-	my $redis = Redis->new;
 
 	return unless(defined($glob{'prefix'}) &&
 	              defined($glob{'name'}));
 
-	$redis->del("settings!$glob{prefix}!$glob{name}");
+	DB->del("settings!$glob{prefix}!$glob{name}");
 }
 
 1;

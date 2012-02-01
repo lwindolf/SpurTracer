@@ -1,4 +1,4 @@
-# ObjectsView.pm: View for different object types
+# DB.pm: Redis static class singleton
 #
 # Copyright (C) 2012 Lars Lindner <lars.lindner@gmail.com>
 #
@@ -15,33 +15,43 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package DB;
 
-package ObjectsView;
+use Redis;
 
-use AlarmMonitor;
-use Stats;
-
-@ISA = (SpurTracerView);
+my $redis;	# the DB instance
 
 ################################################################################
-# Constructor
+# Reconnect the DB. Closes and reopens the DB
 ################################################################################
-sub new {
-	my $type = shift;
-	my $this = SpurTracerView->new(@_);
-	my $stats = new Stats();
-	my %results;
+sub reconnect {
+	our $redis;
 
-	$this->{xslt} = $this->{objType};
-	$this->{objType} =~ s/s$//;
+	$redis->quit()	if(defined($redis));
 
-	$results{"$this->{objType}s"}		= $stats->get_object_list(lc($this->{objType}));
-	$results{"$this->{objType}Instances"}	= $stats->get_instance_list(lc($this->{objType}));
-	$results{'Alarms'}			= alarm_monitor_get_alarms();
+	$redis = new Redis();	# FIXME: allow different config
 
-	$this->{results} = \%results;
+	# FIXME: Error handling
+}
 
-	return bless $this, $type;
+################################################################################
+# Auto loader for all Redis methods
+#
+# Pass all undefined method names to the Redis package
+# which will try to map them to Redis commands.
+################################################################################
+our $AUTOLOAD;
+
+sub AUTOLOAD {
+	my $self = shift;
+	our $redis;
+
+	my $command = $AUTOLOAD;
+	$command =~ s/.*://;
+
+	reconnect() unless(defined($redis));
+
+	eval "\$redis->$command(\@_);";
 }
 
 1;

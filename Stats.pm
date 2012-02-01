@@ -52,9 +52,6 @@ sub new {
 	my ($type, $intervalName) = @_;
 	my $this = { };
 
-	# For now simply require a local Redis instance
-	$this->{'redis'} = Redis->new;
-
 	# Try to find interval with given name
 	foreach my $i (@INTERVALS) {
 		if($$i{'name'} eq $intervalName) {
@@ -102,9 +99,9 @@ sub _count_interval {
 	foreach $interval (@INTERVALS) {
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
-		$this->{'redis'}->hsetnx("stats$$interval{name}\!$key", $n, 0);
-		$this->{'redis'}->hincrby("stats$$interval{name}\!$key", $n, 1);
-		$this->{'redis'}->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
+		DB->hsetnx("stats$$interval{name}\!$key", $n, 0);
+		DB->hincrby("stats$$interval{name}\!$key", $n, 1);
+		DB->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
 	}
 }
 
@@ -128,7 +125,7 @@ sub get_interval {
 	$results{'name'} = $interval{'name'};
 
 	foreach my $counter (@counters) {
-		my %tmp = $this->{'redis'}->hgetall("stats$interval{name}!$key!$counter");
+		my %tmp = DB->hgetall("stats$interval{name}!$key!$counter");
 
 		# Sort all elements, fill in missing zeros and output starting at
 		# correct ring buffer offset n
@@ -152,7 +149,7 @@ sub _count_object {
 	my $this = shift;
 	my $key = join("!", @_);
 
-	$this->{'redis'}->incr("stats!object!$key");
+	DB->incr("stats!object!$key");
 	$this->_count_interval("object!$key");
 }
 
@@ -167,7 +164,7 @@ sub _count_instance {
 	my $this = shift;
 	my $key = join("!", @_);
 
-	$this->{'redis'}->incr("stats!instance!".$key);
+	DB->incr("stats!instance!".$key);
 	$this->_count_interval("instance!$key");
 }
 
@@ -252,7 +249,7 @@ sub get_object {
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $this->{'redis'}->get("stats!object!$key_prefix!$_");
+		$results{$_} = DB->get("stats!object!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 
@@ -272,7 +269,7 @@ sub get_keys {
 	my ($this, $type, $valueType, $counter) = @_;
 
 	$counter = "started" unless(defined($counter));
-	my @keys = $this->{'redis'}->keys("stats!$type!$valueType!*!$counter");
+	my @keys = DB->keys("stats!$type!$valueType!*!$counter");
 
 	return \@keys;
 }
@@ -281,7 +278,6 @@ sub get_keys {
 # Get a list of all known objects of a type and their properties as returned
 # by stats_get_object()
 #
-# $1	Redis handle
 # $2	object type ('global', 'interface', 'component' or 'host')
 #
 # Returns a list including
@@ -327,7 +323,7 @@ sub get_instance {
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout')) {
-		$results{$_} = $this->{'redis'}->get("stats!instance!$key_prefix!$_");
+		$results{$_} = DB->get("stats!instance!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
 

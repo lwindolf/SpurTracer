@@ -21,6 +21,8 @@ package Spuren;
 use locale;
 use POSIX qw(strftime);
 use Error qw(:try);
+
+use DB;
 use Notification;
 use Stats;
 
@@ -34,8 +36,6 @@ sub new {
 	my $type = shift;
 	my $this = { };
 
-	# For now simply require a local Redis instance
-	$this->{'redis'} = Redis->new;
 	$this->{'stats'} = new Stats();
 	$this->{'today'} = strftime("%F", localtime());
 
@@ -80,8 +80,8 @@ sub add_data {
 	my $value = notification_build_value(\%data);
 
 	# Submit value
-	$this->{redis}->set($key, $value);
-	$this->{redis}->expire($key, $expiration);
+	DB->set($key, $value);
+	DB->expire($key, $expiration);
 
 	if($data{type} eq "c") {
 		# For context announcements:
@@ -129,7 +129,7 @@ sub _query_redis {
 
 	my @results;
 	try {
-		@results = $this->{redis}->keys($filter);
+		@results = DB->keys($filter);
 		return (0, @results);
 	} catch Error with {
 		my $ex = shift;
@@ -192,14 +192,14 @@ sub fetch {
 			$event{date} = $this->nice_time($time);
 			$event{status} = $status if(defined($status));
 			if($type eq "n") {
-				$event{desc} = $this->{redis}->get($key);
+				$event{desc} = DB->get($key);
 			} else {
-				$this->{redis}->get($key) =~ /^(\w+)!(\w+)$/;
-				$event{newctxt} = $2;
-				$event{newcomponent} = $1;
-
-				$event{status} = "announced";
-				$event{status} = "finished" unless($this->{redis}->exists("announce!n".$event{newcomponent}."!c".$event{newctxt}));
+				if(DB->get($key) =~ /^([^!]+)!([^!]+)$/) {
+					$event{'newctxt'} = $2;
+					$event{'newcomponent'} = $1;
+					$event{status} = "announced";
+					$event{status} = "finished" unless(DB->exists("announce!n$event{newcomponent}!c$event{newctxt}"));
+				}
 			}
 
 			# Add event to spur set
@@ -223,12 +223,12 @@ sub _add_announcement {
 	my ($this, %event) = @_;
 
 	my $akey = "announce!n$event{newcomponent}!c$event{newctxt}";
-	$this->{redis}->hset($akey, 'sourceHost',	$event{'host'});
-	$this->{redis}->hset($akey, 'sourceComponent',	$event{'component'});
-	$this->{redis}->hset($akey, 'sourceCtxt',	$event{'ctxt'});
-	$this->{redis}->hset($akey, 'time', time());
-	$this->{redis}->hset($akey, 'timeout', 0);
-	$this->{redis}->expire($akey, $expiration);
+	DB->hset($akey, 'sourceHost',	$event{'host'});
+	DB->hset($akey, 'sourceComponent',	$event{'component'});
+	DB->hset($akey, 'sourceCtxt',	$event{'ctxt'});
+	DB->hset($akey, 'time', time());
+	DB->hset($akey, 'timeout', 0);
+	DB->expire($akey, $expiration);
 }
 
 ################################################################################
@@ -239,7 +239,7 @@ sub _add_announcement {
 sub _clear_announcement {
 	my ($this, %event) = @_;
 
-	$this->{'redis'}->del("announce!n$event{component}!c$event{ctxt}");
+	DB->del("announce!n$event{component}!c$event{ctxt}");
 }
 
 ################################################################################
@@ -250,7 +250,7 @@ sub _clear_announcement {
 sub set_announcement_timeout {
 	my ($this, %event) = @_;
 
-	$this->{'redis'}->hset("announce!n$event{component}!c$event{ctxt}", 'timeout', 1);
+	DB->hset("announce!n$event{component}!c$event{ctxt}", 'timeout', 1);
 }
 
 ################################################################################
@@ -281,7 +281,7 @@ sub fetch_announcements {
 
 	my @keys;
 	try {
-		@keys = $this->{redis}->keys($filter);
+		@keys = DB->keys($filter);
 	} catch Error with {
 		my $ex = shift;
 		print STDERR "Query failed!\n";
@@ -302,7 +302,7 @@ sub fetch_announcements {
 			$i++;
 
 			# Add event to set
-			my %event = $this->{'redis'}->hgetall($key);
+			my %event = DB->hgetall($key);
 			$event{'component'} = $1;
 			$event{'ctxt'} = $2;
 			$event{'date'} = $this->nice_time($event{'time'});
