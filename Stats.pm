@@ -221,7 +221,7 @@ sub add_interface_announced {
 
 	# Note: for a simpler and generic processing we use 'started'
 	# instead of 'announced' as the counter name for interfaces...
-	$this->_count_object('global', 'interface', 'announced');
+	$this->_count_object('global', 'announced');
 	$this->_count_object('interface', join("!", ($_[2], $_[3])), 'started');
 
 	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'started');
@@ -239,7 +239,7 @@ sub add_interface_announced {
 sub add_interface_timeout {
 	my $this = $_[0];
 
-	$this->_count_object('global', 'interface', 'timeout');
+	$this->_count_object('global', 'timeout');
 	$this->_count_object('interface', $_[2] . "!" . $_[3], 'timeout');
 
 	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'timeout');
@@ -257,7 +257,7 @@ sub get_object {
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
-	foreach(('failed', 'started', 'timeout')) {
+	foreach(('failed', 'started', 'timeout', 'announced')) {
 		$results{$_} = DB->get("stats!object!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
@@ -331,7 +331,7 @@ sub get_instance {
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
-	foreach(('failed', 'started', 'timeout')) {
+	foreach(('failed', 'started', 'timeout', 'announced')) {
 		$results{$_} = DB->get("stats!instance!$key_prefix!$_");
 		$results{$_} = 0 unless(defined($results{$_}));
 	}
