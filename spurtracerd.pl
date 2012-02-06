@@ -22,6 +22,7 @@ use CGI;
 use Redis;
 use URI::Escape;
 use Error qw(:try);
+use POSIX qw(strftime);
 use base qw(Net::Server::HTTP);
 use lib ".";
 
@@ -217,7 +218,7 @@ sub process_http_request {
 
 	$uri =~ s/^\/+//;	# strip leading slash
 
-	# Handle static content (currently only XSLT)
+	# Handle static content (currently only XSLT, JS and CSS)
 	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/[\w_.\-]+\.js)$#) {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
@@ -226,6 +227,8 @@ sub process_http_request {
 			open(my $fh, '<', $uri) || return $self->send_501("Can't open file [$!]");
 			my $type = $uri =~ /([^\.]+)$/ ? $1 : '';
 			$type = $self->{'mime_types'}->{$type} || $self->{'mime_default'};
+			print "Cache-Control: max-age=3600, public\r\n";
+			print "Expires: ".strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime(time()+3600))."\r\n";
 			print "Content-type: $type\r\n\r\n";
 			print $_ while read $fh, $_, 8192;
 			close $fh;
