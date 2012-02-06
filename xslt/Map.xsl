@@ -9,7 +9,7 @@
 <html>
 <head>
 	<title>System Map</title>
-<!--	<meta http-equiv="refresh" content="5"/>-->
+	<meta http-equiv="refresh" content="5"/>
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
