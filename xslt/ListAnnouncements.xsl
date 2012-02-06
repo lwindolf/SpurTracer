@@ -20,8 +20,6 @@
 			<xsl:with-param name="active" select="'Announcements'"/>
 		</xsl:call-template>
 
-		<xsl:call-template name="Alarms"/>
-
 		<div class="header">
 			<h3>List of All Recent Announcements</h3>
 		</div>

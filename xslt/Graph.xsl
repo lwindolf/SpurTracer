@@ -3,9 +3,7 @@
 
 <xsl:template name="Graph">
 	<div class="systemMap">
-		<b>Last <xsl:value-of select="@interval"/>: <xsl:value-of select="@name"/></b>
-		<br/>
-		<br/>
+		<div class="header">Last <xsl:value-of select="@interval"/>: <xsl:value-of select="@name"/></div>
 
 	<table class="graph" id="graph{position()}">
 		<thead>

@@ -33,6 +33,7 @@ require Exporter;
 @ISA = qw(Exporter);
 
 @EXPORT = qw(
+	stats_get_default_interval
 	stats_get_interval_definitions
 );
 
@@ -74,7 +75,15 @@ sub new {
 ################################################################################
 sub stats_get_interval_definitions {
 
-	return @INTERVALS;
+	return \@INTERVALS;
+}
+
+################################################################################
+# Simple returns the interval definitions as an array
+################################################################################
+sub stats_get_default_interval {
+
+	return \%{$INTERVALS[0]};
 }
 
 ################################################################################

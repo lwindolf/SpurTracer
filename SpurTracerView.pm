@@ -20,6 +20,8 @@ package SpurTracerView;
 
 use XML::Writer;
 
+use Stats;
+
 ################################################################################
 # Constructor
 #
@@ -31,8 +33,14 @@ sub new {
 	my $type = shift;
 	my ($name, $objType, %glob) = @_;
 	my $this = { };
-	$this->{xslt} = $name;
-	$this->{glob} = \%glob;
+	$this->{'xslt'} = $name;
+	$this->{'glob'} = \%glob;
+
+	if(defined($glob{'interval'})) {
+		$this->{'interval'} = $glob{'interval'};
+	} else {
+		$this->{'interval'} = stats_get_default_interval();
+	}
 
 	if(defined($objType)) {
 		$this->{objType} = $objType;
@@ -67,11 +75,27 @@ sub print {
 	       DATA_INDENT => 3
 	);
 	$writer->xmlDecl('UTF-8');
-	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{xslt}.'.xsl"');
-	$writer->startTag('Spuren', ('now' => time()));
+	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{'xslt'}.'.xsl"');
+	$writer->startTag('Spuren', ('now' => time(), 'interval' => $this->{'interval'}->{'name'}));
 
 	# require Data::Dumper;
 	# print STDERR Data::Dumper->Dump([\$this], ['data'])."\n";
+
+	# 1. Add generic data
+
+	$writer->startTag("Intervals");
+	foreach my $interval (@{stats_get_interval_definitions()}) {
+		$writer->emptyTag("Interval", %$interval);
+	}
+	$writer->endTag();
+
+	$writer->startTag("Filter");
+	foreach my $key (keys %{$this->{'glob'}}) {
+		$writer->emptyTag("Attribute", ('type' => $key, 'value' => $this->{'glob'}->{$key}));
+	}
+	$writer->endTag();
+	
+	# 2. Add data provided by specific view
 
 	if(defined($data{'Alarms'})) {
 		$writer->startTag("Alarms");

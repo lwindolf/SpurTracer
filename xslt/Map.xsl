@@ -9,7 +9,7 @@
 <html>
 <head>
 	<title>System Map</title>
-	<meta http-equiv="refresh" content="5"/>
+<!--	<meta http-equiv="refresh" content="5"/>-->
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
@@ -21,11 +21,14 @@
 	<div class="content">
 		<xsl:call-template name="Menu">
 			<xsl:with-param name="active" select="'Map'"/>
+			<xsl:with-param name="filter" select="'1'"/>
 		</xsl:call-template>
 
 		<xsl:call-template name="Alarms"/>
 
-		<xsl:apply-templates/>
+		<xsl:apply-templates select="Hosts"/>
+		<xsl:apply-templates select="Components"/>
+		<xsl:apply-templates select="Interfaces"/>
 
 		<xsl:for-each select="Statistics/Object">
 			<xsl:call-template name="Graph"/>
@@ -50,9 +53,7 @@
 
 <xsl:template match="Hosts">
 	<div class="systemMap">
-		<b><a href="?type=host">Hosts</a></b>
-		<br/>
-		<br/>
+		<div class="header"><a href="?type=host">Hosts</a></div>
 		<table class="hostMap">
 			<tr>
 				<th>Host / Component</th>
@@ -107,9 +108,7 @@
 
 <xsl:template match="Components">
 	<div class="systemMap">
-		<b><a href="?type=component">Components</a></b>
-		<br/>
-		<br/>
+		<div class="header"><a href="?type=component">Components</a></div>
 		<table class="componentMap">
 			<tr>
 				<th>Component / From</th>
@@ -163,9 +162,7 @@
 
 <xsl:template match="Interfaces">
 	<div class="systemMap">
-		<b><a href="?type=interface">Interfaces</a></b>
-		<br/>
-		<br/>
+		<div class="header"><a href="?type=interface">Interfaces</a></div>
 		<table class="interfaceMap">
 			<tr>
 				<th>Interface / From</th>

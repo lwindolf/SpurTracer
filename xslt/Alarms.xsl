@@ -3,6 +3,8 @@
 
 <xsl:template name="Alarms">
 	<xsl:if test="count(Alarms/Alarm) > 0">
+		<div class="systemMap">
+		<div class="header">Current Alarms</div>
 		<table class="alarms" cellspacing="0" cellpadding="0">
 			<xsl:for-each select="Alarms/Alarm">
 				<xsl:sort select="@severity"/>
@@ -17,6 +19,9 @@
 				</xsl:element>
 			</xsl:for-each>
 		</table>
+		</div>
+
+		<div class="clear"/>
 	</xsl:if>
 </xsl:template>
 

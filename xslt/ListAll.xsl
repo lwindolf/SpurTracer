@@ -23,15 +23,14 @@
 		<xsl:call-template name="Alarms"/>
 
 		<div class="info">
-			<div class="header">
-				<h3>List of Recent Notifications</h3>
-			</div>
 
 			<p>Click on a context link to follow a spur/trace.</p>
 
 			<p><a href="/getDetails">Show Details</a></p>
 		</div>
 
+		<div class="systemMap">
+		<div class="header">List of Recent Notifications</div>
 		<table border="0" class="notifications">
 			<tr>
 				<th>Host</th>
@@ -44,6 +43,7 @@
 				<xsl:call-template name="Spur"/>
 			</xsl:for-each>
 		</table>
+		</div>
 
 		<div class="legend">
 			<table>
