@@ -30,6 +30,52 @@ require Exporter;
 	settings_remove
 );
 
+my %DEFAULTS = {
+	'nagios' => {
+		'server' => {
+			'NSCAHost' => {
+				default	=> 'localhost',
+				type	=> 'string'
+			},
+			'NSCAPort' => {
+				default	=> 5667,
+				type	=> 'int'
+			},
+			'NSCAClientPath' => {
+				default	=> '/usr/local/bin/send_nsca',
+				type	=> 'string'
+			},
+			'NSCAConfigFile' => {
+				default	=> '/usr/local/etc/nsca.conf',
+				type	=> 'string'
+			}
+		}
+	},
+	'timeouts' => {
+		'global' => {
+			'component' => {
+				default	=> 60,
+				type	=> 'int'
+			},
+			'interface' => {
+				default	=> 60,
+				type	=> 'int'
+			}
+		}
+	},
+	'alarms' => {
+		'global' => {
+			'critical' => {
+				default	=> 15,
+				type	=> 'int'
+			},
+			'warning' => {
+				default	=> 7,
+				type	=> 'int'
+			}
+		}
+	}
+};
 
 ################################################################################
 # Generic settings getter.
@@ -60,11 +106,17 @@ sub settings_get_all {
 # Returns a single hash reference (or undef)
 ################################################################################
 sub settings_get {
-	$filter = join("!", @_);
+	my ($prefix, $name) = @_;
+	my $filter = join("!", @_);
 
 	foreach my $key (DB->keys("settings!$filter")) {
 		my %tmp = DB->hgetall($key);
 		return \%tmp;
+	}
+
+	# Check for default value...
+	if(defined($DEFAULTS{$prefix}{$name})) {
+		return $DEFAULTS{$prefix}{$name};
 	}
 
 	return undef;
