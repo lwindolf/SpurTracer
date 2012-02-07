@@ -85,7 +85,11 @@ sub add_data {
 	DB->set($key, $value);
 	DB->expire($key, $this->{'ttl'});
 
-	if($data{type} eq "c") {
+	# Performance Data Handling
+	$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}) if($data{'status'} eq 'finished');
+
+	# Announcement Handling
+	if($data{'type'} eq "c") {
 		# For context announcements:
 		
 		# Check if any notifications already exist, to avoid

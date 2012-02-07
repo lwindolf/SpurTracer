@@ -246,6 +246,35 @@ sub add_interface_timeout {
 }
 
 ################################################################################
+# Save component execution duration to performance metrics
+#
+# $2	Host
+# $3	Component
+# $4	Duration
+################################################################################
+sub add_component_duration {
+	my ($this, $host, $component, $duration) = $@;
+
+	#DB->incrby("performance!object!component!$component", $duration);
+	#DB->incrby("performance!instance!component!$host!$component", $duration);
+}
+
+################################################################################
+# Save interface latency duration to performance metrics
+#
+# $2	Source Host
+# $3	Source Component
+# $4	Target Component
+# $5	Duration
+################################################################################
+sub add_interface_duration {
+	my ($this, $host, $component1, $component2, $duration) = $@;
+
+	#DB->incrby("performance!object!interface!$component1!$component2", $duration);
+	#DB->incrby("performance!instance!interface!$host!$component1!$component2", $duration);
+}
+
+################################################################################
 # Generic counter getter. Returns all interesting fields per object+type as
 # a hash.
 #

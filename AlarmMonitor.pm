@@ -85,7 +85,7 @@ sub _run {
 # same object (so an new error will overwrite an previous warning). Sets a
 # timeout for errors to disappear again.
 #
-# $2	severity ('error' or 'warning')
+# $2	severity ('critical' or 'warning')
 # $3	object type
 # $4	message (without trailing \n)
 ################################################################################
@@ -113,7 +113,7 @@ sub _check {
 			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
 			
 			if($errorRate > $config{'critical'}) {
-				$this->_add_alarm('error', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
+				$this->_add_alarm('critical', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
 				next;
 			}
 

@@ -246,12 +246,20 @@ div.config form table td:first-child {
 	padding:3px 12px;
 }
 
-.alarms tr.error {
-	background:#F77;
+.alarms tr.critical td {
+	background:#FAA;
 }
 
-.alarms tr.warning {
-	background:#FF7;
+.alarms tr.critical td.severity {
+	background:#F44;
+}
+
+.alarms tr.warning td {
+	background:#FFA;
+}
+
+.alarms tr.warning td.severity {
+	background:#FF4;
 }
 
 .alarms td {
@@ -260,8 +268,4 @@ div.config form table td:first-child {
 
 .alarms .severity {
 	text-transform:uppercase;
-}
-
-.alarms .message {
-	font-weight:bold;
 }
