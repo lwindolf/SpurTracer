@@ -38,7 +38,7 @@
 	<script type="text/javascript">
 		$(function(){
 			var id = "#graph<xsl:value-of select="position()"/>";
-			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '2', colors: ['#0F0', '#F00', '#CC0']});
+			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '1', colors: ['#0F0', '#F00', '#CC0']});
 			$(id).addClass('accessHide');
 		});
 	</script>

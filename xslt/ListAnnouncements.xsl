@@ -20,16 +20,16 @@
 			<xsl:with-param name="active" select="'Announcements'"/>
 		</xsl:call-template>
 
-		<div class="header">
-			<h3>List of All Recent Announcements</h3>
+		<div class="info">
+			<p>Each announcement does indicate an interface that was triggered by one
+			component, while not yet being processed by the component implementation
+			the interface.</p>
+			<p> Overdue announcements will time out according to the 
+			<a href="getSettings#timeouts">timeout settings</a>.</p>
 		</div>
 
-		<p>Each announcement does indicate an interface that was triggered by one
-		component, while not yet being processed by the component implementation
-		the interface.</p>
-		<p> Overdue announcements will time out according to the 
-		<a href="getSettings#timeouts">timeout settings</a>.</p>
-
+		<div class="systemMap">
+		<div class="header">Recent Announcements</div>
 		<table border="0" class="notifications">
 			<tr>
 				<th>Time</th>
@@ -44,6 +44,7 @@
 				<xsl:call-template name="Announcement"/>
 			</xsl:for-each>
 		</table>
+		</div>
 
 		<div class="legend">
 			<table>

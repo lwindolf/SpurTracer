@@ -83,7 +83,7 @@ sub stats_get_interval_definitions {
 ################################################################################
 sub stats_get_default_interval {
 
-	return \%{$INTERVALS[0]};
+	return $INTERVALS[0];
 }
 
 ################################################################################

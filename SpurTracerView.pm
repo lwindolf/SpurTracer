@@ -37,9 +37,9 @@ sub new {
 	$this->{'glob'} = \%glob;
 
 	if(defined($glob{'interval'})) {
-		$this->{'interval'} = $glob{'interval'};
+		$this->{'intervalName'} = $glob{'interval'};
 	} else {
-		$this->{'interval'} = stats_get_default_interval();
+		$this->{'intervalName'} = ${stats_get_default_interval()}{'name'};
 	}
 
 	if(defined($objType)) {
@@ -76,7 +76,7 @@ sub print {
 	);
 	$writer->xmlDecl('UTF-8');
 	$writer->pi('xml-stylesheet', 'type="text/xsl" href="xslt/'.$this->{'xslt'}.'.xsl"');
-	$writer->startTag('Spuren', ('now' => time(), 'interval' => $this->{'interval'}->{'name'}));
+	$writer->startTag('Spuren', ('now' => time(), 'interval' => $this->{'intervalName'}));
 
 	# require Data::Dumper;
 	# print STDERR Data::Dumper->Dump([\$this], ['data'])."\n";
@@ -91,6 +91,7 @@ sub print {
 
 	$writer->startTag("Filter");
 	foreach my $key (keys %{$this->{'glob'}}) {
+		next unless($type eq "interval");
 		$writer->emptyTag("Attribute", ('type' => $key, 'value' => $this->{'glob'}->{$key}));
 	}
 	$writer->endTag();
