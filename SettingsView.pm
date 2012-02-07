@@ -37,6 +37,7 @@ sub new {
 		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
 	$results{'Settings'} = settings_get_all();
+	$results{'DefaultSettings'} = settings_get_defaults();
 	$this->{results} = \%results;
 
 	return bless $this, $type;

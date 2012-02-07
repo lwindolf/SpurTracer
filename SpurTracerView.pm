@@ -106,6 +106,14 @@ sub print {
 		$writer->endTag();
 	}
 
+	if(defined($data{'DefaultSettings'})) {
+		$writer->startTag("DefaultSettings");
+		foreach my $setting (@{$data{'DefaultSettings'}}) {
+			$writer->emptyTag("Setting", %$setting);
+		}
+		$writer->endTag();
+	}
+
 	if(defined($data{'Settings'})) {
 		$writer->startTag("Settings");
 		foreach my $setting (@{$data{'Settings'}}) {

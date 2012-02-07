@@ -32,9 +32,10 @@ use Spuren;
 use SpurQuery;
 
 # Check Redis DB version, needs to be 1.3+ for hash support
-my $version = ${DB->info()}{'redis_version'};
-$version =~ s/\.//;
-die "Redis version < 1.3 (is $version)!" unless($version ge 130);
+#my $version = ${DB->info()}{'redis_version'};
+#$version =~ s/\.//;
+#die "Redis version < 1.3 (is $version)!" unless($version ge 130);
+#DB->quit();
 
 # Before starting the httpd fork a alarm monitor
 # that runs in background to periodically perform
@@ -173,15 +174,15 @@ sub process_query {
 		}
 	}
 
-#	try {
+	try {
 		my $query = new SpurQuery($mode, %glob);
 		$this->send_status(200);
 		$query->execute();
-#	} catch Error with {
-#		$this->send_status(400);
-#		print "Content-type: text/plain\r\n\r\n";
-#		print "Invalid query";
-#	}
+	} catch Error with {
+		$this->send_status(400);
+		print "Content-type: text/plain\r\n\r\n";
+		print "Invalid query";
+	}
 }
 
 ################################################################################

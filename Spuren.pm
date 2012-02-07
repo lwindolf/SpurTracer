@@ -25,9 +25,9 @@ use Error qw(:try);
 use DB;
 use Notification;
 use Stats;
+use Settings;
 
 $debug = 0;
-$expiration = 3600*8;	# Expire keys after 8h
 
 ################################################################################
 # Constructor
@@ -35,9 +35,11 @@ $expiration = 3600*8;	# Expire keys after 8h
 sub new {
 	my $type = shift;
 	my $this = { };
+	my $settings = settings_get("spuren", "global");
 
 	$this->{'stats'} = new Stats();
 	$this->{'today'} = strftime("%F", localtime());
+	$this->{'ttl'} = $settings->{'ttl'};
 
 	return bless $this, $type;
 }
@@ -81,7 +83,7 @@ sub add_data {
 
 	# Submit value
 	DB->set($key, $value);
-	DB->expire($key, $expiration);
+	DB->expire($key, $this->{'ttl'});
 
 	if($data{type} eq "c") {
 		# For context announcements:
@@ -228,7 +230,7 @@ sub _add_announcement {
 	DB->hset($akey, 'sourceCtxt',	$event{'ctxt'});
 	DB->hset($akey, 'time', time());
 	DB->hset($akey, 'timeout', 0);
-	DB->expire($akey, $expiration);
+	DB->expire($akey, $this->{'ttl'});
 }
 
 ################################################################################

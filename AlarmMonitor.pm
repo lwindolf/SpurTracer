@@ -156,13 +156,13 @@ sub _send_nsca {
 	my $nagios = settings_get("nagios", "server");
 	return unless(defined($nagios->{'NSCAClientPath'}));
 
-	#print STDERR "Processing NSCA " .time() . "\n";
+	#print STDERR "Processing NSCA $now\n";
 	foreach my $setting (@{settings_get_all("nagios.serviceChecks")}) {
 		my $cmd = $nagios->{'NSCAClientPath'} . " ";
 		$cmd .= "-H $nagios->{NSCAHost} ";
 		$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
 		$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
-		#print STDERR "$cmd\n";
+		print STDERR "$cmd\n";
 	}
 
 	# Update last NSCA processing time stamp...

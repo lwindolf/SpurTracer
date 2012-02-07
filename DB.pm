@@ -31,7 +31,9 @@ sub reconnect {
 
 	$redis = new Redis();	# FIXME: allow different config
 
-	# FIXME: Error handling
+	# Check connection
+	my $info = $redis->info();
+	die "Could not connect to Redis! ($!)" unless($info->{'redis_version'});
 }
 
 ################################################################################

@@ -53,6 +53,7 @@ simulate_error() {
 
 	result=$(($RANDOM % $frequency))
 	if [ $result -eq 1 ]; then
+		echo -n "e"
 		return 0
 	fi
 

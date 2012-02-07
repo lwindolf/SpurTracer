@@ -21,6 +21,7 @@
 		<h3>Settings</h3>
 
 		<ol>
+			<li><a href="#retention">Data Retention Time (TTL)</a></li>
 			<li><a href="#alarms">Alarm Thresholds</a></li>
 			<li><a href="#timeouts">Timeouts</a></li>
 			<li><a href="#nagios">Nagios Integration</a></li>
@@ -29,7 +30,32 @@
 		<hr/>
 
 		<a name="alarms"/>
-		<h3>1. Alarm Thresholds</h3>
+		<h3>1. Data Retention Time (TTL)</h3>
+
+		<p>
+			Configure how long you want to keep events details.
+			Note that this will directly influence the disk space
+			needed. SpurTracer will only enable you to drill down
+			into events not older than this period.
+		</p>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="spuren"/>
+			<input type="hidden" name="name" value="global"/>
+			<table>
+				<tr>
+					<td>TTL [s]</td>
+					<td><input type="input"  name="ttl" value="{Settings/Setting[@prefix='spuren' and @name='global']/@ttl}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='spuren' and @name='global']/@ttl"/></td>
+				</tr>
+			</table>
+			<input type="submit" value="Save"/>
+		</form>
+
+		<hr/>
+
+		<a name="alarms"/>
+		<h3>2. Alarm Thresholds</h3>
 
 		<p>
 			Configure error rate thresholds so that SpurTracer
@@ -43,8 +69,16 @@
 			<input type="hidden" name="prefix" value="alarms"/>
 			<input type="hidden" name="name" value="global"/>
 			<table>
-				<tr><td>Warning Threshold [%]</td><td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global']/@warning}"/></td></tr>
-				<tr><td>Critical Threshold [%]</td><td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global']/@critical}"/></td></tr>
+				<tr>
+					<td>Warning Threshold [%]</td>
+					<td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global']/@warning}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global']/@warning"/></td>
+				</tr>
+				<tr>
+					<td>Critical Threshold [%]</td>
+					<td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global']/@critical}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global']/@critical"/></td>
+				</tr>
 			</table>
 			<input type="submit" value="Save"/>
 		</form>
@@ -52,7 +86,7 @@
 		<hr/>
 
 		<a name="timeouts"/>
-		<h3>2. Timeouts</h3>
+		<h3>3. Timeouts</h3>
 
 		<p>
 			Configure timeouts to control when SpurTracer considers
@@ -69,8 +103,16 @@
 			<input type="hidden" name="prefix" value="timeouts"/>
 			<input type="hidden" name="name" value="global"/>
 			<table>
-				<tr><td>Component Timeout [s]</td><td><input type="input"  name="component" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@component}"/></td></tr>
-				<tr><td>Interface Timeout [s]</td><td><input type="input" name="interface" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@interface}"/></td></tr>
+				<tr>
+					<td>Component Timeout [s]</td>
+					<td><input type="input"  name="component" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@component}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='timeouts' and @name='global']/@component"/></td>
+				</tr>
+				<tr>
+					<td>Interface Timeout [s]</td>
+					<td><input type="input" name="interface" value="{Settings/Setting[@prefix='timeouts' and @name='global']/@interface}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='timeouts' and @name='global']/@interface"/></td>
+				</tr>
 			</table>
 			<input type="submit" value="Save"/>
 		</form>
@@ -78,7 +120,7 @@
 		<hr/>
 
 		<a name="nagios"/>
-		<h3>3. Nagios Integration</h3>
+		<h3>4. Nagios Integration</h3>
 
 		<p>
 			You can configure SpurTracer to send Nagios alerts based 
@@ -94,10 +136,26 @@
 			<input type="hidden" name="prefix" value="nagios"/>
 			<input type="hidden" name="name" value="server"/>
 			<table>
-				<tr><td>Nagios (NSCA) Host</td><td><input type="input" name="NSCAHost" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAHost}"/></td></tr>
-				<tr><td>Nagios (NSCA) Port</td><td><input type="input" name="NSCAPort" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAPort}" size="5"/></td></tr>	
-				<tr><td>NSCA Client Path</td><td><input type="input" name="NSCAClientPath" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAClientPath}"/></td></tr>	
-				<tr><td>NSCA Config File</td><td><input type="input" name="NSCAConfigFile" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAConfigFile}"/></td></tr>	
+				<tr>
+					<td>Nagios (NSCA) Host</td>
+					<td><input type="input" name="NSCAHost" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAHost}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='nagios' and @name='server']/@NSCAHost"/></td>
+				</tr>
+				<tr>
+					<td>Nagios (NSCA) Port</td>
+					<td><input type="input" name="NSCAPort" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAPort}" size="5"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='nagios' and @name='server']/@NSCAPort"/></td>
+				</tr>
+				<tr>
+					<td>NSCA Client Path</td>
+					<td><input type="input" name="NSCAClientPath" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAClientPath}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='nagios' and @name='server']/@NSCAClientPath"/></td>
+				</tr>
+				<tr>
+					<td>NSCA Config File</td>
+					<td><input type="input" name="NSCAConfigFile" value="{Settings/Setting[@prefix='nagios' and @name='server']/@NSCAConfigFile}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='nagios' and @name='server']/@NSCAConfigFile"/></td>
+				</tr>	
 			</table>
 			<input type="submit" value="Save"/>
 		</form>

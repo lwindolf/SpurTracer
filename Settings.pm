@@ -24,58 +24,57 @@ require Exporter;
 @ISA = qw(Exporter);
 
 @EXPORT = qw(
+	settings_get_defaults
 	settings_get_all
 	settings_get
 	settings_add
 	settings_remove
 );
 
-my %DEFAULTS = {
+my %DEFAULT_SETTINGS = (
 	'nagios' => {
 		'server' => {
-			'NSCAHost' => {
-				default	=> 'localhost',
-				type	=> 'string'
-			},
-			'NSCAPort' => {
-				default	=> 5667,
-				type	=> 'int'
-			},
-			'NSCAClientPath' => {
-				default	=> '/usr/local/bin/send_nsca',
-				type	=> 'string'
-			},
-			'NSCAConfigFile' => {
-				default	=> '/usr/local/etc/nsca.conf',
-				type	=> 'string'
-			}
+			'NSCAHost'	=> 'localhost',
+			'NSCAPort'	=> 5667,
+			'NSCAClientPath' => '/usr/local/bin/send_nsca',
+			'NSCAConfigFile' => '/usr/local/etc/nsca.conf'
 		}
 	},
 	'timeouts' => {
 		'global' => {
-			'component' => {
-				default	=> 60,
-				type	=> 'int'
-			},
-			'interface' => {
-				default	=> 60,
-				type	=> 'int'
-			}
+			'component' => 60,
+			'interface' => 60
 		}
 	},
 	'alarms' => {
 		'global' => {
-			'critical' => {
-				default	=> 15,
-				type	=> 'int'
-			},
-			'warning' => {
-				default	=> 7,
-				type	=> 'int'
-			}
+			'critical' => 15,
+			'warning' => 7
+		}
+	},
+	'spuren' => {
+		'global' => {
+			'ttl' => 3600 * 24
 		}
 	}
-};
+);
+
+################################################################################
+# Returns a list of all default settings
+################################################################################
+sub settings_get_defaults {
+	my @results = ();
+
+	foreach my $prefix (keys %DEFAULT_SETTINGS) {
+		foreach my $name (keys %{$DEFAULT_SETTINGS{$prefix}}) {
+			$DEFAULT_SETTINGS{$prefix}{$name}{'prefix'} = $prefix;
+			$DEFAULT_SETTINGS{$prefix}{$name}{'name'} = $name;
+			push(@results, $DEFAULT_SETTINGS{$prefix}{$name});
+		}
+	}
+
+	return \@results;
+}
 
 ################################################################################
 # Generic settings getter.
@@ -115,8 +114,8 @@ sub settings_get {
 	}
 
 	# Check for default value...
-	if(defined($DEFAULTS{$prefix}{$name})) {
-		return $DEFAULTS{$prefix}{$name};
+	if(defined($DEFAULT_SETTINGS{$prefix}{$name})) {
+		return $DEFAULT_SETTINGS{$prefix}{$name};
 	}
 
 	return undef;
