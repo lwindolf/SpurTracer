@@ -43,6 +43,7 @@
 			</div>
 		</div>
 
+		<div class="systemMap">
 		<table border="0" class="notifications">
 			<tr>
 				<th>Host</th>
@@ -55,6 +56,7 @@
 				<xsl:call-template name="Spur"/>
 			</xsl:for-each>
 		</table>
+		</div>
 
 		<xsl:call-template name="SpurKarte"/>
 
@@ -75,7 +77,7 @@
 			</xsl:choose>
 		</xsl:attribute>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
-		<td colspan="100">
+		<td colspan="3">
 			<b><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></b>, ctxt
 			<b><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b>
 		</td>
