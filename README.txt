@@ -34,6 +34,7 @@ do have other licenses listed below:
 	Raphael			MIT licensed
 	Dracula			MIT licensed
 	Visualize		MIT or GPL Version 2 licensed
+	timeago			MIT or GPL Version 2 licensed
 	
 
 Thanks to the respective authors allowing to use these versatile GUI libraries!

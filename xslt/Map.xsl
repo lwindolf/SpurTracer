@@ -14,6 +14,7 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
 	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
+	<script type="text/javascript" src="js/jquery.timeago.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -36,6 +37,16 @@
 
 		<div class="clear"/>
 	</div>
+
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+		 	jQuery(".timeago").timeago();
+
+			jQuery.timeago.settings.strings.suffixAgo = null;
+
+			jQuery(".since").timeago();
+		});
+	</script>
 </body>
 </html>
 </xsl:template>

@@ -97,6 +97,7 @@ sub _add_alarm {
 	my $key = "alarm!$type!$name";
 	DB->hset($key, 'message', $msg);
 	DB->hset($key, 'time', time());
+	DB->hsetnx($key, 'since', time());
 	DB->hset($key, 'severity', $severity);
 	DB->expire($key, $INTERVAL * 10);
 }

@@ -6,6 +6,14 @@
 		<div class="systemMap">
 		<div class="header">Current Alarms</div>
 		<table class="alarms" cellspacing="2" cellpadding="0">
+			<tr>
+				<th>Type</th>
+				<th>Name</th>
+				<th>Severity</th>
+				<th>Last Check</th>
+				<th>Duration</th>
+				<th>Status Information</th>
+			</tr>
 			<xsl:for-each select="Alarms/Alarm">
 				<xsl:sort select="@severity"/>
 				<xsl:element name="tr">
@@ -15,6 +23,8 @@
 				<td class="type"><xsl:value-of select="@type"/></td>
 				<td class="name"><xsl:value-of select="@name"/></td>
 				<td class="severity"><xsl:value-of select="@severity"/></td>
+				<td class="lastchecked timeago" title="{@time}"><xsl:value-of select="@time"/></td>
+				<td class="lastchecked since" title="{@since}"><xsl:value-of select="@since"/></td>
 				<td class="message"><xsl:value-of select="@message"/></td>
 				</xsl:element>
 			</xsl:for-each>
