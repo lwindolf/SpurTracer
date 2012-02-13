@@ -332,17 +332,17 @@ sub get_object_list {
 		next unless(/^stats!object!$type!(.+)!\w+$/);
 		my %tmp = $this->get_object($type, $1);
 		
-		# We must distinguish between interfaces and other object
+		# We must distinguish between interfaces and objects
 		# as interface names are <from>!<to> pairs...
 		if($type eq "interface") {
 			next unless($1 =~ /^([^!]+)!([^!]+)$/);
 			$tmp{'from'} = $1;
 			$tmp{'to'} = $2;
-		} else {
-			$tmp{'name'} = $1;
 		}
-		push(@results, \%tmp); 
+		
+		$tmp{'name'} = $1;
 
+		push(@results, \%tmp);
 	}
 
 	return \@results;

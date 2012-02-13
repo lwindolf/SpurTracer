@@ -200,7 +200,7 @@ tr.componentInstance td.calls, tr.interfaceInstance td.calls {
 }
 
 td.error {
-	background:#f77;
+	background:#f44;
 }
 
 tr.componentInstance td.error, tr.interfaceInstance td.error {

@@ -23,7 +23,7 @@ use Settings;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(alarm_config_get alarm_config_get_nsca_interval);
+@EXPORT = qw(alarm_config_get_threshold);
 
 # Default error rate alarm configuration (in %)
 my %DEFAULT_ALARM_THRESHOLDS = (
@@ -32,20 +32,46 @@ my %DEFAULT_ALARM_THRESHOLDS = (
 );
 
 ################################################################################
-# Get most specific alarm config value for a given object name
+# Get most specific alarm threshold config value for a given object name
 #
 # $1	object name
 #
 # Returns alarm threshold config hash
 ################################################################################
-sub alarm_config_get {
+sub alarm_config_get_threshold {
 	my ($object) = @_;
 
-	# FIXME: Use $object for specific settings
-	my $settings = settings_get("alarms", "global");
+	# Try to fetch specific setting
+	my $settings = settings_get_specific("alarms.thresholds", $object);
 	return $settings if(defined($settings));
 
-	# If nothing else can be found return default config
+	# Fallback to default setting
+	$settings = settings_get("alarms", "global");
+	return $settings if(defined($settings));
+
+	# If nothing else can be found return hard coded default
+	return \%DEFAULT_ALARM_THRESHOLDS;
+}
+
+################################################################################
+# Get most specific alarm threshold config value for a given object name
+#
+# $1	object name
+#
+# Returns alarm threshold config hash
+################################################################################
+sub alarm_config_get_timeout {
+	my ($object) = @_;
+
+	# Try to fetch specific setting
+	my $settings = settings_get_specific("timeouts.hosts", $object);
+	return $settings if(defined($settings));
+
+	# Fallback to default setting
+	$settings = settings_get("timeouts", "global");
+	return $settings if(defined($settings));
+
+	# If nothing else can be found return hard coded default
 	return \%DEFAULT_ALARM_THRESHOLDS;
 }
 

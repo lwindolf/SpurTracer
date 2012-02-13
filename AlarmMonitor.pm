@@ -29,7 +29,7 @@ use Stats;
 
 @EXPORT = qw(alarm_monitor_create alarm_monitor_get_alarms);
 
-$ENV{ 'PATH' } = '/bin:/usr/bin:/usr/local/bin';
+$ENV{ 'PATH' } = '';
 
 my $INTERVAL = 10;	# for now run detection roughly every 10s
 
@@ -108,19 +108,20 @@ sub _check {
 	my $this = shift;
 	my $now = time();
 
-	# Check error rates
+	# Check object error rates
 	foreach my $type ('host', 'component', 'interface') {
 		foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
-			my %config = %{alarm_config_get($object)};
-			my $errorRate = $$object{'failed'} * 100 / $$object{'started'};
+			my $key = "object!$type!$object->{name}";
+			my %config = %{alarm_config_get_threshold($key)};
+			my $errorRate = $object->{'failed'} * 100 / $object->{'started'};
 			
 			if($errorRate > $config{'critical'}) {
-				$this->_add_alarm('critical', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
+				$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
 				next;
 			}
 
 			if($errorRate > $config{'warning'}) {
-				$this->_add_alarm('warning', $type, $$object{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}% threshold)!", $errorRate));
+				$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}% threshold)!", $errorRate));
 				next;
 			}
 		}	
@@ -128,10 +129,10 @@ sub _check {
 
 	# Check overdue announcements (uncleared older announcements)
 	my $spuren = new Spuren();
-	my $timeoutSetting = settings_get("timeouts", "global");	# FIXME: Allow object specific setting
 	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
 		next if($announcement->{'timeout'} == 1);
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
+		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{sourceHost}!$announcement->{sourceComponent}!$announcement->{component}");
 
 		$spuren->set_announcement_timeout(%{$announcement});
 		$this->{'stats'}->add_interface_timeout($announcement->{'sourceHost'},
@@ -141,6 +142,7 @@ sub _check {
 
 	# Check component timeouts (missing 'finished' event)
 	# FIXME
+	#	my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{host}!$announcement->{component}");
 }
 
 ################################################################################
@@ -179,26 +181,28 @@ sub _send_nsca {
 		my $perfdata = "";
 		$objectName =~ s/^object!//;
 		my %object = $this->{'stats'}->get_object($objectName);
-		my %config = %{alarm_config_get($setting->{'name'})};
+		my %config = %{alarm_config_get_threshold($setting->{'name'})};
 
 		if($object{'started'} > 0) {
 			my $errorRate = $object{'failed'} * 100 / $object{'started'};
 			
 			if($errorRate > $config{'critical'}) {
+				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $errorRate, $config{'critical'};
 				$status = 2;
 			} elsif($errorRate > $config{'warning'}) {
+				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $errorRate, $config{'warning'};
 				$status = 1;
 			} else {
+				$result = sprintf "Current Error Rate %0.2f%%", $errorRate;
 				$status = 0;
 			}
 
-			$result = sprintf "Current Error Rate %0.2f%%", $errorRate;
 			$perfdata = sprintf "error_rate=%0.2f%%", $errorRate;
 		} else {
 			$result = "No statistics for this object [yet]!\n";
 		}
 
-		if(open(SEND_NSCA, "| $cmd")) {
+		if(open(SEND_NSCA, "| $cmd >/dev/null")) {
 			print SEND_NSCA "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
 			close(SEND_NSCA);
 		} else {

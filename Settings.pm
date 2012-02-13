@@ -27,6 +27,7 @@ require Exporter;
 	settings_get_defaults
 	settings_get_all
 	settings_get
+	settings_get_specific
 	settings_add
 	settings_remove
 );
@@ -95,6 +96,52 @@ sub settings_get_all {
 	}
 
 	return \@results;
+}
+
+################################################################################
+# Settings getter for hierarchic settings. Returns the first matching setting.
+#
+# ($1,$2)	Filter list (prefix, name)
+#
+# Returns a single hash reference (or undef)
+################################################################################
+sub settings_get_specific {
+	my ($prefix) = shift;
+	my $path = join("!", @_);
+
+	# Try to fetch exactly matching setting
+	foreach my $key (DB->keys("settings!$prefix!$path")) {
+		my %tmp = DB->hgetall($key);
+		return \%tmp;
+	}
+
+	# Determining inherited settings to be checked
+	my @steps = ();
+
+	if($path =~ /^instance!interface!(\w+)!(\w+)!(\w+)$/) {
+		push(@steps, "object!interface!$2!$3");
+		push(@steps, "object!host!$1");
+	}
+	if($path =~ /^instance!component!(\w+)!(\w+)$/) {
+		push(@steps, "object!component!$2");
+		push(@steps, "object!host!$1");
+	}
+	if($path =~ /^object!interface!(\w+)!(\w+)$/) {
+		push(@steps, "object!component!$1");
+	}
+	if($path =~ /^object!component!(\w+)!(\w+)$/) {
+		push(@steps, "object!host!$1");
+	}
+
+	foreach my $key (@steps) {
+		foreach my $key (DB->keys("settings!$prefix!$key")) {
+			my %tmp = DB->hgetall($key);
+			return \%tmp;
+		}
+	}
+
+	# Give up
+	return undef;
 }
 
 ################################################################################
@@ -167,7 +214,27 @@ key has a hash of properties assigned which may have different
 meanings for different setting namespaces.
 
 The Setting class helps accessing single or all namespace keys
-and returns them as Perl hashes or a list of hashes.
+and returns them as Perl hashes or a list of hashes. Additionally
+it provides a setting hierarchy aware access method to retrieve
+statistic object specific settings.
+
+=end text
+
+=head2 Which Getter Method is The Right One?
+
+=begin text
+
+To fetch a single setting that 100% exists
+	-> settings_get()
+
+To fetch a statistics object setting
+	-> settings_get_specific()
+
+To fetch all settings with the same namespace prefix
+	-> settings_get_all()
+
+To fetch all hard coded defaults
+	-> settings_get_defaults()
 
 =end text
 

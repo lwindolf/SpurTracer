@@ -60,7 +60,8 @@
 		<p>
 			Configure error rate thresholds so that SpurTracer
 			can raise a warning or an error for a host, component, 
-			interface, component instance or interface instance.
+			interface, component instance or interface instance
+			with to many errors.
 		</p>
 
 		<b>Global Default</b>
@@ -81,6 +82,57 @@
 				</tr>
 			</table>
 			<input type="submit" value="Save"/>
+		</form>
+
+		<br/>
+
+		<b>Specific Thresholds</b>
+
+		<a name="checks"/>
+		<table class="checks">
+			<tr>
+				<th>Statistics Object</th>
+				<th>Warning Threshold [%]</th>
+				<th>Critical Threshold [%]</th>
+			</tr>
+			<xsl:for-each select="Settings/Setting[@prefix='alarms.thresholds']">
+			<tr>
+				<td><xsl:value-of select="@name"/></td>
+				<td><xsl:value-of select="@warning"/></td>
+				<td><xsl:value-of select="@critical"/></td>
+				<td>
+					<form action="removeSetting#checks" method="GET">
+						<input type="hidden" name="prefix" value="{@prefix}"/>
+						<input type="hidden" name="name" value="{@name}"/>
+						<input type="submit" value="Remove"/>
+					</form>
+				</td>
+			</tr>
+			</xsl:for-each>
+		</table>
+
+		<xsl:if test="count(Settings/Setting[@prefix='alarms.thresholds']) = 0">
+			<p>You have not defined any specific thresholds yet! Add one using the form below...</p>
+		</xsl:if>
+		<xsl:if test="count(Settings/Setting[@prefix='alarms.thresholds']) > 0">
+			<p>Add more definitions using the form below...</p>
+		</xsl:if>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="alarms.thresholds"/>
+			<table>
+				<tr><td>Statistics Object</td>
+				<td><xsl:call-template name="statistics-object-selector"/></td></tr>
+				<tr>
+					<td>Warning Threshold [%]</td>
+					<td><input type="input"  name="warning"/></td>
+				</tr>
+				<tr>
+					<td>Critical Threshold [%]</td>
+					<td><input type="input" name="critical"/></td>
+				</tr>
+			</table>
+			<input type="submit" value="Add New"/>
 		</form>
 
 		<hr/>
@@ -115,6 +167,63 @@
 				</tr>
 			</table>
 			<input type="submit" value="Save"/>
+		</form>
+
+		<br/>
+
+		<b>Specific Timeouts</b>
+
+		<a name="timeouts"/>
+		<table class="checks">
+			<tr>
+				<th>Statistics Object</th>
+				<th>Component Timeout [s]</th>
+				<th>Interface Timeout [s]</th>
+			</tr>
+			<xsl:for-each select="Settings/Setting[@prefix='timeouts.hosts']">
+			<tr>
+				<td><xsl:value-of select="@name"/></td>
+				<td><xsl:value-of select="@component"/></td>
+				<td><xsl:value-of select="@interface"/></td>
+				<td>
+					<form action="removeSetting#timeouts" method="GET">
+						<input type="hidden" name="prefix" value="{@prefix}"/>
+						<input type="hidden" name="name" value="{@name}"/>
+						<input type="submit" value="Remove"/>
+					</form>
+				</td>
+			</tr>
+			</xsl:for-each>
+		</table>
+
+		<xsl:if test="count(Settings/Setting[@prefix='timeouts.hosts']) = 0">
+			<p>You have not defined any specific timeouts yet! Add one using the form below...</p>
+		</xsl:if>
+		<xsl:if test="count(Settings/Setting[@prefix='timeouts.hosts']) > 0">
+			<p>Add more definitions using the form below...</p>
+		</xsl:if>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="timeouts.hosts"/>
+			<table>
+				<tr><td>Source Host</td>
+				<td><select name='name'>
+						<xsl:for-each select="Hosts/Host">
+							<xsl:sort select="@name"/>
+							<option value="object!host!{@name}">[Host] <xsl:value-of select="@name"/></option>
+						</xsl:for-each>
+				</select></td>
+				</tr>
+				<tr>
+					<td>Component Timeout [s]</td>
+					<td><input type="input"  name="component"/></td>
+				</tr>
+				<tr>
+					<td>Interface Timeout [s]</td>
+					<td><input type="input" name="interface"/></td>
+				</tr>
+			</table>
+			<input type="submit" value="Add New"/>
 		</form>
 
 		<hr/>
