@@ -29,6 +29,8 @@ use Stats;
 
 @EXPORT = qw(alarm_monitor_create alarm_monitor_get_alarms);
 
+$ENV{ 'PATH' } = '/bin:/usr/bin:/usr/local/bin';
+
 my $INTERVAL = 10;	# for now run detection roughly every 10s
 
 ################################################################################
@@ -156,13 +158,52 @@ sub _send_nsca {
 	my $nagios = settings_get("nagios", "server");
 	return unless(defined($nagios->{'NSCAClientPath'}));
 
+	my $cmd = $nagios->{'NSCAClientPath'} . " ";
+	$cmd .= "-d '!' ";
+	$cmd .= "-H $nagios->{NSCAHost} ";
+	$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
+	$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
+
 	#print STDERR "Processing NSCA $now\n";
 	foreach my $setting (@{settings_get_all("nagios.serviceChecks")}) {
-		my $cmd = $nagios->{'NSCAClientPath'} . " ";
-		$cmd .= "-H $nagios->{NSCAHost} ";
-		$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
-		$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
-		print STDERR "$cmd\n";
+		my $objectName = $setting->{'name'};
+
+		# Respect passive check interval
+		$last = DB->get("alarmmonitor!$objectName!lastNSCASend");
+		next if(($now - $last) < $setting->{'interval'} * 60);
+		DB->set("alarmmonitor!$objectName!lastNSCASend", $now);
+
+		# FIXME: Support different types of checks (currently only error rate)
+		my $status = 3;
+		my $result = "";
+		my $perfdata = "";
+		$objectName =~ s/^object!//;
+		my %object = $this->{'stats'}->get_object($objectName);
+		my %config = %{alarm_config_get($setting->{'name'})};
+
+		if($object{'started'} > 0) {
+			my $errorRate = $object{'failed'} * 100 / $object{'started'};
+			
+			if($errorRate > $config{'critical'}) {
+				$status = 2;
+			} elsif($errorRate > $config{'warning'}) {
+				$status = 1;
+			} else {
+				$status = 0;
+			}
+
+			$result = sprintf "Current Error Rate %0.2f%%", $errorRate;
+			$perfdata = sprintf "error_rate=%0.2f%%", $errorRate;
+		} else {
+			$result = "No statistics for this object [yet]!\n";
+		}
+
+		if(open(SEND_NSCA, "| $cmd")) {
+			print SEND_NSCA "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
+			close(SEND_NSCA);
+		} else {
+			print STDERR "Failed to run '$cmd' ($!)\n";
+		}
 	}
 
 	# Update last NSCA processing time stamp...

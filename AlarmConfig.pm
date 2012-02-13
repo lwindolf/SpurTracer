@@ -23,7 +23,7 @@ use Settings;
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw(alarm_config_get);
+@EXPORT = qw(alarm_config_get alarm_config_get_nsca_interval);
 
 # Default error rate alarm configuration (in %)
 my %DEFAULT_ALARM_THRESHOLDS = (
@@ -41,6 +41,7 @@ my %DEFAULT_ALARM_THRESHOLDS = (
 sub alarm_config_get {
 	my ($object) = @_;
 
+	# FIXME: Use $object for specific settings
 	my $settings = settings_get("alarms", "global");
 	return $settings if(defined($settings));
 

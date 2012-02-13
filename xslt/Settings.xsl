@@ -162,6 +162,10 @@
 
 		<h4>Nagios Service Checks</h4>
 
+		<p>Note: Nagios service checks use the alarm thresholds as configured
+		in the <a href='#alarms'>Alarm Thresholds</a> section.</p>
+
+		<a name="checks"/>
 		<table class="checks">
 			<tr>
 				<th>Statistics Object</th>
@@ -169,8 +173,6 @@
 				<th>Check Interval [min]</th>
 				<th>Map to Host</th>
 				<th>Map to Service</th>
-				<th>Critical Threshold [%]</th>
-				<th>Warning Threshold [%]</th>
 			</tr>
 			<xsl:for-each select="Settings/Setting[@prefix='nagios.serviceChecks']">
 			<tr>
@@ -179,10 +181,8 @@
 				<td><xsl:value-of select="@checkInterval"/></td>
 				<td><xsl:value-of select="@mapHost"/></td>
 				<td><xsl:value-of select="@mapService"/></td>
-				<td><xsl:value-of select="@critical"/></td>
-				<td><xsl:value-of select="@warning"/></td>
 				<td>
-					<form action="removeSetting" method="GET">
+					<form action="removeSetting#checks" method="GET">
 						<input type="hidden" name="prefix" value="{@prefix}"/>
 						<input type="hidden" name="name" value="{@name}"/>
 						<input type="submit" value="Remove"/>
@@ -204,35 +204,12 @@
 			<table>
 				<tr><td>Statistics Object</td>
 				<td>
-					<select name="name">
-						<xsl:for-each select="Hosts/Host">
-							<xsl:sort select="@name"/>
-							<option value="h{@name}">[Host] <xsl:value-of select="@name"/></option>
-						</xsl:for-each>
-						<xsl:for-each select="Components/Component">
-							<xsl:sort select="@name"/>
-							<option value="h{@name}">[Component] <xsl:value-of select="@name"/></option>
-						</xsl:for-each>
-						<xsl:for-each select="Interfaces/Interface">
-							<xsl:sort select="@from"/>
-							<option value="n{@from}!n{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
-						</xsl:for-each>
-						<xsl:for-each select="ComponentInstances/Instance">
-							<xsl:sort select="@component"/>
-							<option value="h{@host}!n{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
-						</xsl:for-each>
-						<xsl:for-each select="InterfaceInstances/Instance">
-							<xsl:sort select="@component"/>
-							<option value="h{@host}!n{@component}!n{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
-						</xsl:for-each>
-					</select>
+					<xsl:call-template name="statistics-object-selector"/>
 				</td></tr>
 				<tr><td>Check Type</td><td>Error Rate<input type="hidden" name="checkType" value="Error Rate"/></td></tr>
 				<tr><td>Check Interval [min]</td><td><input type="input" name="checkInterval" size="5"/></td></tr>
 				<tr><td>Map To Host</td><td><input type="input" name="mapHost"/></td></tr>
 				<tr><td>Map To Service</td><td><input type="input" name="mapService"/></td></tr>
-				<tr><td>Critical Threshold [%]</td><td><input type="input" name="critical" size="5"/></td></tr>	
-				<tr><td>Warning Threshold [%]</td><td><input type="input" name="warning" size="5"/></td></tr>	
 			</table>
 			<input type="submit" value="Add New Check"/>
 		</form>
@@ -242,6 +219,32 @@
 	</div>
 </body>
 </html>
+</xsl:template>
+
+<!-- Produces <select> form element with a list of all available objects -->
+<xsl:template name="statistics-object-selector">
+	<select name="name">
+		<xsl:for-each select="Hosts/Host">
+			<xsl:sort select="@name"/>
+			<option value="object!host!{@name}">[Host] <xsl:value-of select="@name"/></option>
+		</xsl:for-each>
+		<xsl:for-each select="Components/Component">
+			<xsl:sort select="@name"/>
+			<option value="object!component!{@name}">[Component] <xsl:value-of select="@name"/></option>
+		</xsl:for-each>
+		<xsl:for-each select="Interfaces/Interface">
+			<xsl:sort select="@from"/>
+			<option value="object!interface!{@from}!{@to}">[Interface] <xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></option>
+		</xsl:for-each>
+		<xsl:for-each select="ComponentInstances/Instance">
+			<xsl:sort select="@component"/>
+			<option value="instance!component!{@host}!{@component}">[Component Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/></option>
+		</xsl:for-each>
+		<xsl:for-each select="InterfaceInstances/Instance">
+			<xsl:sort select="@component"/>
+			<option value="instance!interface!{@host}!{@component}!{@newcomponent}">[Interface Instance] <xsl:value-of select="@component"/> @ <xsl:value-of select="@host"/> -&gt; <xsl:value-of select="@newcomponent"/></option>
+		</xsl:for-each>
+	</select>
 </xsl:template>
 
 </xsl:stylesheet>
