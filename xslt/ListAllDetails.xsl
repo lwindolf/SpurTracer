@@ -65,12 +65,6 @@
 
 		<div class="clear"/>
 	</div>
-
-	<script type="text/javascript">
-		jQuery(document).ready(function() {
-		 	jQuery(".timeago").timeago();
-		});
-	</script>
 </body>
 </html>
 </xsl:template>

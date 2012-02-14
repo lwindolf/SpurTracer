@@ -37,16 +37,6 @@
 
 		<div class="clear"/>
 	</div>
-
-	<script type="text/javascript">
-		jQuery(document).ready(function() {
-		 	jQuery(".timeago").timeago();
-
-			jQuery.timeago.settings.strings.suffixAgo = null;
-
-			jQuery(".since").timeago();
-		});
-	</script>
 </body>
 </html>
 </xsl:template>

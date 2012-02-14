@@ -33,6 +33,17 @@
 
 		<div class="clear"/>
 	</xsl:if>
+
+	<!-- Unconditionally set timeago handler as it might be reused in other displays -->
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+		 	jQuery(".timeago").timeago();
+
+			jQuery.timeago.settings.strings.suffixAgo = null;
+
+			jQuery(".since").timeago();
+		});
+	</script>
 </xsl:template>
 
 </xsl:stylesheet>
