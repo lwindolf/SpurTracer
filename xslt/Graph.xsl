@@ -32,13 +32,19 @@
 					<td><xsl:value-of select="@value"/></td>
 				</xsl:for-each>
 			</tr>
+			<tr>
+				<th scope='row'>timeouts/min</th>
+				<xsl:for-each select="Counter[@name = 'timeout']/Value">
+					<td><xsl:value-of select="@value"/></td>
+				</xsl:for-each>
+			</tr>
 		</tbody>
 	</table>
 
 	<script type="text/javascript">
 		$(function(){
 			var id = "#graph<xsl:value-of select="position()"/>";
-			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '1', colors: ['#0F0', '#F00', '#CC0']});
+			$(id).visualize({type: 'line', width: '420px', height: '200px', lineWeight: '1', colors: ['#0F0', '#F00', '#CC0', '#00F']});
 			$(id).addClass('accessHide');
 		});
 	</script>
