@@ -65,7 +65,7 @@ sub new {
 			next;
 		}
 
-		$objStat{'counters'} = $stats->get_interval($match, ("started", "failed", "announced", "timeout"));
+		$objStat{'counters'} = $stats->get_interval($match, 100, ("started", "failed", "announced", "timeout"));
 		$objStat{'interval'} = $stats->{'interval'}->{'name'};
 		push(@{$results{'Statistics'}}, \%objStat);
 	}
