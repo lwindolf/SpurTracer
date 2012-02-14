@@ -22,6 +22,7 @@ use locale;
 use POSIX qw(strftime);
 use Error qw(:try);
 
+use Announcement;
 use DB;
 use Notification;
 use Stats;
@@ -40,6 +41,7 @@ sub new {
 	$this->{'stats'} = new Stats();
 	$this->{'today'} = strftime("%F", localtime());
 	$this->{'ttl'} = $settings->{'ttl'};
+	die "Not TTL!" unless(defined($this->{'ttl'}));
 
 	return bless $this, $type;
 }
@@ -88,26 +90,30 @@ sub add_data {
 	# Performance Data Handling
 	$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}) if($data{'status'} eq 'finished');
 
-	# Announcement Handling
+	# Interface Announcement Handling
 	if($data{'type'} eq "c") {
 		# For context announcements:
-		
+
 		# Check if any notifications already exist, to avoid
 		# adding announcements on races...
-		my ($status, @notifications) = $this->_query_redis(
-			('component' => $data{newcomponent},
-			'ctxt' => $data{newctxt})
-		);
+		my @notifications = $this->_query_redis((
+			'component'	=> $data{newcomponent},
+			'ctxt'		=> $data{newctxt}
+		));
 
 		if($#notifications < 0) {
-			$this->_add_announcement(%data);
+			announcement_add('interface', \%data, $this->{'ttl'});
 			$this->{'stats'}->add_interface_announced($data{host}, $data{component}, $data{newcomponent});
 		} else {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
 	} else {
 		# For normal notifications: Always clear any existing announcement
-		$this->_clear_announcement(%data);
+		announcement_clear('interface', \%data);
+
+		# Component Timeout Handling
+		announcement_add('component', \%data, $this->{'ttl'})	if($data{'status'} eq "started");
+		announcement_clear('component', \%data)			if($data{'status'} eq "finished");
 	}
 
 	# And finally the statistics
@@ -122,10 +128,7 @@ sub add_data {
 #
 # $2	List with filter rules as supported by notification_build_filter()
 #
-# Returns 	
-#
-# status code 			0 on success
-# array of result hashes	(undefined on error)
+# Returns array of result hashes	(undefined on error)
 ################################################################################
 sub _query_redis {
 	my ($this, %glob) = @_;
@@ -133,15 +136,7 @@ sub _query_redis {
 	my $filter = notification_build_filter(%glob);
 	#print STDERR "Querying for >>>$filter<<<\n" if($debug);
 
-	my @results;
-	try {
-		@results = DB->keys($filter);
-		return (0, @results);
-	} catch Error with {
-		my $ex = shift;
-		print STDERR "Query >>>$filter<<< failed!\n";
-		return (1, undef);
-	}
+	return DB->keys($filter);
 }
 
 ################################################################################
@@ -162,7 +157,7 @@ sub _query_redis {
 ################################################################################
 sub fetch {
 	my ($this, %glob) = @_;
-	my ($status, @keys) = $this->_query_redis(%glob);
+	my @keys = $this->_query_redis(%glob);
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
@@ -218,110 +213,6 @@ sub fetch {
 	}
 
 	return \%results;
-}
-
-################################################################################
-# Add new announcement
-#
-# $2	the event
-################################################################################
-sub _add_announcement {
-	my ($this, %event) = @_;
-
-	my $akey = "announce!n$event{newcomponent}!c$event{newctxt}";
-	DB->hset($akey, 'sourceHost',	$event{'host'});
-	DB->hset($akey, 'sourceComponent',	$event{'component'});
-	DB->hset($akey, 'sourceCtxt',	$event{'ctxt'});
-	DB->hset($akey, 'time', time());
-	DB->hset($akey, 'timeout', 0);
-	DB->expire($akey, $this->{'ttl'});
-}
-
-################################################################################
-# Clear existing announcement
-#
-# $2	the event
-################################################################################
-sub _clear_announcement {
-	my ($this, %event) = @_;
-
-	DB->del("announce!n$event{component}!c$event{ctxt}");
-}
-
-################################################################################
-# Mark the given timeout as run into a timeout
-#
-# $2	the event
-################################################################################
-sub set_announcement_timeout {
-	my ($this, %event) = @_;
-
-	DB->hset("announce!n$event{component}!c$event{ctxt}", 'timeout', 1);
-}
-
-################################################################################
-# Generic announcement fetching method. Provides filtering as fetch() does.
-#
-# $2	Hash with Redis glob patterns. Can be empty to fetch the
-#	latest n results. Otherwise it has a glob pattern for each field 
-#	to be filtered. Not each fields needs to be given.
-#
-#	Example: Get all announced DB sync jobs
-#
-#		("ctxt" => "sync?", "component" => "db")
-#
-# Returns an array of result hashes	(undefined on error)
-################################################################################
-sub fetch_announcements {
-	my ($this, %glob, $max_results) = @_;
-	my $today = strftime("%F", localtime());
-
-	# Build fetching glob
-	my $filter = "announce!";
-	$filter .= "n".$glob{component}."!*"	if(defined($glob{component}));
-
-	$filter = "announce!*!" if($filter eq "");	# Avoid starting wildcard if possible
-
-	$filter .= "c".$glob{ctxt}."!*"	if(defined($glob{ctxt}));
-	$filter .= "*" unless(defined($glob{ctc}));
-
-	my @keys;
-	try {
-		@keys = DB->keys($filter);
-	} catch Error with {
-		my $ex = shift;
-		print STDERR "Query failed!\n";
-		return (1, undef);
-	}
-
-	# Deserialize query results into a list of events grouped
-	# for spur (a host, component, context) sets.
-	my @results = ();
-	my $i = 0;
-	foreach my $key (@keys) {
-		next if($key =~ /skipped because its mtime/);
-
-		# Decode value store key according to schema 
-		#
-		# announce!n<component>!c<ctxt>
-		if($key =~ /announce!n([^!]+)!c([^!]+)$/) {
-			$i++;
-
-			# Add event to set
-			my %event = DB->hgetall($key);
-			$event{'component'} = $1;
-			$event{'ctxt'} = $2;
-			$event{'date'} = $this->nice_time($event{'time'});
-
-			push(@results, \%event);
-		} else {
-			print STDERR "Invalid key encoding: >>>$key<<<!\n";
-		}
-
-		last if($i > 100);
-	}
-
-	return (0, \@results);
 }
 
 1;

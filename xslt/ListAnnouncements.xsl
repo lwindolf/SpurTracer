@@ -7,10 +7,11 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>All Recent Announcements</title>
+	<title>Pending/Failed Announcements</title>
 	<meta http-equiv="refresh" content="10"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/jquery.timeago.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -29,7 +30,7 @@
 		</div>
 
 		<div class="systemMap">
-		<div class="header">Recent Announcements</div>
+		<div class="header">Recent Pending/Failed Announcements</div>
 		<table border="0" class="notifications">
 			<tr>
 				<th>Time</th>
@@ -57,6 +58,17 @@
 
 		<div class="clear"/>
 	</div>
+
+	<!-- Unconditionally set timeago handler as it might be reused in other displays -->
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+		 	jQuery(".timeago").timeago();
+
+			jQuery.timeago.settings.strings.suffixAgo = null;
+
+			jQuery(".since").timeago();
+		});
+	</script>
 </body>
 </html>
 </xsl:template>
@@ -67,13 +79,13 @@
 			<xsl:if test="@timeout = 0">announced</xsl:if>
 			<xsl:if test="@timeout = 1">error</xsl:if>
 		</xsl:attribute>
-		<td><xsl:value-of select="@date"/></td>
+		<td class="timeago"><xsl:value-of select="@time"/></td>
 		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
 		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
-		<td><xsl:value-of select="/Spuren/@now - @time"/>s</td>
+		<td class="timeago" title="{@time}"><xsl:value-of select="@time"/></td>
 	</xsl:element>
 </xsl:template>
 

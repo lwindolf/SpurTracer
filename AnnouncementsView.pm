@@ -19,17 +19,16 @@
 package AnnouncementsView;
 
 use AlarmMonitor;
-use Spuren;
+use Announcement;
 
 @ISA = (SpurTracerView);
 
 sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
-	my $spuren = new Spuren();
 	my %results;
 
-	$results{"Announcements"} = $spuren->fetch_announcements(%{$this->{glob}});
+	$results{"Announcements"} = announcements_fetch('interface', %{$this->{glob}});
 	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	$this->{results} = \%results;

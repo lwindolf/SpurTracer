@@ -19,10 +19,10 @@ package AlarmMonitor;
 
 require Exporter;
 
+use Announcement;
 use AlarmConfig;
 use DB;
 use Settings;
-use Spuren;
 use Stats;
 
 @ISA = qw(Exporter);
@@ -129,21 +129,28 @@ sub _check {
 	}
 
 	# Check overdue announcements (uncleared older announcements)
-	my $spuren = new Spuren();
-	foreach my $announcement (@{$spuren->fetch_announcements({})}) {
+	foreach my $announcement (@{announcements_fetch('interface', {})}) {
 		next if($announcement->{'timeout'} == 1);
-		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
-		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{sourceHost}!$announcement->{sourceComponent}!$announcement->{component}");
 
-		$spuren->set_announcement_timeout(%{$announcement});
+		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{sourceHost}!$announcement->{sourceComponent}!$announcement->{component}");
+		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
+
+		announcement_set_timeout('interface', $announcement);
 		$this->{'stats'}->add_interface_timeout($announcement->{'sourceHost'},
 		                                        $announcement->{'sourceComponent'},
 		                                        $announcement->{'component'});
 	}
 
 	# Check component timeouts (missing 'finished' event)
-	# FIXME
-	#	my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{host}!$announcement->{component}");
+	foreach my $announcement (@{announcements_fetch('component', {})}) {
+		next if($announcement->{'timeout'} == 1);
+
+		my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{sourceHost}!$announcement->{sourceComponent}");
+		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'component'});
+
+		announcement_set_timeout('component', $announcement);
+		# FIXME: add timeout to stats
+	}
 }
 
 ################################################################################
