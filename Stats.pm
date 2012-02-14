@@ -1,4 +1,4 @@
-# Stats.pm: Per-Object Counter Data Access
+# Stats.pm: Per-Object/Interval Statistics Data Access
 #
 # Copyright (C) 2012 Lars Lindner <lars.lindner@gmail.com>
 #
@@ -47,7 +47,11 @@ my @INTERVALS = (
 ################################################################################
 # Constructor
 #
-# $1	interval (optional)
+# Initializes the statistics access object for a given interval. All query
+# methods will use that interval whose name is passed in $1. If no valid
+# name is passed the default (the smallest) interval will be used.
+#
+# $1	interval name (optional)
 ################################################################################
 sub new {
 	my ($type, $intervalName) = @_;
@@ -280,15 +284,23 @@ sub add_interface_duration {
 #
 # $2	object type ('interface', 'component' or 'host')
 # $3	object name
+#
+# Returns hash with properties of the object
 ################################################################################
 sub get_object {
 	my $this = shift;
+	my %interval = %{$this->{'interval'}};
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout', 'announced')) {
-		$results{$_} = DB->get("stats!object!$key_prefix!$_");
-		$results{$_} = 0 unless(defined($results{$_}));
+		my %tmp = DB->hgetall("stats$interval{name}!object!$key_prefix!$_");
+		$results{$_} = 0;
+		# Sum up the interval to get sum
+		foreach my $value (values(%tmp)) {
+			$results{$_} += $value;
+		}
+
 	}
 
 	return %results;
@@ -305,9 +317,10 @@ sub get_object {
 ################################################################################
 sub get_keys {
 	my ($this, $type, $valueType, $counter) = @_;
+	my %interval = %{$this->{'interval'}};
 
 	$counter = "started" unless(defined($counter));
-	my @keys = DB->keys("stats!$type!$valueType!*!$counter");
+	my @keys = DB->keys("stats$interval{name}!$type!$valueType!*!$counter");
 
 	return \@keys;
 }
@@ -326,10 +339,11 @@ sub get_keys {
 ################################################################################
 sub get_object_list {
 	my ($this, $type) = @_;
+	my %interval = %{$this->{'interval'}};
 	my @results = ();
 
 	foreach(@{$this->get_keys('object', $type)}) {
-		next unless(/^stats!object!$type!(.+)!\w+$/);
+		next unless(/^stats$interval{name}!object!$type!(.+)!\w+$/);
 		my %tmp = $this->get_object($type, $1);
 		
 		# We must distinguish between interfaces and objects
@@ -354,15 +368,22 @@ sub get_object_list {
 #
 # $2	instance type ('interface', 'component')
 # $3	instance name
+#
+# Returns hash with properties of the instance
 ################################################################################
 sub get_instance {
 	my $this = shift;
+	my %interval = %{$this->{'interval'}};
 	my $key_prefix = join("!", @_);
 	my %results = ();
 
 	foreach(('failed', 'started', 'timeout', 'announced')) {
-		$results{$_} = DB->get("stats!instance!$key_prefix!$_");
-		$results{$_} = 0 unless(defined($results{$_}));
+		my %tmp = DB->hgetall("stats$interval{name}!instance!$key_prefix!$_");
+		$results{$_} = 0;
+		# Sum up the interval to get sum
+		foreach my $value (values(%tmp)) {
+			$results{$_} += $value;
+		}
 	}
 
 	return %results;
@@ -370,18 +391,19 @@ sub get_instance {
 
 ################################################################################
 # Get a list of all known objects of a type and their properties as returned
-# by stats_get_instance()
+# by get_instance()
 #
 # $2	object type ('interface', 'component')
 #
-# Returns a list of FIXME pairs
+# Returns a list of get_instance() results augmented by some identifier fields
 ################################################################################
 sub get_instance_list {
 	my ($this, $type) = @_;
+	my %interval = %{$this->{'interval'}};
 	my @results = ();
 
 	foreach(@{$this->get_keys('instance', $type)}) {
-		next unless(/^stats!instance!$type!(.+)!\w+$/);
+		next unless(/^stats$interval{name}!instance!$type!(.+)!\w+$/);
 		my %tmp = $this->get_instance($type, $1);
 
 		# Split instance name into it's parts. E.g.

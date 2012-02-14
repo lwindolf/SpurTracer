@@ -25,7 +25,7 @@ use AlarmMonitor;
 sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
-	my $stats = new Stats($this->{'interval'});
+	my $stats = new Stats($this->{'intervalName'});
 	my %results;
 
 	my $filter = $this->{'glob'}{'type'};
@@ -58,7 +58,7 @@ sub new {
 		if($filter eq 'global') {
 			$objStat{'name'} = 'Global Events';
 			$match = 'object!global';
-		} elsif($key =~ /^stats!(object!$filter!([^!]+))!started$/) {
+		} elsif($key =~ /^stats[^!]*!(object!$filter!([^!]+))!started$/) {
 			$objStat{'name'} = ucfirst($filter)." $2";
 			$match = $1;
 		} else {
