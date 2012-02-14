@@ -18,8 +18,9 @@
 
 	<xsl:if test="$filter = 1">
 	<div class="filter">
+		<form action="" method="GET">
 		Interval 
-		<select id="interval" name="interval">
+		<select id="interval" name="interval" onChange="this.form.submit()">
 			<xsl:for-each select="Intervals/Interval/@name">
 				<xsl:element name="option">
 					<xsl:attribute name="value"><xsl:value-of select="."/></xsl:attribute>
@@ -29,13 +30,22 @@
 			</xsl:for-each>
 		</select>
 
-		<xsl:if test="count(Filter/Attribute) > 0">
+		<xsl:if test="count(Filter/Attribute[@type != 'type']) > 0">
 			Filter:
-			<xsl:for-each select="Filter/Attribute">
-				<xsl:value-of select="@type"/> 
-				<input type="text" size="15" value="{@value}"/>
-			</xsl:for-each>
 		</xsl:if>
+
+		<xsl:for-each select="Filter/Attribute">
+			<xsl:choose>
+				<xsl:when test="@type = 'type'">
+					<input type="hidden" name="{@type}" value="{@value}"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="@type"/> 
+					<input type="text" size="15" name="{@type}" value="{@value}"/>
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:for-each>
+		</form>
 	</div>
 	</xsl:if>
 </xsl:template>

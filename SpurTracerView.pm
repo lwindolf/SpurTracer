@@ -91,7 +91,7 @@ sub print {
 
 	$writer->startTag("Filter");
 	foreach my $key (keys %{$this->{'glob'}}) {
-		next unless($type eq "interval");
+		next if($key eq "interval");
 		$writer->emptyTag("Attribute", ('type' => $key, 'value' => $this->{'glob'}->{$key}));
 	}
 	$writer->endTag();
