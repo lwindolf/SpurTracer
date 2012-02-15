@@ -106,18 +106,6 @@ table.notifications * a {
 	background:#FF7;
 }
 
-.legend {
-	border:1px solid black;
-	float:right;
-	padding:6px;
-	margin:6px 0;
-}
-
-.legend span {
-	margin:6px;
-	padding:0 3px;
-}
-
 .clear {
 	clear:both;
 }
@@ -269,3 +257,8 @@ div.config form table td:first-child {
 .alarms .severity {
 	text-transform:uppercase;
 }
+
+.legend {
+	float:right;
+}
+

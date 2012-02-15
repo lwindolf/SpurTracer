@@ -48,9 +48,9 @@
 		</table>
 		</div>
 
-		<div class="legend">
+		<div class="systemMap legend">
+			<div class="header">Legend</div>
 			<table>
-				<tr><th>Legend</th></tr>
 				<tr><td class='announced'>announced</td></tr>
 				<tr><td class='error'>timeout</td></tr>
 			</table>

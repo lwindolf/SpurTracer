@@ -50,4 +50,17 @@
 	</xsl:if>
 </xsl:template>
 
+<xsl:template name="legend-spuren">
+	<div class="legend systemMap">
+		<div class="header">Legend</div>
+		<table>
+			<tr><td class='started'>started</td></tr>
+			<tr><td class='running'>running</td></tr>
+			<tr><td class='error'>error</td></tr>
+			<tr><td class='announced'>announced</td></tr>
+			<tr><td class='finished'>finished</td></tr>
+		</table>
+	</div>
+</xsl:template>
+
 </xsl:stylesheet>

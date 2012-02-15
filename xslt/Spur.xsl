@@ -32,16 +32,7 @@
 
 			<div id="mapCanvas"></div>
 
-			<div class="legend">
-				<table>
-					<tr><th>Legend</th></tr>
-					<tr><td class='started'>started</td></tr>
-					<tr><td class='running'>running</td></tr>
-					<tr><td class='error'>error</td></tr>
-					<tr><td class='announced'>announced</td></tr>
-					<tr><td class='finished'>finished</td></tr>
-				</table>
-			</div>
+			<xsl:call-template name="legend-spuren"/>
 		</div>
 
 		<div class="systemMap">
