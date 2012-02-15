@@ -41,25 +41,9 @@ sub new {
 	$this->{'stats'} = new Stats();
 	$this->{'today'} = strftime("%F", localtime());
 	$this->{'ttl'} = $settings->{'ttl'};
-	die "Not TTL!" unless(defined($this->{'ttl'}));
+	warn "Not TTL!" unless(defined($this->{'ttl'}));
 
 	return bless $this, $type;
-}
-
-################################################################################
-# Time formatting helper
-#
-# $1	Unix time stamp
-#
-# Returns string with formatted date
-################################################################################
-sub nice_time {
-	my ($this, $ts) = @_;
-
-	my $result = strftime("%F %T", localtime($ts));
-	$result =~ s/^$this->{today} //;	# shorten time if possible
-
-	return $result;
 }
 
 ################################################################################
@@ -182,7 +166,6 @@ sub fetch {
 				$results{$id}{source}{component} = $3;
 				$results{$id}{source}{ctxt} = $4;
 				$results{$id}{source}{started} = $time;
-				$results{$id}{source}{startDate} = $this->nice_time($time);
 				$results{$id}{events} = ();
 				$i++;
 			}
@@ -190,7 +173,6 @@ sub fetch {
 			my %event = ();
 			$event{type} = $type;
 			$event{time} = $time;
-			$event{date} = $this->nice_time($time);
 			$event{status} = $status if(defined($status));
 			if($type eq "n") {
 				$event{desc} = DB->get($key);

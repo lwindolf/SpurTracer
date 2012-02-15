@@ -12,6 +12,7 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
 	<script type="text/javascript" src="js/jquery.timeago.js"/>
+	<script type="text/javascript" src="js/jquery.time.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -67,6 +68,8 @@
 			jQuery.timeago.settings.strings.suffixAgo = null;
 
 			jQuery(".since").timeago();
+
+			jQuery(".time").time();
 		});
 	</script>
 </body>
@@ -79,13 +82,13 @@
 			<xsl:if test="@timeout = 0">announced</xsl:if>
 			<xsl:if test="@timeout = 1">error</xsl:if>
 		</xsl:attribute>
-		<td class="timeago"><xsl:value-of select="@time"/></td>
+		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
 		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
-		<td class="timeago" title="{@time}"><xsl:value-of select="@time"/></td>
+		<td class="since" title="{@time}"><xsl:value-of select="@time"/></td>
 	</xsl:element>
 </xsl:template>
 

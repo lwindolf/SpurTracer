@@ -12,6 +12,7 @@
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
 	<script type="text/javascript" src="js/jquery.timeago.js"/>
+	<script type="text/javascript" src="js/jquery.time.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -59,6 +60,12 @@
 
 		<div class="clear"/>
 	</div>
+
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+		 	jQuery(".time").time();
+		});
+	</script>
 </body>
 </html>
 </xsl:template>
@@ -75,7 +82,7 @@
 		</xsl:attribute>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><b><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></b></td>
-		<td class="timeago" title="{@started}"><xsl:value-of select="@started"/></td>
+		<td class="time" title="{@started}"><xsl:value-of select="@started"/></td>
 		<td colspan="2"><b><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></b></td>
 	</xsl:element>
 
@@ -88,7 +95,7 @@
 					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
 					<td/>
 					<td/>
-					<td class="timeago" title="{@time}"><xsl:value-of select="@time"/></td>
+					<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td><xsl:value-of select="@desc"/></td>
 				</xsl:element>
@@ -100,7 +107,7 @@
 					<xsl:attribute name="class">announcement <xsl:if test="@status!='finished'">announced</xsl:if></xsl:attribute>
 					<td/>
 					<td/>
-					<td class="timeago" title="{@time}"><xsl:value-of select="@time"/></td>
+					<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a>, ctxt <a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</xsl:element>

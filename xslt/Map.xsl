@@ -8,7 +8,7 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>System Map</title>
+	<title>SpurTracer - System Map</title>
 	<meta http-equiv="refresh" content="5"/>
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>

@@ -6,7 +6,7 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>Spur Trace</title>
+	<title>Spur Tracer - Spur</title>
 	<xsl:if test="count(//Spur) != count(//Spur/Event[@status = 'finished' and @type = 'n'])">
 		<!-- Only refresh if one Spur isn't finished -->
 		<meta http-equiv="refresh" content="5"/>
@@ -16,8 +16,9 @@
 
 	<script type="text/javascript" src="js/raphael-min.js"></script>
 	<script type="text/javascript" src="js/dracula_graffle.js"></script>
-	<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
 	<script type="text/javascript" src="js/dracula_graph.js"></script>
+	<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery.time.js"></script>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -62,6 +63,12 @@
 
 		<div class="clear"/>
 	</div>
+
+	<script type="text/javascript">
+		jQuery(document).ready(function() {
+		 	jQuery(".time").time();
+		});
+	</script>
 </body>
 </html>
 </xsl:template>
@@ -90,7 +97,7 @@
 				<xsl:element name="tr">
 					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
 					<td/>
-					<td><xsl:value-of select="@date"/></td>
+					<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td><xsl:value-of select="@desc"/></td>
 				</xsl:element>
@@ -100,7 +107,7 @@
 					<xsl:attribute name="class">announcement <xsl:if test="@status!='finished'">announced</xsl:if></xsl:attribute>
 
 					<td/>
-					<td><xsl:value-of select="@date"/></td>
+					<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 					<td><xsl:value-of select="@status"/></td>
 					<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a>, ctxt <a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 				</xsl:element>
