@@ -268,9 +268,28 @@ sub add_interface_timeout {
 	my $this = $_[0];
 
 	$this->_count_object('global', 'timeout');
+	$this->_count_object('host', $_[1], 'timeout');
 	$this->_count_object('interface', $_[2] . "!" . $_[3], 'timeout');
 
 	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'timeout');
+}
+
+################################################################################
+# Generic error counter method. Increases the error for all relevant counters.
+#
+# To be called only by AlarmMonitor!
+#
+# $2	Host
+# $3	Component
+################################################################################
+sub add_component_timeout {
+	my $this = $_[0];
+
+	$this->_count_object('global', 'timeout');
+	$this->_count_object('host', $_[1], 'timeout');
+	$this->_count_object('component', $_[2], 'timeout');
+
+	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'timeout');
 }
 
 ################################################################################

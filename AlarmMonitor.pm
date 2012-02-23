@@ -133,24 +133,25 @@ sub _check {
 	foreach my $announcement (@{announcements_fetch('interface', {})}) {
 		next if($announcement->{'timeout'} == 1);
 
-		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{sourceHost}!$announcement->{sourceComponent}!$announcement->{component}");
+		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{host}!$announcement->{component}!$announcement->{newcomponent}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
 
 		announcement_set_timeout('interface', $announcement);
-		$this->{'stats'}->add_interface_timeout($announcement->{'sourceHost'},
-		                                        $announcement->{'sourceComponent'},
-		                                        $announcement->{'component'});
+		$this->{'stats'}->add_interface_timeout($announcement->{'host'},
+		                                        $announcement->{'component'},
+		                                        $announcement->{'newcomponent'});
 	}
 
 	# Check component timeouts (missing 'finished' event)
 	foreach my $announcement (@{announcements_fetch('component', {})}) {
 		next if($announcement->{'timeout'} == 1);
 
-		my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{sourceHost}!$announcement->{sourceComponent}");
+		my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{host}!$announcement->{component}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'component'});
 
 		announcement_set_timeout('component', $announcement);
-		# FIXME: add timeout to stats
+		$this->{'stats'}->add_component_timeout($announcement->{'host'},
+		                                        $announcement->{'component'});
 	}
 }
 
