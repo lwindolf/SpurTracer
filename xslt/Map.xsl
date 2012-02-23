@@ -118,7 +118,7 @@
 				<th>Timeouts</th>
 			</tr>
 			<xsl:for-each select="Component">
-				<xsl:sort select="@component" order="ascending"/>
+				<xsl:sort select="@name" order="ascending"/>
 				<xsl:call-template name="Component"/>
 			</xsl:for-each>
 		</table>
