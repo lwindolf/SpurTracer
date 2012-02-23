@@ -8,7 +8,7 @@
  * @author Lars Lindner
  * @license GPLv2 and later or MIT License - http://www.opensource.org/licenses/mit-license.php
  *
- * Copyright (c) 2012 Lars Lindner <lars.lindner@gmail.com>
+ * Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
  */
 
 (function($) {
