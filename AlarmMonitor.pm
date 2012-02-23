@@ -30,6 +30,7 @@ use Stats;
 @EXPORT = qw(alarm_monitor_create alarm_monitor_get_alarms);
 
 $ENV{ 'PATH' } = '';
+$ENV{ 'ENV' } = '';
 
 my $INTERVAL = 10;	# for now run detection roughly every 10s
 
