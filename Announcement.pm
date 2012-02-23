@@ -33,7 +33,7 @@ require Exporter;
 );
 
 ################################################################################
-# Helper method to build announcement keys
+# Helper method to build unique announcement keys.
 #
 # $1	announcement type ('component' or 'interface')
 # $2	the event producing the announcement
@@ -42,27 +42,27 @@ require Exporter;
 ################################################################################
 sub build_announcement_key {
 	my ($type, $event) = @_;
-	my $akey = "announce!$type!";
 
-	if($event->{'type'} eq 'c') {
-		# 1. Announcements
-		#
-		# 1.a) Component announcements are implicitely triggered on 
-		#      'started' events so the component name is the name 
-		#      of the announced component
-		$akey .= "$event->{component}!$event->{ctxt}" if($type eq "component");
-		#
-		# 1.b) Interface announcement are caused by context announcement
-		#      events which provide the names of the new component/ctxt
-		$akey .= "$event->{newcomponent}!$event->{newctxt}" if($type eq "interface");
-	} else {
-		# 2. Clear/Timeout Announcement
-		#
-		# Component clears/timeouts are caused by the AlarmMonitor that
-		# processes all existing notifications. The event structure 
-		# contains the announcement event itself.
-		$akey .= "$event->{component}!$event->{ctxt}";
+	unless(defined($event->{'host'}) and
+	       defined($event->{'component'}) and
+	       defined($event->{'ctxt'})) {
+		print STDERR "ERROR: Announcement event without host/component/ctxt!\n";
+		print STDERR Data::Dumper->Dump([$event], ['event']);
+		return;
 	}
+	if($type eq "interface") {
+		unless(defined($event->{'newcomponent'}) and
+		       defined($event->{'newctxt'})) {
+			print STDERR "ERROR: Interface announcement event without newcomponent/newctxt!\n";
+			print STDERR Data::Dumper->Dump([$event], ['event']);
+			return;
+		}
+	}
+
+	my $akey = "announce!$type!$event->{host}!$event->{component}!";
+
+	$akey .= "$event->{ctxt}" if($type eq "component");
+	$akey .= "$event->{ctxt}!$event->{newcomponent}!$event->{newctxt}" if($type eq "interface");
 
 	return $akey;
 } 
@@ -78,9 +78,15 @@ sub announcement_add {
 	my ($type, $event, $ttl) = @_;
 
 	my $akey = build_announcement_key($type, $event);
-	DB->hset($akey, 'sourceHost',		$event->{'host'});
-	DB->hset($akey, 'sourceComponent',	$event->{'component'});
-	DB->hset($akey, 'sourceCtxt',		$event->{'ctxt'});
+	DB->hset($akey, 'host',			$event->{'host'});
+	DB->hset($akey, 'component',		$event->{'component'});
+	DB->hset($akey, 'ctxt',			$event->{'ctxt'});
+
+	if(defined($event->{'newctxt'})) {
+		DB->hset($akey, 'newcomponent',		$event->{'newcomponent'});
+		DB->hset($akey, 'newctxt',		$event->{'newctxt'});
+	}
+
 	DB->hset($akey, 'time',			time());
 	DB->hset($akey, 'timeout',		0);
 	DB->expire($akey, $ttl);
@@ -93,8 +99,14 @@ sub announcement_add {
 # $2	the announcement event to be cleared
 ################################################################################
 sub announcement_clear {
+	my ($type, $event) = @_;
 
-	DB->del(build_announcement_key(@_));
+	# We cannot use build_announcement_key() here as we have not all
+	# necessary values (source host/source component...). So we need
+	# to delete based on match pattern
+	foreach(DB->keys("announce!$type!*!$event->{component}!$event->{ctxt}")) {
+		DB->del($_);
+	}
 }
 
 ################################################################################
@@ -105,7 +117,7 @@ sub announcement_clear {
 ################################################################################
 sub announcement_set_timeout {
 
-	DB->hset(build_announcement_key(@_), 'timeout', 1);
+	DB->hset(build_announcement_key(shift, @_), 'timeout', 1);
 }
 
 ################################################################################
@@ -127,6 +139,8 @@ sub announcements_fetch {
 
 	# Build fetching glob
 	my $filter = "announce!$type!";
+	$filter .= "$glob{host}!*"	if(defined($glob{'host'}));
+	# FIXME: Missing *
 	$filter .= "$glob{component}!*"	if(defined($glob{'component'}));
 	$filter .= "$glob{ctxt}!*"	if(defined($glob{'ctxt'}));
 	$filter .= "*"			unless($filter =~ /\*$/);
@@ -137,25 +151,10 @@ sub announcements_fetch {
 	my $i = 0;
 	foreach my $key (DB->keys($filter)) {
 		next if($key =~ /skipped because its mtime/);
+		my %event = DB->hgetall($key);
+		push(@results, \%event);
 
-		# Decode value store key according to schema 
-		#
-		# announce!component!<component>
-		# announce!interface!<component>!<ctxt>
-		if($key =~ /announce!$type!([^!]+)!([^!]+)$/) {
-			$i++;
-
-			# Add event to set
-			my %event = DB->hgetall($key);
-			$event{'component'} = $1;
-			$event{'ctxt'} = $2;
-
-			push(@results, \%event);
-		} else {
-			print STDERR "Invalid key encoding: >>>$key<<<!\n";
-		}
-
-		last if($i > 100);
+		last if($i++ > 100);	# FIXME: hard coded!
 	}
 
 	return \@results;

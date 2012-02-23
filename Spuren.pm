@@ -92,8 +92,8 @@ sub add_data {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
 	} else {
-		# For normal notifications: Always clear any existing announcement
-		announcement_clear('interface', \%data);
+		# Interface Timeout Handling
+		announcement_clear('interface', \%data)	if($data{'status'} eq "started");
 
 		# Component Timeout Handling
 		announcement_add('component', \%data, $this->{'ttl'})	if($data{'status'} eq "started");

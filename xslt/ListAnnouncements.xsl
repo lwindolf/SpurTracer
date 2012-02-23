@@ -83,11 +83,11 @@
 			<xsl:if test="@timeout = 1">error</xsl:if>
 		</xsl:attribute>
 		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
-		<td><a href="/getDetails?host={@sourceHost}"><xsl:value-of select="@sourceHost"/></a></td>
-		<td><a href="/getDetails?component={@sourceComponent}"><xsl:value-of select="@sourceComponent"/></a></td>
+		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a></td>
+		<td><a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
-		<td><a href="/getSpur?ctxt={@sourceCtxt}"><xsl:value-of select="@sourceCtxt"/></a></td>
 		<td class="since" title="{@time}"><xsl:value-of select="@time"/></td>
 	</xsl:element>
 </xsl:template>
