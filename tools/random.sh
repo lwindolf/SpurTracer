@@ -18,17 +18,17 @@ PIDFILE=/tmp/spt_random.pid
 #
 # Error rates per component
 ERROR_RATE_COMP1=0
-ERROR_RATE_COMP2=10
-ERROR_RATE_COMP3=2000
+ERROR_RATE_COMP2=20
+ERROR_RATE_COMP3=4000
 #
 # Error rates per host
 ERROR_RATE_HOST0=0
 ERROR_RATE_HOST1=0
-ERROR_RATE_HOST2=20
+ERROR_RATE_HOST2=40
 #
 # Error rates per interface
 ERROR_RATE_INTERFACE1=0
-ERROR_RATE_INTERFACE2=100
+ERROR_RATE_INTERFACE2=200
 ################################################################################
 
 trap "cat $PIDFILE | xargs kill -9; exit" SIGINT SIGTERM
