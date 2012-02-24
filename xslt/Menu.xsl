@@ -4,6 +4,7 @@
 <xsl:template name="Menu">
 	<xsl:param name="active"/>
 	<xsl:param name="filter"/>
+	<xsl:param name="nointerval"/>
 
 	<div class="menu">
 		<span id="Map"		class="menuitem"><a href="getMap">System Map</a></span>
@@ -19,6 +20,7 @@
 	<xsl:if test="$filter = 1">
 	<div class="filter">
 		<form action="" method="GET">
+		<xsl:if test="$nointerval != 1">
 		Interval 
 		<select id="interval" name="interval" onChange="this.form.submit()">
 			<xsl:for-each select="Intervals/Interval/@name">
@@ -29,12 +31,14 @@
 				</xsl:element>
 			</xsl:for-each>
 		</select>
+		</xsl:if>
 
 		<xsl:if test="count(Filter/Attribute[@type != 'type']) > 0">
 			Filter:
 		</xsl:if>
 
 		<xsl:for-each select="Filter/Attribute">
+			<xsl:sort select='@type'/>
 			<xsl:choose>
 				<xsl:when test="@type = 'type'">
 					<input type="hidden" name="{@type}" value="{@value}"/>
