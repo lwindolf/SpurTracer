@@ -20,6 +20,7 @@
 	<div class="content">
 		<xsl:call-template name="Menu">
 			<xsl:with-param name="active" select="'Events'"/>
+			<xsl:with-param name="filter" select="'1'"/>
 		</xsl:call-template>
 
 		<xsl:call-template name="Alarms"/>

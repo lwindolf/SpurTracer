@@ -46,7 +46,7 @@ div.content {
 	padding:12px;
 }
 
-table.notifications * a {
+table.notifications * a, table.alarms * a {
 	text-decoration:none;
 }
 

@@ -21,7 +21,9 @@
 						<xsl:value-of select="@severity"/>
 					</xsl:attribute>
 				<td class="type"><xsl:value-of select="@type"/></td>
-				<td class="name"><xsl:value-of select="@name"/></td>
+				<td class="name">
+					<a href="get?{@type}={@name}&amp;status=failed"><xsl:value-of select="@name"/></a>
+				</td>
 				<td class="severity"><xsl:value-of select="@severity"/></td>
 				<td class="lastchecked timeago" title="{@time}"><xsl:value-of select="@time"/></td>
 				<td class="lastchecked since" title="{@since}"><xsl:value-of select="@since"/></td>
