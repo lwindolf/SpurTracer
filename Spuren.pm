@@ -72,15 +72,13 @@ sub add_data {
 	DB->set($key, $value);
 	DB->expire($key, $this->{'ttl'});
 
-	# Performance Data Handling
-	$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}) if($data{'status'} eq 'finished');
-
-	# Interface Announcement Handling
 	if($data{'type'} eq "c") {
 		# For context announcements:
 
+		# Interface Announcement Handling
+
 		# Check if any notifications already exist, to avoid
-		# adding announcements on races...
+		# adding announcements on time sync related races...
 		my @notifications = $this->_query_redis((
 			'component'	=> $data{newcomponent},
 			'ctxt'		=> $data{newctxt}
@@ -93,12 +91,22 @@ sub add_data {
 			print STDERR "Not adding announcement as interface was already triggered!\n" if($debug);
 		}
 	} else {
-		# Interface Timeout Handling
-		announcement_clear('interface', \%data)	if($data{'status'} eq "started");
+		if($data{'status'} eq "started") {
+			# Interface Performance Data Handling
+			my $announcement = announcement_clear('interface', \%data);
+			$this->{'stats'}->add_interface_duration($announcement->{'host'}, $announcement->{'component'}, $data{'component'}, ($data{'time'} - $announcement->{'time'})) if(defined($announcement));
 
-		# Component Timeout Handling
-		announcement_add('component', \%data, $this->{'ttl'})	if($data{'status'} eq "started");
-		announcement_clear('component', \%data)			if($data{'status'} eq "finished");
+			# Announce Component
+
+			# FIXME: DO we need a race check here too?
+			announcement_add('component', \%data, $this->{'ttl'});
+		}
+
+		if($data{'status'} eq "finished") {
+			# Component Performance Data Handling
+			my $announcement = announcement_clear('component', \%data);
+			$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}, ($data{'time'} - $announcement->{'time'})) if(defined($announcement));
+		}
 	}
 
 	# And finally the statistics

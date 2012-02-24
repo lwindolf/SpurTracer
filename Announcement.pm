@@ -97,6 +97,8 @@ sub announcement_add {
 #
 # $1	announcement type ('component' or 'interface')
 # $2	the announcement event to be cleared
+#
+# Returns the deleted announcement event (or undef)
 ################################################################################
 sub announcement_clear {
 	my ($type, $event) = @_;
@@ -105,8 +107,12 @@ sub announcement_clear {
 	# necessary values (source host/source component...). So we need
 	# to delete based on match pattern
 	foreach(DB->keys("announce!$type!*!$event->{component}!$event->{ctxt}")) {
+		my %announcement = DB->hgetall($_);
 		DB->del($_);
+		return \%announcement;
 	}
+
+	return undef;
 }
 
 ################################################################################

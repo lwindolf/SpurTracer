@@ -93,13 +93,14 @@ sub stats_get_default_interval {
 }
 
 ################################################################################
-# Generic interval counter method. Increases counter by 1 for all configured
+# Generic interval counter method. Increases counter by $2 for all configured
 # intervals. To be used by _count_object/interface() only.
 #
-# $2	Key
+# $2	Value to add
+# $3	Key
 ################################################################################
 sub _count_interval {
-	my ($this, $key) = @_;
+	my ($this, $add, $key) = @_;
 
 	# Writing to an interval set of resolution m at time slot n
 	# is done by incrementing slot n and resetting slot n+1
@@ -115,7 +116,7 @@ sub _count_interval {
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
 		DB->hsetnx("stats$$interval{name}\!$key", $n, 0);
-		DB->hincrby("stats$$interval{name}\!$key", $n, 1);
+		DB->hincrby("stats$$interval{name}\!$key", $n, $add);
 		DB->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);
 	}
 }
@@ -176,33 +177,37 @@ sub get_interval {
 }
 
 ################################################################################
-# Generic object counter method. Increases counter by 1.
+# Generic object counter method. Increases counter by $3.
 #
 # $2	object type ('interface', 'component' or 'host')
-# $3	object name
-# $4	event that is counted ('error', 'started' or 'timeout')
+# $3	value to add
+# $4	object name
+# $5	event that is counted ('error', 'started' or 'timeout')
 ################################################################################
 sub _count_object {
 	my $this = shift;
+	my $add = shift;
 	my $key = join("!", @_);
 
-	DB->incr("stats!object!$key");
-	$this->_count_interval("object!$key");
+	DB->incrby("stats!object!$key", $add);
+	$this->_count_interval($add, "object!$key");
 }
 
 ################################################################################
-# Generic instance counter method. Increases counter by 1.
+# Generic instance counter method. Increases counter by $3.
 #
 # $2	object type ('interface', 'component')
-# $3	object name
-# $4	event that is counted ('error', 'started' or 'timeout')
+# $3	value to add
+# $4	object name
+# $5	event that is counted ('error', 'started' or 'timeout')
 ################################################################################
 sub _count_instance {
 	my $this = shift;
+	my $add = shift;
 	my $key = join("!", @_);
 
-	DB->incr("stats!instance!".$key);
-	$this->_count_interval("instance!$key");
+	DB->incrby("stats!instance!$key", $add);
+	$this->_count_interval($add, "instance!$key");
 }
 
 ################################################################################
@@ -214,11 +219,11 @@ sub _count_instance {
 sub add_start_notification {
 	my $this = $_[0];
 
-	$this->_count_object('global', 'started');
-	$this->_count_object('host', $_[1], 'started');
-	$this->_count_object('component', $_[2], 'started');
+	$this->_count_object(1, 'global', 'started');
+	$this->_count_object(1, 'host', $_[1], 'started');
+	$this->_count_object(1, 'component', $_[2], 'started');
 
-	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'started');
+	$this->_count_instance(1, 'component', $_[1], $_[2], 'started');
 }
 
 ################################################################################
@@ -230,11 +235,11 @@ sub add_start_notification {
 sub add_error_notification {
 	my $this = $_[0];
 
-	$this->_count_object('global', 'failed');
-	$this->_count_object('host', $_[1], 'failed');
-	$this->_count_object('component', $_[2], 'failed');
+	$this->_count_object(1, 'global', 'failed');
+	$this->_count_object(1, 'host', $_[1], 'failed');
+	$this->_count_object(1, 'component', $_[2], 'failed');
 
-	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'failed');
+	$this->_count_instance(1, 'component', $_[1], $_[2], 'failed');
 }
 
 ################################################################################
@@ -249,10 +254,10 @@ sub add_interface_announced {
 
 	# Note: for a simpler and generic processing we use 'started'
 	# instead of 'announced' as the counter name for interfaces...
-	$this->_count_object('global', 'announced');
-	$this->_count_object('interface', join("!", ($_[2], $_[3])), 'started');
+	$this->_count_object(1, 'global', 'announced');
+	$this->_count_object(1, 'interface', $_[2], $_[3], 'started');
 
-	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'started');
+	$this->_count_instance(1, 'interface', $_[1], $_[2], $_[3], 'started');
 }
 
 ################################################################################
@@ -267,11 +272,11 @@ sub add_interface_announced {
 sub add_interface_timeout {
 	my $this = $_[0];
 
-	$this->_count_object('global', 'timeout');
-	$this->_count_object('host', $_[1], 'timeout');
-	$this->_count_object('interface', $_[2] . "!" . $_[3], 'timeout');
+	$this->_count_object(1, 'global', 'timeout');
+	$this->_count_object(1, 'host', $_[1], 'timeout');
+	$this->_count_object(1, 'interface', $_[2], $_[3], 'timeout');
 
-	$this->_count_instance('interface', join("!", ($_[1], $_[2], $_[3])), 'timeout');
+	$this->_count_instance(1, 'interface', $_[1], $_[2], $_[3], 'timeout');
 }
 
 ################################################################################
@@ -285,29 +290,35 @@ sub add_interface_timeout {
 sub add_component_timeout {
 	my $this = $_[0];
 
-	$this->_count_object('global', 'timeout');
-	$this->_count_object('host', $_[1], 'timeout');
-	$this->_count_object('component', $_[2], 'timeout');
+	$this->_count_object(1, 'global', 'timeout');
+	$this->_count_object(1, 'host', $_[1], 'timeout');
+	$this->_count_object(1, 'component', $_[2], 'timeout');
 
-	$this->_count_instance('component', join("!", ($_[1], $_[2])), 'timeout');
+	$this->_count_instance(1, 'component', $_[1], $_[2], 'timeout');
 }
 
 ################################################################################
-# Save component execution duration to performance metrics
+# Save component execution duration to performance metrics. Triggered when a
+# component finishes processing a context. The duration passed should be
+# determined from the corresponding start event.
 #
 # $2	Host
 # $3	Component
 # $4	Duration
 ################################################################################
 sub add_component_duration {
-	my ($this, $host, $component, $duration) = $@;
+	my ($this, $host, $component, $duration) = @_;
 
-	#DB->incrby("performance!object!component!$component", $duration);
-	#DB->incrby("performance!instance!component!$host!$component", $duration);
+	$this->_count_object($duration, 'component', $component, 'perf_values');
+	$this->_count_object(1,         'component', $component, 'perf_samples');
+	$this->_count_instance($duration, 'component', $host, $component, 'perf_values');
+	$this->_count_instance(1,         'component', $host, $component, 'perf_samples');
 }
 
 ################################################################################
-# Save interface latency duration to performance metrics
+# Save interface latency duration to performance metrics. Triggered when an
+# interface is responding. The method automatically determines the duration by
+# fetching the interface announcement.
 #
 # $2	Source Host
 # $3	Source Component
@@ -315,10 +326,12 @@ sub add_component_duration {
 # $5	Duration
 ################################################################################
 sub add_interface_duration {
-	my ($this, $host, $component1, $component2, $duration) = $@;
+	my ($this, $host, $component1, $component2, $duration) = @_;
 
-	#DB->incrby("performance!object!interface!$component1!$component2", $duration);
-	#DB->incrby("performance!instance!interface!$host!$component1!$component2", $duration);
+	$this->_count_object($duration, 'interface', $component1, $component2, 'perf_values');
+	$this->_count_object(1,         'interface', $component1, $component2, 'perf_samples');
+	$this->_count_instance($duration, 'interface', $host, $component1, $component2, 'perf_values');
+	$this->_count_instance(1,         'interface', $host, $component1, $component2, 'perf_samples');
 }
 
 ################################################################################
