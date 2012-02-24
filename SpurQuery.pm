@@ -27,8 +27,7 @@ my %xsltMapping = (
 	""			=> "ListAll",
 	"Details"		=> "ListAllDetails",
 	"Spur"			=> "Spur",
-	"Announcements"		=> "ListAnnouncements",
-	"Components"		=> "ComponentList",
+	"Announcements"		=> "Announcements",
 	"Settings"		=> "Settings"
 );
 
@@ -36,7 +35,6 @@ my %xsltMapping = (
 my %viewMapping = (
 	""			=> "Spur",
 	"Details"		=> "Spur",
-	"Components"		=> "Objects"
 );
 
 ################################################################################

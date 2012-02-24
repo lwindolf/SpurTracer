@@ -246,6 +246,8 @@ sub process_http_request {
 	# Handle get/set requests...
 	if ($uri eq "set") {
 		$self->process_data_submission($ENV{'QUERY_STRING'});
+	} elsif ($uri eq "") {
+		$self->process_query($ENV{'QUERY_STRING'}, 'Map');
 	} elsif ($uri =~ /^(get\w*)$/) {
 		$self->process_query($ENV{'QUERY_STRING'}, $1);
 	} elsif ($uri eq "getAnnouncements") {
