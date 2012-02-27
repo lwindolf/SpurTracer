@@ -88,7 +88,7 @@
 		<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a></td>
 		<td><a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
-		<td class="since" title="{@time}"><xsl:value-of select="@time"/></td>
+		<td class="since" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
 	</xsl:element>
 </xsl:template>
 
