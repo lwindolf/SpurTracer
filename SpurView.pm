@@ -34,7 +34,13 @@ sub new {
 
 	foreach	my $object (keys %{$this->{'glob'}}) {
 		next unless($object =~ /^(host|component)$/);
-		$results{'IntervalStatistics'} = $stats->get_interval("object!$object!$this->{glob}{$object}", 100, ('started', 'failed'));
+
+		my %objStat = ();
+		$objStat{'name'} = $this->{'glob'}{$object};
+		$objStat{'counters'} = $stats->get_interval("object!$object!$this->{glob}{$object}", 100, ('started', 'failed'));
+		$objStat{'interval'} = $stats->{'interval'}->{'name'};
+
+		push(@{$results{'Statistics'}}, \%objStat);
 	}
 
 	$this->{'results'} = \%results;

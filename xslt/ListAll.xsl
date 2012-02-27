@@ -3,14 +3,17 @@
 
 <xsl:include href="Menu.xsl"/>
 <xsl:include href="Alarms.xsl"/>
+<xsl:include href="Graph.xsl"/>
 
 <xsl:template match="/Spuren">
 <html>
 <head>
 	<title>All Recent Events</title>
 	<meta http-equiv="refresh" content="5"/>
+	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
 	<script type="text/javascript" src="js/jquery.timeago.js"/>
 	<script type="text/javascript" src="js/jquery.time.js"/>
 </head>
@@ -48,6 +51,10 @@
 			</xsl:for-each>
 		</table>
 		</div>
+
+		<xsl:for-each select="Statistics/Object">
+			<xsl:call-template name="Graph"/>
+		</xsl:for-each>
 
 		<xsl:call-template name="legend-spuren"/>
 
