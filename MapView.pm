@@ -17,8 +17,9 @@
 
 package MapView;
 
-use Stats;
 use AlarmMonitor;
+use StatisticObject;
+use Stats;
 
 @ISA = (SpurTracerView);
 
@@ -53,21 +54,18 @@ sub new {
 	}
 
 	foreach my $key (@keys) {
-		my (%objStat, $match);
+		my $match;
 
 		if($filter eq 'global') {
-			$objStat{'name'} = 'Global Events';
-			$match = 'object!global';
+			$name = 'Global Events';
+			$match = 'global';
 		} elsif($key =~ /^stats[^!]*!(object!$filter!([^!]+))!started$/) {
-			$objStat{'name'} = ucfirst($filter)." $2";
+			$name = ucfirst($filter)." $2";
 			$match = $1;
 		} else {
 			next;
 		}
-
-		$objStat{'counters'} = $stats->get_interval($match, 100, ("started", "failed", "announced", "timeout"));
-		$objStat{'interval'} = $stats->{'interval'}->{'name'};
-		push(@{$results{'Statistics'}}, \%objStat);
+		push(@{$results{'Statistics'}}, @{statistic_object_get($name, 'object', $match, $stats->{'interval'})});
 	}
 
 	$results{'Alarms'} = alarm_monitor_get_alarms();

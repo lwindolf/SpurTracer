@@ -179,11 +179,13 @@ sub process_query {
 		$this->send_status(200);
 		$query->execute();
 	} catch Error with {
+		my $e = shift;
+
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
 		print "Invalid query";
 
-		$this->log(1, 'Invalid query "%s"!', $query);
+		$this->log(1, "Query '%s' failed: %s", $query, $e);
 	}
 }
 

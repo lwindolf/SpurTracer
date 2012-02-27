@@ -122,61 +122,6 @@ sub _count_interval {
 }
 
 ################################################################################
-# Generic interval counter query method. Returns an hash of all value slots.
-# Minimizes the resolution of the selected interval to $3.
-#
-# $2	Key 			(e.g. "object!component!comp2")
-# $3	Resolution		(e.g. 100)
-# $*	List of counters 	(e.g. ("started", "failed"))
-################################################################################
-sub get_interval {
-	my $this = shift;
-	my $key = shift;
-	my $resolution = shift;
-	my @counters = @_;
-	my %interval = %{$this->{'interval'}};
-	my %results;
-
-	# Determine how many data points we have to aggregate for each step
-	my $ratio = int($interval{'resolution'} / $resolution);
-	$ratio = 1 if($ratio < 1);
-
-	# Skip unused 0 element at (n+1) used for ring buffer semantic from 
-	# result by starting at (n+2) and wrapping around correctly...
-	my $n = (time() / $interval{'step'}) % ($interval{'resolution'} + 1);
-
-	$results{'name'} = $interval{'name'};
-
-	foreach my $counter (@counters) {
-		my %tmp = DB->hgetall("stats$interval{name}!$key!$counter");
-
-		my $aggregatedValue = 0;
-		my $j = 0;
-		for($i = 0; $i < $interval{'resolution'}; $i++) {
-
-			# Some preconditions for interval extraction
-			#
-			# - We expect %tmp to be sorted
-			# - We output starting at correct ring buffer offset n
-			# - Undefined keys mean zero
-			my $value = $tmp{(($n + 2 + $i) % ($interval{'resolution'} + 1))};
-
-			# Perform aggregation according to $ratio
-			$aggregatedValue += $value if(defined($value));
-
-			if($j++ == ($ratio - 1)) {			
-				# Store aggregated average result
-				$results{$counter}{int($i / $ratio)} = ceil($aggregatedValue / $ratio);
-				$aggregatedValue = 0;
-				$j = 0;
-			}
-		}
-	}
-
-	return \%results;
-}
-
-################################################################################
 # Generic object counter method. Increases counter by $3.
 #
 # $2	object type ('interface', 'component' or 'host')

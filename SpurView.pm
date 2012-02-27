@@ -19,6 +19,7 @@ package SpurView;
 
 use AlarmMonitor;
 use Spuren;
+use StatisticObject;
 
 @ISA = (SpurTracerView);
 
@@ -26,21 +27,16 @@ sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
 	my $spuren = new Spuren();
-	my $stats = new Stats($this->{'glob'}{'interval'});
+	my %glob = %{$this->{'glob'}};
+	my $stats = new Stats($glob{'interval'});
 	my %results;
 
-	$results{'Spuren'} = $spuren->fetch(%{$this->{glob}});
+	$results{'Spuren'} = $spuren->fetch(%glob);
 	$results{'Alarms'} = alarm_monitor_get_alarms();
 
-	foreach	my $object (keys %{$this->{'glob'}}) {
+	foreach	my $object (keys %glob) {
 		next unless($object =~ /^(host|component)$/);
-
-		my %objStat = ();
-		$objStat{'name'} = $this->{'glob'}{$object};
-		$objStat{'counters'} = $stats->get_interval("object!$object!$this->{glob}{$object}", 100, ('started', 'failed'));
-		$objStat{'interval'} = $stats->{'interval'}->{'name'};
-
-		push(@{$results{'Statistics'}}, \%objStat);
+		push(@{$results{'Statistics'}}, @{statistic_object_get(ucfirst("$object $glob{$object}"), 'object', "$object!$glob{$object}", $stats->{'interval'})});
 	}
 
 	$this->{'results'} = \%results;
