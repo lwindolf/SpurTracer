@@ -162,8 +162,8 @@ sub fetch {
 
 		# Decode value store key according to schema 
 		#
-		# d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
-		if($key =~ /d(\d+)!h([^!]+)!n([^!]+)!c([^!]+)!t([nc])!(s(\w+))?/) {
+		# spuren!d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
+		if($key =~ /spuren!d(\d+)!h([^!]+)!n([^!]+)!c([^!]+)!t([nc])!(s(\w+))?/) {
 			my $time = $1;
 			my $id = $2."!".$3."!".$4;
 			my $type = $5;
@@ -224,7 +224,7 @@ general properties:
 					fully qualified)
 - component 				...producing the notification
 - ctxt					Context Identifier
-- time					Unix Time Stamp
+- time					Unix Time Stamp in [ms]
 - desc					Human readable description (optional)
 - type 					notification/context creation
 
@@ -254,7 +254,7 @@ We layout the about notification properties in Redis as following
 
 	Key Schema: 
 
-		d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
+		spuren!d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
 
 	Value Schema:
 
@@ -264,7 +264,7 @@ We layout the about notification properties in Redis as following
 
 		For type 'context creation'
 
-			<newctxt>
+			<newcomponent>!<newctxt>
 
 The assumption is that filtering is only necessary by for the properties
 listed in the key schema. Prefixing each field with a character should

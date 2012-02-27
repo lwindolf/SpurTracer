@@ -38,9 +38,9 @@ sub notification_build_filter {
 
 	# Build fetching glob
 	my $filter = "";
-	$filter .= "d".$glob{time}."!*"	if(defined($glob{time}));
+	$filter .= "spuren!d".$glob{time}."!*"	if(defined($glob{time}));
 
-	$filter = "d*!" if($filter eq "");	# Avoid starting wildcard if possible
+	$filter = "spuren!d*!" if($filter eq "");	# Avoid starting wildcard if possible
 
 	$filter .= "h".$glob{host}."!*"		if(defined($glob{host}));
 	$filter .= "n".$glob{component}."!*"	if(defined($glob{component}));
@@ -65,8 +65,8 @@ sub notification_build_key {
 
 	# Create value store key according to schema 
 	#
-	# d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
-	my $key = "";
+	# spuren!d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
+	my $key = "spuren!";
 	$key .= "d".$data{time}."!";
 	$key .= "h".$data{host}."!";
 	$key .= "n".$data{component}."!";
