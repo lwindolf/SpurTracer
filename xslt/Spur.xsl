@@ -120,7 +120,7 @@
 			if(duration &lt; 1000) {
 				duration += " ms";
 			} else {
-				duration = duration/1000 + " s";
+				duration = Math.ceil(duration/1000) + " s";
 			}
 
 			return duration;

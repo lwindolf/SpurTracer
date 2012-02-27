@@ -165,7 +165,7 @@ sub process_query {
 	my ($this, $query, $mode) = @_;
 	my %glob = ();
 
-	$this->log(0, 'Processing query "%s"!', $query);
+	$this->log('info', 'Processing query "%s"!', $query);
 
 	if(defined($query)) {
 		# Decode filtering fields if we got some

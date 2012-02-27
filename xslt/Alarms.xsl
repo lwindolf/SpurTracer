@@ -25,8 +25,8 @@
 					<a href="get?{@type}={@name}&amp;status=failed"><xsl:value-of select="@name"/></a>
 				</td>
 				<td class="severity"><xsl:value-of select="@severity"/></td>
-				<td class="lastchecked timeago" title="{@time}"><xsl:value-of select="@time"/></td>
-				<td class="lastchecked since" title="{@since}"><xsl:value-of select="@since"/></td>
+				<td class="lastchecked timeago" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
+				<td class="lastchecked since" title="{@since * 1000}"><xsl:value-of select="@since * 1000"/></td>
 				<td class="message"><xsl:value-of select="@message"/></td>
 				</xsl:element>
 			</xsl:for-each>
