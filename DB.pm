@@ -47,6 +47,21 @@ sub reconnect {
 }
 
 ################################################################################
+# Check the DB connection and version
+################################################################################
+sub check {
+
+	# Note: ping will auto-connect via auto loader
+	ping() || die "Cannot ping Redis instance!";
+
+	# Check Redis DB version, needs to be 1.3+ for hash support
+	my $version = ${DB->info()}{'redis_version'};
+	$version =~ s/\.//;
+	die "Redis version < 1.3 (is $version)!" unless($version ge 130);
+	disconnect();
+}
+
+################################################################################
 # Auto loader for all Redis methods
 #
 # Pass all undefined method names to the Redis package

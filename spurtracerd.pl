@@ -32,11 +32,7 @@ use Settings;
 use Spuren;
 use SpurQuery;
 
-# Check Redis DB version, needs to be 1.3+ for hash support
-my $version = ${DB->info()}{'redis_version'};
-$version =~ s/\.//;
-die "Redis version < 1.3 (is $version)!" unless($version ge 130);
-DB->disconnect();
+DB->check();
 
 # Before starting the httpd fork a alarm monitor
 # that runs in background to periodically perform
