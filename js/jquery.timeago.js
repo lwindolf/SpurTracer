@@ -89,10 +89,10 @@
     },
     parse: function(iso8601) {
 
-	// Test for Unix timestamp
+	// Test for Unix timestamp [ms]
 	if(!isNaN(parseFloat(iso8601)) && isFinite(iso8601)) {
 		var d = new Date();
-		d.setTime(iso8601*1000);
+		d.setTime(iso8601);
 		return d;
 	}
 

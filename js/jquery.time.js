@@ -118,7 +118,7 @@
 		var now = new Date();
 		var date = new Date();
 
-		date.setTime(timestamp*1000);
+		date.setTime(timestamp);
 
 		if(now.getDate() == date.getDate()) 
 			return $t.strptime("Today %T", date); 

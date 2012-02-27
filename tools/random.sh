@@ -4,7 +4,7 @@
 # be forking one background process for each, sleeping in between 
 # requests.
 #
-# Require curl to work.
+# Requires curl to work.
 
 ################################################################################
 # Configuration
@@ -60,6 +60,18 @@ simulate_error() {
 	return 1
 }
 
+################################################################################
+# Print the current Unix timestamp in [ms]
+################################################################################
+get_timestamp() {
+	# Getting a [ms] timestamp is a bit complicated...
+	nanos=`date +%N`
+	nanos=`expr $nanos / 1000000`
+	time=`date +%s`
+	time=`printf "%d%03d" $time $nanos`
+	echo "$time"
+}
+
 if [ "$1" == "" ]; then
 	# Fork mode
 	echo "Concurrency set to $SENDER_COUNT..."
@@ -88,7 +100,7 @@ else
 		while [ $j -le $CHAIN_LEN ]; do
 	
 			sleep $(($RANDOM % 5 + 1))
-			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+request"
+			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=n&ctxt=${ctxt}_${nr}&status=started&desc=test+request"
 
 			sleep 4
 		
@@ -98,15 +110,15 @@ else
 			do
 				i=$(($i + 1))
 				sleep $(($RANDOM % 5 + 1))
-				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=running&desc=step $i/$steps"
+				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=n&ctxt=${ctxt}_${nr}&status=running&desc=step $i/$steps"
 
 				if simulate_error ERROR_RATE_COMP$j; then
-					curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=failed&desc=simulated+component+error"
+					curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=n&ctxt=${ctxt}_${nr}&status=failed&desc=simulated+component+error"
 					break 2
 				fi
 
 				if simulate_error ERROR_RATE_HOST$hostNr; then
-					curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=failed&desc=simulated+host+error"
+					curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=n&ctxt=${ctxt}_${nr}&status=failed&desc=simulated+host+error"
 					break 2
 				fi
 
@@ -114,12 +126,12 @@ else
 
 			if [ $j -lt $CHAIN_LEN ]; then
 				# Trigger interface
-				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=c&ctxt=${ctxt}_${nr}&newcomponent=comp$(($j + 1))&newctxt=${ctxt}_${nr}"
+				curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=c&ctxt=${ctxt}_${nr}&newcomponent=comp$(($j + 1))&newctxt=${ctxt}_${nr}"
 	
 				sleep 2
 			fi
 	
-			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(date +%s)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+request+done"
+			curl -s "$SERVER/set?host=$theHost&component=comp$j&time=$(get_timestamp)&type=n&ctxt=${ctxt}_${nr}&status=finished&desc=test+request+done"
 		
 			simulate_error ERROR_RATE_INTERFACE$j && break
 

@@ -40,7 +40,6 @@ sub new {
 	my $settings = settings_get("spuren", "global");
 
 	$this->{'stats'} = new Stats();
-	$this->{'today'} = strftime("%F", localtime());
 	$this->{'ttl'} = $settings->{'ttl'};
 	warn "Not TTL!" unless(defined($this->{'ttl'}));
 
@@ -64,6 +63,10 @@ sub add_data {
 			print STDERR "	$_ => $data{$_}\n";
 		}
 	}
+
+	# Sanity check date before processing, we expect a [ms] Unix timestamp,
+	# but accept a normal timestamp too... FIXME: Better way to check this?
+	$data{'time'} *= 1000 if($data{'time'} < 1000000000000);
 
 	my $key = notification_build_key(\%data);
 	my $value = notification_build_value(\%data);
