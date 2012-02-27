@@ -36,7 +36,7 @@ use SpurQuery;
 my $version = ${DB->info()}{'redis_version'};
 $version =~ s/\.//;
 die "Redis version < 1.3 (is $version)!" unless($version ge 130);
-DB->quit();
+DB->disconnect();
 
 # Before starting the httpd fork a alarm monitor
 # that runs in background to periodically perform
@@ -46,7 +46,7 @@ my $alarm_monitor_pid = alarm_monitor_create();
 # Start httpd
 __PACKAGE__->run;
 
-my $debug = 1;
+my $debug = 0;
 
 sub default_port { 8080 };
 
@@ -101,6 +101,8 @@ sub process_data_submission {
 		print "Content-type: text/plain\r\n\r\n";
 		print "Invalid data submission!";
 
+		$this->log('error', "Invalid data submission!");
+
 		if($debug) {
 			print STDERR "Invalid data submission. Only the following fields where given:\n";
 			foreach (keys(%data)) {
@@ -123,7 +125,6 @@ sub process_data_submission {
 		print "Adding data failed!";
 	}
 }
-
 
 ################################################################################
 # Settings request handler
@@ -168,6 +169,8 @@ sub process_query {
 	my ($this, $query, $mode) = @_;
 	my %glob = ();
 
+	$this->log(0, 'Processing query "%s"!', $query);
+
 	if(defined($query)) {
 		# Decode filtering fields if we got some
 		foreach(split(/\&/, $query)) {
@@ -183,6 +186,8 @@ sub process_query {
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
 		print "Invalid query";
+
+		$this->log(1, 'Invalid query "%s"!', $query);
 	}
 }
 
