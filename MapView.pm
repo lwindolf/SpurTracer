@@ -59,12 +59,13 @@ sub new {
 		if($filter eq 'global') {
 			$name = 'Global Events';
 			$match = 'global';
-		} elsif($key =~ /^stats[^!]*!(object!$filter!([^!]+))!started$/) {
+		} elsif($key =~ /^stats[^!]*!object!($filter!([^!]+))!started$/) {
 			$name = ucfirst($filter)." $2";
 			$match = $1;
 		} else {
 			next;
 		}
+
 		push(@{$results{'Statistics'}}, @{statistic_object_get($name, 'object', $match, $stats->{'interval'})});
 	}
 
