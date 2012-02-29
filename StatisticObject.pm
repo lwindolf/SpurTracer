@@ -28,6 +28,19 @@ require Exporter;
 );
 
 ################################################################################
+# Query method for performance values. Returns an hash of all value slots.
+# Minimizes the resolution of the selected interval to $4 values.
+#
+# $1	Key 			(e.g. "object!component!comp2")
+# $2	Interval Description
+# $3	Resolution		(e.g. 100)
+#
+# Returns a result hash
+################################################################################
+sub statistic_object_get_performance {
+}
+
+################################################################################
 # Generic interval counter query method. Returns an hash of all value slots.
 # Minimizes the resolution of the selected interval to $4 values.
 #
@@ -38,7 +51,7 @@ require Exporter;
 #
 # Returns a result hash
 ################################################################################
-sub statistic_object_get_interval {
+sub statistic_object_get_counters {
 	my $key = shift;
 	my $interval = shift;
 	my $resolution = shift;
@@ -105,7 +118,8 @@ sub statistic_object_get {
 	foreach my $interval (@intervals) {
 		my %objStat = ();
 		$objStat{'name'} = $name;
-		$objStat{'counters'} = statistic_object_get_interval("$type!$key", $interval, 100, ("started", "failed", "announced", "timeout"));
+		$objStat{'performance'} = statistic_object_get_performance("$type!$key", $interval, 100);
+		$objStat{'counters'} = statistic_object_get_counters("$type!$key", $interval, 100, ("started", "failed", "announced", "timeout"));
 		$objStat{'interval'} = $interval->{'name'};
 		push(@results, \%objStat);
 	}

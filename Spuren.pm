@@ -47,6 +47,44 @@ sub new {
 }
 
 ################################################################################
+# Resolving of a spur. Takes a event description and tries to find all
+# predecessor announcement events. Relies only on the 'newcomponent' and
+# 'newctxt' event fields.
+#
+# Returns an array of events describing the spur (all except for the last event
+# are context announcements, while the last element is the finished event of
+# the last component triggered)
+################################################################################
+sub resolve_chain {
+	my $event = shift;	# event to resolve
+	my @results = ();
+	my %tmp = ();		# lookup hash for cycle detection 
+	
+	EVENTLOOP: while(defined($event)) {
+		push(@results, $event);
+
+		my $filter = notification_build_filter((
+			'newcomponent'	=> $event->{'component'},
+			'newctxt'	=> $event->{'ctxt'}
+		));
+
+		$event = undef;
+
+		# Match any event announcing the component+ctxt of this event
+		foreach my $key (DB->keys($filter)) {
+			# Cycle detection
+			last EVENTLOOP if(defined($tmp{$key}));
+			$tmp{$key} = 1;
+
+			$event = notification_get($key);
+			last;
+		}
+	}
+
+	return @results;
+}
+
+################################################################################
 # Add submitted data
 #
 # $2	hash with notification properties 
@@ -68,12 +106,7 @@ sub add_data {
 	# but accept a normal timestamp too... FIXME: Better way to check this?
 	$data{'time'} *= 1000 if($data{'time'} < 1000000000000);
 
-	my $key = notification_build_key(\%data);
-	my $value = notification_build_value(\%data);
-
-	# Submit value
-	DB->set($key, $value);
-	DB->expire($key, $this->{'ttl'});
+	notification_add(\%data, $this->{'ttl'});
 
 	if($data{'type'} eq "c") {
 		# For context announcements:
@@ -82,9 +115,9 @@ sub add_data {
 
 		# Check if any notifications already exist, to avoid
 		# adding announcements on time sync related races...
-		my @notifications = $this->_query_redis((
-			'component'	=> $data{newcomponent},
-			'ctxt'		=> $data{newctxt}
+		my @notifications = DB->keys(notification_build_filter(
+			'component'	=> $data{'newcomponent'},
+			'ctxt'		=> $data{'newctxt'}
 		));
 
 		if($#notifications < 0) {
@@ -109,6 +142,11 @@ sub add_data {
 			# Component Performance Data Handling
 			my $announcement = announcement_clear('component', \%data);
 			$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}, ($data{'time'} - $announcement->{'time'})) if(defined($announcement));
+
+			# Do count spur chain type. This is simply to collect all 
+			# existing types. To determine the chain we backtrack the
+			# announcements...
+			resolve_chain(\%data);
 		}
 	}
 
@@ -117,22 +155,6 @@ sub add_data {
 	$this->{'stats'}->add_error_notification($data{host}, $data{component}) if($data{status} eq "failed");
 
 	return 0;
-}
-
-################################################################################
-# Run a query agains Redis.
-#
-# $2	List with filter rules as supported by notification_build_filter()
-#
-# Returns array of result hashes	(undefined on error)
-################################################################################
-sub _query_redis {
-	my ($this, %glob) = @_;
-
-	my $filter = notification_build_filter(%glob);
-	#print STDERR "Querying for >>>$filter<<<\n" if($debug);
-
-	return DB->keys($filter);
 }
 
 ################################################################################
@@ -153,7 +175,7 @@ sub _query_redis {
 ################################################################################
 sub fetch {
 	my ($this, %glob) = @_;
-	my @keys = $this->_query_redis(%glob);
+	my @keys = DB->keys(notification_build_filter(%glob));
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
@@ -163,47 +185,27 @@ sub fetch {
 	foreach my $key (@keys) {
 		next if($key =~ /skipped because its mtime/);
 
-		# Decode value store key according to schema 
-		#
-		# spuren!d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
-		if($key =~ /spuren!d(\d+)!h([^!]+)!n([^!]+)!c([^!]+)!t([nc])!(s(\w+))?/) {
-			my $time = $1;
-			my $id = $2."!".$3."!".$4;
-			my $type = $5;
-			my $status = $7;
+		my $event = notification_get($key);
+		if(defined($event->{'ctxt'})) {
+			my $id = $event->{'host'}."!".$event->{'component'}."!".$event->{'ctxt'};
 
 			unless(defined($results{$id})) {
 				next if(keys %results > 100);
-				$results{$id}{source}{host} = $2;
-				$results{$id}{source}{component} = $3;
-				$results{$id}{source}{ctxt} = $4;
-				$results{$id}{source}{started} = $time;
+				$results{$id}{source}{host}		= $event->{'host'};
+				$results{$id}{source}{component}	= $event->{'component'};
+				$results{$id}{source}{ctxt}		= $event->{'ctxt'};
+				$results{$id}{source}{started}		= $event->{'time'};
 				$results{$id}{events} = ();
 				$i++;
 			}
 
-			my %event = ();
-			$event{type} = $type;
-			$event{time} = $time;
-			$event{status} = $status if(defined($status));
-			if($type eq "n") {
-				$event{desc} = DB->get($key);
-			} else {
-				if(DB->get($key) =~ /^([^!]+)!([^!]+)$/) {
-					$event{'newctxt'} = $2;
-					$event{'newcomponent'} = $1;
-					$event{status} = "announced";
-					$event{status} = "finished" unless(DB->exists("announce!n$event{newcomponent}!c$event{newctxt}"));
-				}
-			}
-
 			# Add event to spur set
-			push(@{$results{$id}{events}}, \%event);
+			push(@{$results{$id}{'events'}}, $event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n" if($debug);
 		}
 
-		last if($i > 10000);
+		last if($i > 1000);	# FIXME: Change schema to time ordered lists to query latest n events...
 	}
 
 	return \%results;
@@ -215,11 +217,32 @@ __END__
 
 =head1 Spuren - Data Access and Model
 
-=head2 Notification Properties
+Spuren is the data access for single notification events or groups of
+events matching a filter or all related events. As we consider relations
+interface invocations to be regular we also want to provide access to
+the typical interface patterns. Therefore our schema must allow 
+tracking those.
+
+=head2 Access Variants
+
+One or more spur events can be accessed
+
+1.) per object filter (e.g. all for "host1")
+2.) per identity (e.g. all requests for context id 123456)
+
+Tracking of spur types (interface chains) additionally requires the ability
+to backtrack events based on the last context id.
+
+Both access variants (filter and backtracking) are realised using the 
+key schema implemented in Notification.pm. As the keys are used for lookup
+only the data structure is implemented in "Spuren" as described in the
+next section
+
+=head2 Event Properties
 
 =begin text
 
-We trace behaviour by correlating even notifications with the following 
+We trace behaviour by correlating all notifications with the following 
 general properties:
 
 - host	 				...the hosts name the notification 
@@ -246,33 +269,6 @@ Each notification has the following type specific properties:
      - newcomponent			New expected component identifier
 					used to correlate two different
 					notification series
-
-=end text
-
-=head2 Redis Schema
-
-=begin text
-
-We layout the about notification properties in Redis as following
-
-	Key Schema: 
-
-		spuren!d<time>!h<host>!n<component>!c<ctxt>!t<type>![s<status>]
-
-	Value Schema:
-
-		For type 'notification'
-
-			<description>
-
-		For type 'context creation'
-
-			<newcomponent>!<newctxt>
-
-The assumption is that filtering is only necessary by for the properties
-listed in the key schema. Prefixing each field with a character should
-allow fast matching e.g. /!ndb!/ to find all notifications for the 
-"db" component.
 
 NOTE: DON'T RELY ON THE SCHEMA IT MIGHT CHANGE AT ANY TIME!
 

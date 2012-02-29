@@ -27,6 +27,7 @@ my %xsltMapping = (
 	""			=> "ListAll",
 	"Details"		=> "ListAllDetails",
 	"Spur"			=> "Spur",
+	"Spuren"		=> "Spuren",
 	"Announcements"		=> "Announcements",
 	"Settings"		=> "Settings"
 );
