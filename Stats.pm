@@ -60,10 +60,12 @@ sub new {
 	my $this = { };
 
 	# Try to find interval with given name
-	foreach my $i (@INTERVALS) {
-		if($$i{'name'} eq $intervalName) {
-			$this->{'interval'} = $i;
-			last;
+	if(defined($intervalName)) {
+		foreach my $i (@INTERVALS) {
+			if($$i{'name'} eq $intervalName) {
+				$this->{'interval'} = $i;
+				last;
+			}
 		}
 	}
 
