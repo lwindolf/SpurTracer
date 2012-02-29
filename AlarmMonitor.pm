@@ -118,12 +118,12 @@ sub _check {
 			my $errorRate = $object->{'failed'} * 100 / $object->{'started'};
 			
 			if($errorRate > $config{'critical'}) {
-				$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}% threshold)!", $errorRate));
+				$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}%% threshold)!", $errorRate));
 				next;
 			}
 
 			if($errorRate > $config{'warning'}) {
-				$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}% threshold)!", $errorRate));
+				$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}%% threshold)!", $errorRate));
 				next;
 			}
 		}	
