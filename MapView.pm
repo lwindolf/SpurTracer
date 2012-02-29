@@ -17,11 +17,13 @@
 
 package MapView;
 
+use warnings;
+use strict;
 use AlarmMonitor;
 use StatisticObject;
 use Stats;
 
-@ISA = (SpurTracerView);
+our @ISA = ("SpurTracerView");
 
 sub new {
 	my $type = shift;
@@ -35,7 +37,7 @@ sub new {
 	my @objectTypes = ('Host', 'Component', 'Interface');
 	@objectTypes = (ucfirst($filter)) if($filter ne "global");
 
-	@instanceTypes = @objectTypes;
+	my @instanceTypes = @objectTypes;
 	@instanceTypes = ('Component') if($filter eq "host");
 
 	foreach my $type (@objectTypes) {
@@ -45,7 +47,7 @@ sub new {
 		$results{"${type}Instances"}	= $stats->get_instance_list(lc($type));
 	}
 
-	my @match;
+	my @keys;
 
 	if($filter ne "global") {
 		@keys = @{$stats->get_keys(('object', $filter))};
@@ -54,7 +56,7 @@ sub new {
 	}
 
 	foreach my $key (@keys) {
-		my $match;
+		my ($name, $match);
 
 		if($filter eq 'global') {
 			$name = 'Global Events';

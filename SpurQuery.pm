@@ -18,6 +18,8 @@
 
 package SpurQuery;
 
+use warnings;
+use strict;
 use Stats;
 use SpurTracerView;
 

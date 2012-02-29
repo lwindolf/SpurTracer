@@ -19,15 +19,17 @@ package AlarmMonitor;
 
 require Exporter;
 
+use strict;
+use warnings;
 use Announcement;
 use AlarmConfig;
 use DB;
 use Settings;
 use Stats;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(alarm_monitor_create alarm_monitor_get_alarms);
+our @EXPORT = qw(alarm_monitor_create alarm_monitor_get_alarms);
 
 $ENV{ 'PATH' } = '';
 $ENV{ 'ENV' } = '';

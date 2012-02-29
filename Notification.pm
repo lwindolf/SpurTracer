@@ -15,14 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 package Notification;
+
+use warnings;
+use strict;
 
 require Exporter;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(
+our @EXPORT = qw(
 		notification_build_filter
 		notification_build_key
 		notification_build_value
@@ -143,7 +145,7 @@ sub notification_add {
 ################################################################################
 sub notification_get {
 	my $key = shift;
-	my %event = undef;
+	my %event;
 
 	# Validate key schema...
 	#

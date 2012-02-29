@@ -17,13 +17,15 @@
 
 package StatisticObject;
 
+use warnings;
+use strict;
 use POSIX;
 
 require Exporter;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(
+our @EXPORT = qw(
 	statistic_object_get
 );
 
@@ -71,6 +73,7 @@ sub statistic_object_get_counters {
 		# FIXME: Skip counters without values
 
 		my $aggregatedValue = 0;
+		my $i;
 		my $j = 0;
 		for($i = 0; $i < $interval->{'resolution'}; $i++) {
 

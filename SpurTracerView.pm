@@ -19,6 +19,8 @@
 
 package SpurTracerView;
 
+use warnings;
+use strict;
 use XML::Writer;
 
 use Stats;
@@ -71,7 +73,7 @@ sub print {
 	print "Content-type: application/xml\r\n\r\n";
 
 	my $writer = new XML::Writer(
-	       OUTPUT => STDOUT,
+	       OUTPUT => "STDOUT",
 	       DATA_MODE => 1,
 	       DATA_INDENT => 3
 	);

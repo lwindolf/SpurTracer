@@ -19,6 +19,8 @@
 
 package Spuren;
 
+use strict;
+use warnings;
 use locale;
 use POSIX qw(strftime);
 use Error qw(:try);
@@ -26,10 +28,11 @@ use Error qw(:try);
 use Announcement;
 use DB;
 use Notification;
+use Spur;
 use Stats;
 use Settings;
 
-$debug = 0;
+my $debug = 0;
 
 ################################################################################
 # Constructor
@@ -44,44 +47,6 @@ sub new {
 	warn "Not TTL!" unless(defined($this->{'ttl'}));
 
 	return bless $this, $type;
-}
-
-################################################################################
-# Resolving of a spur. Takes a event description and tries to find all
-# predecessor announcement events. Relies only on the 'newcomponent' and
-# 'newctxt' event fields.
-#
-# Returns an array of events describing the spur (all except for the last event
-# are context announcements, while the last element is the finished event of
-# the last component triggered)
-################################################################################
-sub resolve_chain {
-	my $event = shift;	# event to resolve
-	my @results = ();
-	my %tmp = ();		# lookup hash for cycle detection 
-	
-	EVENTLOOP: while(defined($event)) {
-		push(@results, $event);
-
-		my $filter = notification_build_filter((
-			'newcomponent'	=> $event->{'component'},
-			'newctxt'	=> $event->{'ctxt'}
-		));
-
-		$event = undef;
-
-		# Match any event announcing the component+ctxt of this event
-		foreach my $key (DB->keys($filter)) {
-			# Cycle detection
-			last EVENTLOOP if(defined($tmp{$key}));
-			$tmp{$key} = 1;
-
-			$event = notification_get($key);
-			last;
-		}
-	}
-
-	return @results;
 }
 
 ################################################################################
@@ -128,6 +93,8 @@ sub add_data {
 		}
 	} else {
 		if($data{'status'} eq "started") {
+			$this->{'stats'}->add_start_notification($data{'host'}, $data{'component'});
+
 			# Interface Performance Data Handling
 			my $announcement = announcement_clear('interface', \%data);
 			$this->{'stats'}->add_interface_duration($announcement->{'host'}, $announcement->{'component'}, $data{'component'}, ($data{'time'} - $announcement->{'time'})) if(defined($announcement));
@@ -146,13 +113,13 @@ sub add_data {
 			# Do count spur chain type. This is simply to collect all 
 			# existing types. To determine the chain we backtrack the
 			# announcements...
-			resolve_chain(\%data);
+			spur_add(\%data);
+		}
+
+		if($data{'status'} eq "failed") {
+			$this->{'stats'}->add_error_notification($data{'host'}, $data{'component'});
 		}
 	}
-
-	# And finally the statistics
-	$this->{'stats'}->add_start_notification($data{host}, $data{component}) if($data{status} eq "started");
-	$this->{'stats'}->add_error_notification($data{host}, $data{component}) if($data{status} eq "failed");
 
 	return 0;
 }

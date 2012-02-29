@@ -18,14 +18,16 @@
 
 package Announcement;
 
+use warnings;
+use strict;
 use DB;
 use Settings;
 
 require Exporter;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(
+our @EXPORT = qw(
 	announcement_add
 	announcement_clear
 	announcement_set_timeout
@@ -130,7 +132,7 @@ sub announcement_set_timeout {
 # Generic announcement fetching method. Provides filtering as fetch() does.
 #
 # $1	announcement type ('component' or 'interface')
-# $2	Hash with Redis glob patterns. Can be empty to fetch the
+# $2	Hash reference with Redis glob patterns. Can be empty to fetch the
 #	latest n results. Otherwise it has a glob pattern for each field 
 #	to be filtered. Not each fields needs to be given.
 #
@@ -141,15 +143,15 @@ sub announcement_set_timeout {
 # Returns an array of result hashes	(undefined on error)
 ################################################################################
 sub announcements_fetch {
-	my ($type, %glob) = @_;
+	my ($type, $glob) = @_;
 
 	# Build fetching glob
 	my $filter = "announce!$type!";
-	$filter .= "$glob{host}!*"	if(defined($glob{'host'}));
+	$filter .= "$glob->{host}!*"		if(defined($glob->{'host'}));
 	# FIXME: Missing *
-	$filter .= "$glob{component}!*"	if(defined($glob{'component'}));
-	$filter .= "$glob{ctxt}!*"	if(defined($glob{'ctxt'}));
-	$filter .= "*"			unless($filter =~ /\*$/);
+	$filter .= "$glob->{component}!*"	if(defined($glob->{'component'}));
+	$filter .= "$glob->{ctxt}!*"		if(defined($glob->{'ctxt'}));
+	$filter .= "*"				unless($filter =~ /\*$/);
 
 	# Deserialize query results into a list of events grouped
 	# for spur (a host, component, context) sets.

@@ -17,6 +17,8 @@
 
 package DB;
 
+use warnings;
+use strict;
 use Redis;
 
 my $redis;	# the DB instance
@@ -70,6 +72,8 @@ sub check {
 our $AUTOLOAD;
 
 sub AUTOLOAD {
+	no warnings;	# Redis causes many "untie attempted while 1 inner references still exist at /usr/local/share/perl/5.10.1/Net/Server.pm line 942, <GEN4> line 4"
+
 	my $self = shift;
 	our $redis;
 
@@ -78,7 +82,7 @@ sub AUTOLOAD {
 
 	reconnect() unless(defined($redis));
 
-	eval "\$redis->$command(\@_);";
+	eval "our \$redis;\$redis->$command(\@_);";
 }
 
 1;

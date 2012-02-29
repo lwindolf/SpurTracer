@@ -18,10 +18,12 @@
 
 package SettingsView;
 
+use warnings;
+use strict;
 use Settings;
 use Stats;
 
-@ISA = (SpurTracerView);
+our @ISA = ("SpurTracerView");
 
 sub new {
 	my $type = shift;

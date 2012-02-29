@@ -17,13 +17,15 @@
 
 package Settings;
 
+use warnings;
+use strict;
 use DB;
 
 require Exporter;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(
+our @EXPORT = qw(
 	settings_get_defaults
 	settings_get_all
 	settings_get

@@ -19,11 +19,13 @@ package AlarmConfig;
 
 require Exporter;
 
+use strict;
+use warnings;
 use Settings;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(alarm_config_get_threshold alarm_config_get_timeout);
+our @EXPORT = qw(alarm_config_get_threshold alarm_config_get_timeout);
 
 # Default error rate alarm configuration (in %)
 my %DEFAULT_ALARM_THRESHOLDS = (

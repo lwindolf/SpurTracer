@@ -28,13 +28,15 @@
 
 package Stats;
 
+use warnings;
+use strict;
 use POSIX;
 
 require Exporter;
 
-@ISA = qw(Exporter);
+our @ISA = qw(Exporter);
 
-@EXPORT = qw(
+our @EXPORT = qw(
 	stats_get_default_interval
 	stats_get_interval_definitions
 );
@@ -114,7 +116,7 @@ sub _count_interval {
 	# The resulting error rate is the sum of all values in
 	# the interval array. The array (excluding the n+1) field
 	# can be used for a graphical
-	foreach $interval (@INTERVALS) {
+	foreach my $interval (@INTERVALS) {
 		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
 		
 		DB->hsetnx("stats$$interval{name}\!$key", $n, 0);

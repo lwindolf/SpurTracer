@@ -18,10 +18,12 @@
 
 package ObjectsView;
 
+use warnings;
+use strict;
 use AlarmMonitor;
 use Stats;
 
-@ISA = (SpurTracerView);
+our @ISA = ("SpurTracerView");
 
 ################################################################################
 # Constructor

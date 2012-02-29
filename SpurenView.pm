@@ -17,11 +17,13 @@
 
 package SpurenView;
 
+use warnings;
+use strict;
 use AlarmMonitor;
 use Spuren;
 use StatisticObject;
 
-@ISA = (SpurTracerView);
+our @ISA = ("SpurTracerView");
 
 sub new {
 	my $type = shift;
