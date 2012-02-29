@@ -135,6 +135,21 @@ sub print {
 		$writer->endTag();
 	}
 
+	if(defined($data{'SpurTypes'})) {
+		$writer->startTag("SpurTypes");
+		foreach my $nr (sort keys %{$data{'SpurTypes'}}) {
+			my @spurType = @{$data{'SpurTypes'}{$nr}};
+
+			$writer->startTag("SpurType", ( 'nr' => $nr ));
+			my $i = 0;
+			foreach my $interface (@spurType) {
+				$writer->emptyTag('Interface', (%{$interface}, ('nr' => $i++)));
+			}
+			$writer->endTag();
+		}
+		$writer->endTag();
+	}
+
 	if(defined(${data{'Statistics'}})) {
 		$writer->startTag('Statistics');
 		foreach my $object (@{$data{'Statistics'}}) {

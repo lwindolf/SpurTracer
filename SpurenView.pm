@@ -20,7 +20,7 @@ package SpurenView;
 use warnings;
 use strict;
 use AlarmMonitor;
-use Spuren;
+use Spur;
 use StatisticObject;
 
 our @ISA = ("SpurTracerView");
@@ -28,20 +28,19 @@ our @ISA = ("SpurTracerView");
 sub new {
 	my $type = shift;
 	my $this = SpurTracerView->new(@_);
-	my %glob = %{$this->{'glob'}};
-	my $stats = new Stats($glob{'interval'});
-	my %results;
+	my $glob = $this->{'glob'};
+	my $stats = new Stats($glob->{'interval'});
 
-	$results{'Alarms'} = alarm_monitor_get_alarms();
+	$this->{'results'} = {
+		'Alarms'	=> alarm_monitor_get_alarms(),
 
-	# We need all instance types as we want to display all their counters
-	$results{"Interfaces"}		= $stats->get_object_list('interface');
-	$results{"Components"}		= $stats->get_object_list('component');
+		# Get all spur types (interface chains)
+		'SpurTypes'	=> spur_fetch($glob),
 
-	# Now we determine the existing interface chains. 
-	# FIXME
-
-	$this->{'results'} = \%results;
+		# We need all instance types as we want to display all their counters
+		'Interfaces'	=> $stats->get_object_list('interface'),
+		'Components'	=> $stats->get_object_list('component')
+	};
 
 	return bless $this, $type;
 }

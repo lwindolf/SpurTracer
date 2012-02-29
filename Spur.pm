@@ -28,18 +28,33 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
 		spur_build_key
 		spur_add
+		spur_fetch
 );
 
 ################################################################################
-# Build a Redis key for the "spuren" namespace.
+# Build a Redis key for the "spuren" namespace. For now we consider an edge
+# graph encoded as following as a unique spur id schema:
+#
+#	<component>_<component>[!<component>_<component>[...]]
 #
 # $1	spur array reference
+#
+# Returns a new key string
 ################################################################################
 sub spur_build_key {
+	my $events = shift;
+	my $key = "";
+
+	foreach my $event (@$events) {
+		$key .= "!" unless($key eq "");
+		$key .= "$event->{component}_$event->{newcomponent}";
+	}
+
+	return "spuren!$key";
 }
 
 ################################################################################
-# Resolving and add a spur. Takes an event description and tries to find all
+# Resolve and add a spur. Takes an event description and tries to find all
 # predecessor announcement events. Relies only on the 'newcomponent' and
 # 'newctxt' event fields.
 #
@@ -51,9 +66,24 @@ sub spur_add {
 	my $event = shift;	# event to resolve
 	my @results = ();
 	my %tmp = ();		# lookup hash for cycle detection 
+
+	# Note: We do not need to find call tree branches, just the direct 
+	# ancestor, as each call tree branch end-component's 'finished' event
+	# will trigger spur_add()
+	#
+	# For example: The following component call tree
+	#
+	#    C1 ----> C2 ----> C3
+	#     \-----> C4 ----> C5
+	#              \-----> C6
+	#
+	# would cause 3 spur types to be saved:
+	#
+	#    C1-C2-C3
+	#    C1-C4-C5
+	#    C1-C4-C6
 	
 	EVENTLOOP: while(defined($event)) {
-		push(@results, $event);
 
 		my $filter = notification_build_filter((
 			'newcomponent'	=> $event->{'component'},
@@ -69,14 +99,47 @@ sub spur_add {
 			$tmp{$key} = 1;
 
 			$event = notification_get($key);
+			unshift(@results, $event);
 			last;
 		}
 	}
 
 	if($#results >= 0) {
-		my $key = spur_build_key(@results);
-		DB->hincr($key, 'finished');
+		my $key = spur_build_key(\@results);
+		DB->hincrby($key, 'finished', 1);
 	}
+}
+
+################################################################################
+# Fetch all spur keys matching the optional filter.
+#
+# $1	reference to an array of all known matching spur types
+#
+# Returns an array reference with the resulting spur types
+################################################################################
+sub spur_fetch {
+	# FIXME: Implement filter
+	my $filter = "*";
+	my %results;
+
+	# FIXME: Eliminate partial spur types
+	#
+	# E.g. C1->C2 is part of C1->C2->C3
+
+	my $i = 0;
+	foreach(DB->keys("spuren!$filter")) {
+		next unless(/^spuren!(.*)$/);
+
+		my @spur = ();
+		foreach(split(/!/, $1)) {
+			if(/^(\w+)_(\w+)$/) {
+				push(@spur, { 'from' => $1, 'to' => $2 });
+			}
+		}
+		$results{$i++} = \@spur;
+	}
+
+	return \%results;
 }
 
 1;

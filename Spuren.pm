@@ -1,4 +1,5 @@
 # Spuren.pm: SpurTracer Spuren Data Access
+# FIXME: Rename to "Events.pm"
 #
 # Copyright (C) 2011 Lars Lindner <lars.lindner@gmail.com>
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
