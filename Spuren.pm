@@ -57,7 +57,7 @@ sub new {
 #
 # Returns 0 on success
 ################################################################################
-sub add_data {
+sub add_event {
 	my ($this, %data) = @_;
 
 	if($debug) {

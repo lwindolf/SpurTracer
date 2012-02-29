@@ -1,4 +1,4 @@
-#!/usr/bin/perl -T
+#!/usr/bin/perl
 
 # Net::Server::HTTP based SpurTracer server
 #
@@ -77,22 +77,22 @@ sub process_data_submission {
 	# Prepare data access
 	my $spuren = new Spuren();
 
-	my %data;
+	my %event;
 	foreach(split(/\&/, $data)) {
 		if(/(\w+)=(.+)/) {
 			my $key = $1;
-			$data{$key} = $2;
-			$data{$key} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
-			$data{$key} =~ s/\+/ /g;
+			$event{$key} = $2;
+			$event{$key} =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+			$event{$key} =~ s/\+/ /g;
 		}
 	}
 
 	# Check for mandatory fields
-	unless(defined($data{host}) &&
-	       defined($data{component}) &&
-	       defined($data{type}) &&
-	       defined($data{ctxt}) &&
-	       defined($data{time})) {
+	unless(defined($event{'host'}) &&
+	       defined($event{'component'}) &&
+	       defined($event{'type'}) &&
+	       defined($event{'ctxt'}) &&
+	       defined($event{'time'})) {
 
 		$this->send_status(400);
 		print "Content-type: text/plain\r\n\r\n";
@@ -102,8 +102,8 @@ sub process_data_submission {
 
 		if($debug) {
 			print STDERR "Invalid data submission. Only the following fields where given:\n";
-			foreach (keys(%data)) {
-				print STDERR "	$_ => $data{$_}\n";
+			foreach(keys(%event)) {
+				print STDERR "	$_ => $event{$_}\n";
 			}
 		}
 		return;
@@ -112,7 +112,7 @@ sub process_data_submission {
 	# FIXME: Validate important fields!
 
 
-	if($spuren->add_data(%data) == 0) {
+	if($spuren->add_event(%event) == 0) {
 		$this->send_status(200);
 		print "Content-type: text/plain\r\n\r\n";
 		print "OK";
