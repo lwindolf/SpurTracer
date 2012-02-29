@@ -39,7 +39,7 @@ sub reconnect {
 
 	$redis->quit()	if(defined($redis));
 
-	$redis = new Redis();	# FIXME: allow different config
+	$redis = new Redis(encoding => undef);	# FIXME: allow different config
 
 	# Check connection
 	my $info = $redis->info();
@@ -55,7 +55,7 @@ sub check {
 	ping() || die "Cannot ping Redis instance!";
 
 	# Check Redis DB version, needs to be 1.3+ for hash support
-	my $version = ${DB->info()}{'redis_version'};
+	my $version = ${info()}{'redis_version'};
 	$version =~ s/\.//;
 	die "Redis version < 1.3 (is $version)!" unless($version ge 130);
 	disconnect();
