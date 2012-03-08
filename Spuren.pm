@@ -131,49 +131,44 @@ sub add_event {
 # warns to not use the KEYS method for production, so this might not work
 # on the long term.
 #
-# Supported patterns see: http://redis.io/commands/keys
-#
-# $2	List with filter rules as supported by notification_build_filter()
+# $2	List with filter rules as supported by notification_build_regex()
 #
 #	Example: Get all CMS notification for all appservers
 #
 #		("host" => "appserver?", "component" => "cms")
 #
-# Returns an array of result hashes	(undefined on error)
+# Returns an array of result hashes
 ################################################################################
 sub fetch {
 	my ($this, %glob) = @_;
-	my @keys = DB->keys(notification_build_filter(%glob));
+
+	my @keys = @{notifications_fetch(notification_build_regex(%glob), 1000)};
 
 	# Deserialize query results into a list of events
 	# for (host, component, context) sets. The results will
 	# be a list of such sets...
 	my %results;
-	my $i = 0;
 	foreach my $key (@keys) {
-		next if($key =~ /skipped because its mtime/);
-
 		my $event = notification_get($key);
-		if(defined($event->{'ctxt'})) {
+		if(defined($event)) {
 			my $id = $event->{'host'}."!".$event->{'component'}."!".$event->{'ctxt'};
 
 			unless(defined($results{$id})) {
 				next if(keys %results > 100);
-				$results{$id}{source}{host}		= $event->{'host'};
-				$results{$id}{source}{component}	= $event->{'component'};
-				$results{$id}{source}{ctxt}		= $event->{'ctxt'};
-				$results{$id}{source}{started}		= $event->{'time'};
-				$results{$id}{events} = ();
-				$i++;
+				$results{$id}{'source'}{'host'}		= $event->{'host'};
+				$results{$id}{'source'}{'component'}	= $event->{'component'};
+				$results{$id}{'source'}{'ctxt'}		= $event->{'ctxt'};
+				$results{$id}{'source'}{'started'}	= $event->{'time'};	# ensure we have some time if 'started' event is missing
+				$results{$id}{'events'} = ();
 			}
+
+			$results{$id}{'source'}{'started'} = $event->{'time'} if($event->{'status'} eq 'started');
 
 			# Add event to spur set
 			push(@{$results{$id}{'events'}}, $event);
 		} else {
 			print STDERR "Invalid key encoding: >>>$key<<<!\n" if($debug);
 		}
-
-		last if($i > 1000);	# FIXME: Change schema to time ordered lists to query latest n events...
 	}
 
 	return \%results;

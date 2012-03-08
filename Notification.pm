@@ -26,14 +26,17 @@ our @ISA = qw(Exporter);
 
 our @EXPORT = qw(
 		notification_build_filter
+		notification_build_regex
 		notification_build_key
 		notification_build_value
 		notification_add
 		notification_get
+		notifications_fetch
 );
 
 ################################################################################
-# Build a Redis glob expression for searching notifications
+# Build a Redis glob expression for searching notifications. To be used
+# directly with the Redis "keys" method.
 #
 # $1	Hash with Redis glob patterns. Can be empty to fetch the
 #	latest n results. Otherwise it has a glob pattern for each field 
@@ -67,6 +70,41 @@ sub notification_build_filter {
 }
 
 ################################################################################
+# Build a Redis glob expression for searching notifications. To be used
+# with notification_fetch()
+#
+# $1	Hash with glob patterns. Can be empty to fetch the
+#	latest n results. Otherwise it has a glob pattern for each field 
+#	to be filtered. Not each fields needs to be given.
+#
+# Returns a glob pattern
+################################################################################
+sub notification_build_regex {
+	my (%glob) = @_;
+
+	# Build fetching glob
+	my $filter = "";
+	$filter .= "event!d$glob{time}!.*"	if(defined($glob{'time'}));
+
+	$filter = "event!d\\d+!" if($filter eq "");	# Avoid starting wildcard if possible
+
+	$filter .= "h$glob{host}!.*"		if(defined($glob{'host'}));
+	$filter .= "n$glob{component}!.*"	if(defined($glob{'component'}));
+	$filter .= "c$glob{ctxt}!.*"		if(defined($glob{'ctxt'}));
+	$filter .= "t$glob{type}!.*"		if(defined($glob{'type'}));
+
+	# For type=n
+	$filter .= "s$glob{status}"		if(defined($glob{'status'}));
+
+	# For type=c
+	$filter .= "N$glob{newcomponent}!C$glob{newctxt}" if(defined($glob{'newcomponent'}));
+
+	$filter .= ".*"	unless(defined($glob{'status'}) or defined($glob{'newctxt'}));
+
+	return $filter;
+}
+
+################################################################################
 # Build a notification key from a hash containing the notification properties
 #
 # $1	Event hash
@@ -93,7 +131,6 @@ sub notification_build_key {
 	# For type=c
 	$key .= "N$data{newcomponent}!"	if(defined($data{'newcomponent'}));
 	$key .= "C$data{newctxt}"	if(defined($data{'newctxt'}));
-
 
 	return $key;
 }
@@ -131,9 +168,13 @@ sub notification_add {
 	my $key = notification_build_key($event);
 	my $value = notification_build_value($event);
 
-	# Submit value
+	# Add key for random access
 	DB->set($key, $value);
 	DB->expire($key, $ttl);
+
+	# Add key to time sorted event index
+	# (Note: no Redis TTL possible here, cleanup done in AlarmMonitor)
+	DB->zadd('events', "$event->{time}", $key);
 }
 
 ################################################################################
@@ -168,6 +209,8 @@ sub notification_get {
 			if(DB->get($key) =~ /^([^!]+)!([^!]+)$/) {
 				$event{'newctxt'} = $2;
 				$event{'newcomponent'} = $1;
+				# FIXME: set status when clearing announcements instead
+				# of determining this live!
 				$event{'status'} = "announced";
 								# FIXME: Do not expose announcement schema here!
 				$event{'status'} = "finished" unless(DB->exists("announce!n$event{newcomponent}!c$event{newctxt}"));
@@ -176,6 +219,28 @@ sub notification_get {
 	}
 
 	return \%event;
+}
+
+################################################################################
+# Fetch notification keys according to optional filter
+#
+# $1	regex for key filtering
+# $2	maximum number of keys to return
+#
+# Returns a array reference to the resulting keys
+################################################################################
+sub notifications_fetch {
+	my $filter = shift;
+	my $max = shift;
+	my @keys = ();
+
+	# FIXME loop if filtering reduces results belov $max
+	foreach my $key (DB->zrevrangebyscore('events', '+inf', '-inf', 'limit', 0, $max)) {
+		next if($key =~ /skipped because its mtime/);
+		push(@keys, $key) if($key =~ /$filter/);
+	}
+
+	return \@keys;
 }
 
 1;
