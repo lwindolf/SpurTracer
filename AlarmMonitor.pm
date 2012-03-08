@@ -155,6 +155,12 @@ sub _check {
 		$this->{'stats'}->add_component_timeout($announcement->{'host'},
 		                                        $announcement->{'component'});
 	}
+
+	# Cleanup 'events' ZSET by event TTL
+	my $settings = settings_get("spuren", "global");
+	my $total = DB->zcard('events');
+	my $removed = DB->zremrangebyscore('events', 0, ($now - $settings->{'ttl'}) * 1000);
+	#print STDERR "Cleanup $removed of $total events (TTL=$settings->{ttl}) age < ".(($now - $settings->{'ttl'})*1000)."\n";
 }
 
 ################################################################################
