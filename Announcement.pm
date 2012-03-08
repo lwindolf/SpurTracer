@@ -21,6 +21,7 @@ package Announcement;
 use warnings;
 use strict;
 use DB;
+use Notification;
 use Settings;
 
 require Exporter;
@@ -83,6 +84,7 @@ sub announcement_add {
 	DB->hset($akey, 'host',			$event->{'host'});
 	DB->hset($akey, 'component',		$event->{'component'});
 	DB->hset($akey, 'ctxt',			$event->{'ctxt'});
+	DB->hset($akey, 'type',			$event->{'type'});
 
 	if(defined($event->{'newctxt'})) {
 		DB->hset($akey, 'newcomponent',		$event->{'newcomponent'});
@@ -91,6 +93,7 @@ sub announcement_add {
 
 	DB->hset($akey, 'time',			time());
 	DB->hset($akey, 'timeout',		0);
+	DB->hset($akey, 'source',		notification_build_key($event));
 	DB->expire($akey, $ttl);
 }
 
@@ -111,6 +114,7 @@ sub announcement_clear {
 	foreach(DB->keys("announce!$type!*!$event->{component}!$event->{ctxt}")) {
 		my %announcement = DB->hgetall($_);
 		DB->del($_);
+		DB->hset($announcement{'source'}, 'status', 'finished') if($announcement{'type'} eq 'c');
 		return \%announcement;
 	}
 

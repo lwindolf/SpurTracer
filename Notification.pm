@@ -29,6 +29,7 @@ our @EXPORT = qw(
 		notification_build_regex
 		notification_build_key
 		notification_build_value
+		notification_set_status
 		notification_add
 		notification_get
 		notifications_fetch
@@ -166,13 +167,14 @@ sub notification_add {
 	my ($event, $ttl) = @_;
 
 	my $key = notification_build_key($event);
-	my $value = notification_build_value($event);
 
-	# Add key for random access
-	DB->set($key, $value);
+	# Add a hash for random access
+	foreach(keys(%$event)) {
+		DB->hset($key, $_, $event->{$_});
+	}
 	DB->expire($key, $ttl);
 
-	# Add key to time sorted event index
+	# Add each key to time sorted event index
 	# (Note: no Redis TTL possible here, cleanup done in AlarmMonitor)
 	DB->zadd('events', "$event->{time}", $key);
 }
@@ -200,22 +202,7 @@ sub notification_get {
 			!(s(?<status>\w+))?
 	           /x
 	) {
-		%event = %+;
-
-		# Fetch value encoded information
-		if($event{'type'} eq "n") {
-			$event{'desc'} = DB->get($key);
-		} else {
-			if(DB->get($key) =~ /^([^!]+)!([^!]+)$/) {
-				$event{'newctxt'} = $2;
-				$event{'newcomponent'} = $1;
-				# FIXME: set status when clearing announcements instead
-				# of determining this live!
-				$event{'status'} = "announced";
-								# FIXME: Do not expose announcement schema here!
-				$event{'status'} = "finished" unless(DB->exists("announce!n$event{newcomponent}!c$event{newctxt}"));
-			}
-		}
+		%event = DB->hgetall($key);
 	}
 
 	return \%event;
@@ -284,3 +271,24 @@ NOTE: DON'T RELY ON THE SCHEMA IT MIGHT CHANGE AT ANY TIME!
 
 =end text
 
+=head2 Accessing Notification Properties
+
+=begin text
+
+Notification properties are to be accessed using random access by 
+fetching the hash from the "event" namespace. This is implemented by
+notification_get()
+
+=end text
+
+=head2 Fetching Notification Lists
+
+=begin text
+
+To fetch sets of notifications we perform a range query on the ZSET "events".
+This is implemented in notifications_fetch(). The ordered list is ordered
+by [ms] Unix timestamps and provides only the notification key names. The
+key name has to be looked up in the "event" namespace as described in the
+previous section.
+
+=end text

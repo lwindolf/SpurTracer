@@ -72,21 +72,27 @@ sub add_event {
 	# but accept a normal timestamp too... FIXME: Better way to check this?
 	$data{'time'} *= 1000 if($data{'time'} < 1000000000000);
 
+	# Before adding the notification determine the status for announcements
+	# by checking for relevant existing notifications...
+	if($data{'type'} eq "c") {
+		my @notifications = DB->keys(notification_build_filter(
+			'component'	=> $data{'newcomponent'},
+			'ctxt'		=> $data{'newctxt'}
+		));
+		if($#notifications < 0) {
+			$data{'status'} = 'announced';
+		} else {
+			$data{'status'} = 'finished';
+		}
+	}
+
 	notification_add(\%data, $this->{'ttl'});
 
 	if($data{'type'} eq "c") {
 		# For context announcements:
 
 		# Interface Announcement Handling
-
-		# Check if any notifications already exist, to avoid
-		# adding announcements on time sync related races...
-		my @notifications = DB->keys(notification_build_filter(
-			'component'	=> $data{'newcomponent'},
-			'ctxt'		=> $data{'newctxt'}
-		));
-
-		if($#notifications < 0) {
+		unless($data{'status'} eq 'finished') {
 			announcement_add('interface', \%data, $this->{'ttl'});
 			$this->{'stats'}->add_interface_announced($data{host}, $data{component}, $data{newcomponent});
 		} else {
