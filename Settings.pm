@@ -158,7 +158,7 @@ sub settings_get {
 	my $filter = join("!", @_);
 
 	foreach my $key (DB->keys("settings!$filter")) {
-		next unless($key =~ /^\w+$/);
+		next unless($key =~ /^[\w!]+$/);
 		my %tmp = DB->hgetall($key);
 		return \%tmp;
 	}
