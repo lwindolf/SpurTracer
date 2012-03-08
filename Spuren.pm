@@ -162,7 +162,9 @@ sub fetch {
 				$results{$id}{'events'} = ();
 			}
 
-			$results{$id}{'source'}{'started'} = $event->{'time'} if($event->{'status'} eq 'started');
+			if(defined($event->{'status'}) and $event->{'status'} eq 'started') {
+				$results{$id}{'source'}{'started'} = $event->{'time'}
+			}
 
 			# Add event to spur set
 			push(@{$results{$id}{'events'}}, $event);
