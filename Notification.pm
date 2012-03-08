@@ -86,7 +86,7 @@ sub notification_build_regex {
 	my $filter = "";
 	$filter .= "event!d$glob{time}!.*"	if(defined($glob{'time'}));
 
-	$filter = "event!d\\d+!" if($filter eq "");	# Avoid starting wildcard if possible
+	$filter = "event!.*!" if($filter eq "");	# Avoid starting wildcard if possible
 
 	$filter .= "h$glob{host}!.*"		if(defined($glob{'host'}));
 	$filter .= "n$glob{component}!.*"	if(defined($glob{'component'}));

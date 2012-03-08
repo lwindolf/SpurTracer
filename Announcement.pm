@@ -118,7 +118,7 @@ sub announcement_clear {
 }
 
 ################################################################################
-# Mark the given timeout as run into a timeout
+# Mark the given announcement as run into a timeout
 #
 # $1	announcement type ('component' or 'interface')
 # $2	the announcement event to time-out
