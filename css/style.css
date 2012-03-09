@@ -262,8 +262,20 @@ div.config form table td:first-child {
 	float:right;
 }
 
+.spurtypes tr.path td:first-child {
+	padding-left:12px;
+}
+.spurtypes tr.path td:last-child {
+	padding-right:12px;
+}
+
+
 .spurtypes tr.path td {
-	padding-top:12px;
+	padding:12px 0;
+}
+
+.spurtypes tr.path td hr {
+	margin-top:3px;
 }
 
 .componentLabel {
@@ -279,5 +291,5 @@ div.config form table td:first-child {
 }
 
 .interfaceMetrics {
-	margin:0 12px;
+	margin:0 24px;
 }

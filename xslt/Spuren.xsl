@@ -32,7 +32,7 @@
 		<div class="header">Known Spur Types</div>
 			<table class="spurtypes">
 				<tr>
-					<th colspan="100">Path</th>
+					<th colspan="100">Path Info</th>
 				</tr>
 				<xsl:for-each select="SpurTypes/SpurType">
 					<xsl:call-template name="SpurType"/>
