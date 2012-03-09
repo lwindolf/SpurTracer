@@ -29,11 +29,8 @@
 		<xsl:call-template name="Alarms"/>
 
 		<div class="systemMap">
-		<div class="header">Known Spur Types</div>
-			<table class="spurtypes">
-				<tr>
-					<th colspan="100">Path Info</th>
-				</tr>
+		<div class="header">Component Path Map</div>
+			<table cellspacing="0" class="spurtypes">
 				<xsl:for-each select="SpurTypes/SpurType">
 					<xsl:call-template name="SpurType"/>
 				</xsl:for-each>
@@ -60,41 +57,60 @@
 
 <xsl:template name="componentLabel">
 	<xsl:param name="name"/>
+	<xsl:param name="spurNr"/>
+	<xsl:param name="interfaceNr"/>
 
-	<div class="componentLabel">
-		<strong><xsl:value-of select="$name"/></strong><br/>
-		<small>
-			<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@started"/></span> /
-			<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@announced"/></span> /
-			<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@failed"/></span>
-		</small>
-	</div>
+	<xsl:choose>
+		<xsl:when test="$name = //SpurType[@nr = ($spurNr - 1)]/Interface[@nr = $interfaceNr]/@from">
+			<td class="leftSpurConnector"/>
+			<td class="spurConnector"><span class="hidden">.</span></td>
+		</xsl:when>
+		<xsl:when test="//SpurType[@nr = $spurNr]/Interface[@nr = ($interfaceNr - 1)]/@to = //SpurType[@nr = ($spurNr - 1)]/Interface[@nr = ($interfaceNr - 1)]/@to">
+			<td class="spurConnector"><span class="hidden">.</span></td>
+			<td class="rightSpurConnector"/>
+		</xsl:when>
+		<xsl:otherwise>
+			<td colspan="2">
+			<div class="componentLabel">
+				<strong><xsl:value-of select="$name"/></strong><br/>
+				<small>
+					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@started"/></span> /
+					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@announced"/></span> /
+					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@failed"/></span>
+				</small>
+			</div>
+			</td>
+		</xsl:otherwise>
+	</xsl:choose>
 </xsl:template>
 
 <xsl:template name="SpurType">
 	<tr class="path">
-		<td>
-			<xsl:call-template name="componentLabel">
-				<xsl:with-param name="name"><xsl:value-of select="Interface[1]/@from"/></xsl:with-param>
-			</xsl:call-template>
-		</td>
+		<xsl:call-template name="componentLabel">
+			<xsl:with-param name="spurNr"><xsl:value-of select="@nr"/></xsl:with-param>
+			<xsl:with-param name="interfaceNr"><xsl:value-of select="'0'"/></xsl:with-param>
+			<xsl:with-param name="name"><xsl:value-of select="Interface[1]/@from"/></xsl:with-param>
+		</xsl:call-template>
+
 		<xsl:for-each select="Interface">
 			<xsl:variable name="from"><xsl:value-of select="@from"/></xsl:variable>
 			<xsl:variable name="to"><xsl:value-of select="@to"/></xsl:variable>
 
-			<td>
-				<small class="interfaceMetrics">
+			<td class="spurConnector" valign="top">
+				<div class="interfaceMetrics">
+				<small>
 					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@started"/></span> /
 					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@announced"/></span> /
 					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@timeout"/></span>
 				</small>
-				<hr class="spurConnector"/>
+				</div>
 			</td>
-			<td>
-				<xsl:call-template name="componentLabel">
-					<xsl:with-param name="name"><xsl:value-of select="$to"/></xsl:with-param>
-				</xsl:call-template>
-			</td>
+
+			<xsl:call-template name="componentLabel">
+				<xsl:with-param name="spurNr"><xsl:value-of select="../@nr"/></xsl:with-param>
+				<xsl:with-param name="interfaceNr"><xsl:value-of select="@nr + 1"/></xsl:with-param>
+				<xsl:with-param name="name"><xsl:value-of select="$to"/></xsl:with-param>
+			</xsl:call-template>
 		</xsl:for-each>
 	</tr>
 </xsl:template>

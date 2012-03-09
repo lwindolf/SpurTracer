@@ -230,7 +230,7 @@ sub process_http_request {
 	$uri =~ s/^\/+//;	# strip leading slash
 
 	# Handle static content (currently only XSLT, JS and CSS)
-	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/[\w_.\-]+\.js)$#) {
+	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/[\w_.\-]+\.js|images/[\w.]+.png)$#) {
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {

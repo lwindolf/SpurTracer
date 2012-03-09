@@ -291,5 +291,25 @@ div.config form table td:first-child {
 }
 
 .interfaceMetrics {
-	margin:0 24px;
+	padding:6px 24px;
+}
+
+td.spurConnector {
+	background-image:url(../images/hr.png);
+}
+
+td.spurConnector .hidden {
+	visibility:hidden;
+}
+
+.leftSpurConnector {
+	background-image:url(../images/vr.png);
+	background-repeat:no-repeat;
+	background-position:right;
+}
+
+.rightSpurConnector {
+	background-image:url(../images/vr.png);
+	background-repeat:no-repeat;
+	background-position:left;
 }
