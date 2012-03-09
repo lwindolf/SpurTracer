@@ -262,3 +262,18 @@ div.config form table td:first-child {
 	float:right;
 }
 
+.spurtypes tr.path td {
+	padding-top:12px;
+}
+
+.componentLabel {
+	border:1px solid #444;
+	border-radius:6px;
+	padding:6px;
+	background:#ccc;
+}
+
+.interfaceLabel {
+	text-decoration:none;
+	padding:0 3px;
+}

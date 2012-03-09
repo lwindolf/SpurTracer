@@ -24,14 +24,16 @@
 		<xsl:call-template name="Menu">
 			<xsl:with-param name="active" select="'Spuren'"/>
 			<xsl:with-param name="filter" select="'1'"/>
-			<xsl:with-param name="nointerval" select="'1'"/>
 		</xsl:call-template>
 
 		<xsl:call-template name="Alarms"/>
 
 		<div class="systemMap">
 		<div class="header">Known Spur Types</div>
-			<table class="spuren">
+			<table class="spurtypes">
+				<tr>
+					<th colspan="100">Path</th>
+				</tr>
 				<xsl:for-each select="SpurTypes/SpurType">
 					<xsl:call-template name="SpurType"/>
 				</xsl:for-each>
@@ -56,11 +58,43 @@
 </html>
 </xsl:template>
 
+<xsl:template name="componentLabel">
+	<xsl:param name="name"/>
+
+	<div class="componentLabel">
+		<strong><xsl:value-of select="$name"/></strong><br/>
+		<small>
+			<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@started"/></span> /
+			<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@announced"/></span> /
+			<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@failed"/></span>
+		</small>
+	</div>
+</xsl:template>
+
 <xsl:template name="SpurType">
-	<tr>
-		<td><xsl:value-of select="Interface[1]/@from"/></td>
+	<tr class="path">
+		<td>
+			<xsl:call-template name="componentLabel">
+				<xsl:with-param name="name"><xsl:value-of select="Interface[1]/@from"/></xsl:with-param>
+			</xsl:call-template>
+		</td>
 		<xsl:for-each select="Interface">
-			<td><xsl:value-of select="@to"/></td>
+			<xsl:variable name="from"><xsl:value-of select="@from"/></xsl:variable>
+			<xsl:variable name="to"><xsl:value-of select="@to"/></xsl:variable>
+
+			<td>
+				<hr class="spurConnector"/>
+				<small>
+					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@started"/></span> /
+					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@announced"/></span> /
+					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@timeout"/></span>
+				</small>
+			</td>
+			<td>
+				<xsl:call-template name="componentLabel">
+					<xsl:with-param name="name"><xsl:value-of select="$to"/></xsl:with-param>
+				</xsl:call-template>
+			</td>
 		</xsl:for-each>
 	</tr>
 </xsl:template>
