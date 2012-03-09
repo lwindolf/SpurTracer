@@ -122,16 +122,26 @@ sub spur_fetch {
 	my $filter = "*";
 	my %results;
 
-	# FIXME: Eliminate partial spur types
-	#
-	# E.g. C1->C2 is part of C1->C2->C3
-
+	my @tmp;
 	my $i = 0;
-	foreach(DB->keys("spuren!$filter")) {
+	SPURLOOP: foreach(sort {
+		# sort by string length as equally long unique paths
+		# cannot contain each other
+		length($a) < length($b)
+	} (DB->keys("spuren!$filter"))) {
 		next unless(/^spuren!(.*)$/);
+		my $spur = $1;
+
+		# Eliminate partial spur types
+		#
+		# E.g. C1->C2 is part of C1->C2->C3
+		foreach(@tmp) {
+			next SPURLOOP if(index($_, $spur) != -1);
+		}
+		push(@tmp, $spur);
 
 		my @spur = ();
-		foreach(split(/!/, $1)) {
+		foreach(split(/!/, $spur)) {
 			if(/^(\w+)_(\w+)$/) {
 				push(@spur, { 'from' => $1, 'to' => $2 });
 			}

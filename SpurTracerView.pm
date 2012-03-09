@@ -139,7 +139,6 @@ sub print {
 		$writer->startTag("SpurTypes");
 		foreach my $nr (sort keys %{$data{'SpurTypes'}}) {
 			my @spurType = @{$data{'SpurTypes'}{$nr}};
-
 			$writer->startTag("SpurType", ( 'nr' => $nr ));
 			my $i = 0;
 			foreach my $interface (@spurType) {
