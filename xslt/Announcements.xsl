@@ -37,8 +37,8 @@
 				<th>Time</th>
 				<th colspan="2">From</th>
 				<th>To</th>
-				<th>Source Context</th>
 				<th>New Context</th>
+				<th>Source Context</th>
 				<th>Since</th>
 			</tr>
 			<xsl:for-each select="Announcements/Announcement">
