@@ -83,12 +83,12 @@
 			<xsl:variable name="to"><xsl:value-of select="@to"/></xsl:variable>
 
 			<td>
-				<hr class="spurConnector"/>
-				<small>
+				<small class="interfaceMetrics">
 					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@started"/></span> /
 					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@announced"/></span> /
 					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@timeout"/></span>
 				</small>
+				<hr class="spurConnector"/>
 			</td>
 			<td>
 				<xsl:call-template name="componentLabel">
