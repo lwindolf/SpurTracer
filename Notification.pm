@@ -130,8 +130,8 @@ sub notification_build_key {
 	$key .= "s$data{status}"	if(defined($data{'status'}));
 
 	# For type=c
-	$key .= "N$data{newcomponent}!"	if(defined($data{'newcomponent'}));
-	$key .= "C$data{newctxt}"	if(defined($data{'newctxt'}));
+	$key .= "!N$data{newcomponent}"	if(defined($data{'newcomponent'}));
+	$key .= "!C$data{newctxt}"	if(defined($data{'newctxt'}));
 
 	return $key;
 }
