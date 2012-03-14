@@ -117,14 +117,14 @@
 		<span title="finished events" class="interfaceLabel finished"><xsl:value-of select="$this/@started"/></span> /
 		<xsl:element name="span">
 			<xsl:attribute name="title">pending announcements</xsl:attribute>
-			<xsl:attribute name="class">interfaceLabel<xsl:if test="$this/@announced != 0"> announced</xsl:if></xsl:attribute>
+			<xsl:attribute name="class">interfaceLabel<xsl:if test="$this/@announced > 0"> announced</xsl:if></xsl:attribute>
 			<xsl:value-of select="$this/@announced"/>
 		</xsl:element>
 
-		<xsl:if test="$this/@timeout != 0">
+		<xsl:if test="$this/@timeout > 0">
 			/ <span title="timeouts" class="interfaceLabel error"><xsl:value-of select="$this/@timeout"/></span>
 		</xsl:if>
-		<xsl:if test="$this/@failed != 0">
+		<xsl:if test="$this/@failed > 0">
 			/ <span title="failures" class="interfaceLabel error"><xsl:value-of select="$this/@failed"/></span>
 		</xsl:if>
 	</small>

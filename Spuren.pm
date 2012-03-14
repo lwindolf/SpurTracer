@@ -110,6 +110,7 @@ sub add_event {
 
 			# FIXME: DO we need a race check here too?
 			announcement_add('component', \%data, $this->{'ttl'});
+			$this->{'stats'}->add_component_announced($data{host}, $data{component});
 		}
 
 		if($data{'status'} eq "finished") {

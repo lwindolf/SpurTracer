@@ -57,7 +57,9 @@ table.notifications * a, table.alarms * a {
 	background: -o-linear-gradient(top, #fff, #aaa);
 	background: -ms-linear-gradient(top, #fff, #aaa);
 	color:black;
+	font-family:'Arial Narrow', sans-serif;
 	font-weight:normal;
+	font-size:9pt;
 	border-right:1px solid #aaa;
 	padding:3px;
 }
@@ -88,6 +90,10 @@ table.notifications * a, table.alarms * a {
 
 .error {
 	background:#F77;
+}
+
+.timeout {
+	background:#FA4;
 }
 
 .warning {
@@ -127,6 +133,9 @@ table.notifications * a, table.alarms * a {
 	border-top-left-radius:6px;
 	border-top-right-radius:6px;
 	font-size:12pt;
+	font-family:'Arial Narrow', sans-serif;
+	font-weight:normal;
+
 }
 
 .systemMap .header a {
@@ -312,4 +321,8 @@ td.spurConnector .hidden {
 	background-image:url(../images/vr.png);
 	background-repeat:no-repeat;
 	background-position:left;
+}
+
+td.zero, td.zero * {
+	color:gray;
 }

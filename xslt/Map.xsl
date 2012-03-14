@@ -36,6 +36,12 @@
 		</xsl:for-each>
 
 		<div class="clear"/>
+
+		<script type="text/javascript">
+			$('td').filter(function() {
+				return $(this).text() == '0';
+			}).addClass('zero');
+		</script>
 	</div>
 </body>
 </html>
@@ -59,6 +65,7 @@
 			<tr>
 				<th>Host / Component</th>
 				<th>Calls</th>
+				<th>Pending</th>
 				<th>Errors</th>
 				<th>Timeouts</th>
 			</tr>
@@ -80,6 +87,7 @@
 			<a href="get?host={@name}"><xsl:value-of select="$host"/></a>
 		</xsl:element>
 		<td class='calls'><a href="get?host={@name}&amp;status=started"><xsl:value-of select="@started"/></a></td>
+		<td><xsl:value-of select="@announced"/></td>
 		<xsl:call-template name="ErrorCell">
 			<xsl:with-param name="url">get?host=<xsl:value-of select="@name"/>&amp;status=failed</xsl:with-param>
 			<xsl:with-param name="value" select="@failed"/>
@@ -95,6 +103,7 @@
 		<tr class="componentInstance">
 			<td><a href="get?host={@host}&amp;component={@component}"><xsl:value-of select="@component"/></a></td>
 			<td class='calls'><a href="get?host={@host}&amp;component={@component}&amp;status=started"><xsl:value-of select="@started"/></a></td>
+			<td><xsl:value-of select="@announced"/></td>
 			<xsl:call-template name="ErrorCell">
 				<xsl:with-param name="url">get?host=<xsl:value-of select="@host"/>&amp;component=<xsl:value-of select="@component"/>&amp;status=failed</xsl:with-param>
 				<xsl:with-param name="value" select="@failed"/>
@@ -114,6 +123,7 @@
 			<tr>
 				<th>Component / From</th>
 				<th>Calls</th>
+				<th>Pending</th>
 				<th>Errors</th>
 				<th>Timeouts</th>
 			</tr>
@@ -135,6 +145,7 @@
 			<a href="get?component={@name}"><xsl:value-of select="$component"/></a>
 		</xsl:element>
 		<td class='calls'><xsl:value-of select="@started"/></td>
+		<td><xsl:value-of select="@announced"/></td>
 		<xsl:call-template name="ErrorCell">
 			<xsl:with-param name="url">get?host=<xsl:value-of select="@name"/>&amp;status=failed</xsl:with-param>
 			<xsl:with-param name="value" select="@failed"/>
@@ -149,6 +160,7 @@
 		<tr class="componentInstance">
 			<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a></td>
 			<td class='calls'><xsl:value-of select="@started"/></td>
+			<td><xsl:value-of select="@announced"/></td>
 			<xsl:call-template name="ErrorCell">
 				<xsl:with-param name="url">get?host=<xsl:value-of select="@host"/>&amp;component=<xsl:value-of select="@component"/>&amp;status=failed</xsl:with-param>
 				<xsl:with-param name="value" select="@failed"/>
@@ -168,6 +180,7 @@
 			<tr>
 				<th>Interface / From</th>
 				<th>Calls</th>
+				<th>Pending</th>
 				<th>Timeouts</th>
 			</tr>
 			<xsl:for-each select="Interface">
@@ -182,6 +195,7 @@
 	<tr class="interface">
 		<td><xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></td>
 		<td class='calls'><xsl:value-of select="@started"/></td>
+		<td><xsl:value-of select="@announced"/></td>
 		<xsl:call-template name="ErrorCell">
 			<xsl:with-param name="value" select="@timeout"/>
 		</xsl:call-template>
@@ -193,6 +207,7 @@
 		<tr class="interfaceInstance">
 			<td><a href="get?host={@host}"><xsl:value-of select="@host"/></a></td>
 			<td class='calls'><xsl:value-of select="@started"/></td>
+			<td><xsl:value-of select="@announced"/></td>
 			<xsl:call-template name="ErrorCell">
 				<xsl:with-param name="url">get?host=<xsl:value-of select="@host"/>&amp;status=timeout</xsl:with-param>
 				<xsl:with-param name="value" select="@timeout"/>

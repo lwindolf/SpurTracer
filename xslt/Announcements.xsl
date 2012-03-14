@@ -52,7 +52,7 @@
 			<div class="header">Legend</div>
 			<table>
 				<tr><td class='announced'>announced</td></tr>
-				<tr><td class='error'>timeout</td></tr>
+				<tr><td class='timeout'>timeout</td></tr>
 			</table>
 		</div>
 
@@ -80,7 +80,7 @@
 	<xsl:element name="tr">
 		<xsl:attribute name="class">announcement
 			<xsl:if test="@timeout = 0">announced</xsl:if>
-			<xsl:if test="@timeout = 1">error</xsl:if>
+			<xsl:if test="@timeout = 1">timeout</xsl:if>
 		</xsl:attribute>
 		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>

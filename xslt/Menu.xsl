@@ -62,6 +62,7 @@
 			<tr><td class='started'>started</td></tr>
 			<tr><td class='running'>running</td></tr>
 			<tr><td class='error'>error</td></tr>
+			<tr><td class='timeout'>timeout</td></tr>
 			<tr><td class='announced'>announced</td></tr>
 			<tr><td class='finished'>finished</td></tr>
 		</table>

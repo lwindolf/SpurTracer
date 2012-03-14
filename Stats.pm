@@ -211,6 +211,21 @@ sub add_interface_announced {
 }
 
 ################################################################################
+# Generic announcement counter method.
+#
+# $2	Source Host
+# $3	Source Component
+################################################################################
+sub add_component_announced {
+	my $this = $_[0];
+
+	$this->_count_object(1, 'global', 'announced');
+	$this->_count_object(1, 'component', $_[2], 'announced');
+
+	$this->_count_instance(1, 'component', $_[1], $_[2], 'announced');
+}
+
+################################################################################
 # Generic interface timeout counter method. Increases all relevant counters.
 # Additionally decreases the 'announced' counter so we have a live gauge of
 # pending interfaces.
@@ -246,7 +261,8 @@ sub add_component_timeout {
 
 	$this->_count_object(1, 'global', 'timeout');
 	$this->_count_object(1, 'host', $_[1], 'timeout');
-	$this->_count_object(1, 'component', $_[2], 'timeout');
+	$this->_count_object(-1, 'component', $_[2], 'announced');
+	$this->_count_object( 1, 'component', $_[2], 'timeout');
 
 	$this->_count_instance(-1, 'component', $_[1], $_[2], 'announced');
 	$this->_count_instance( 1, 'component', $_[1], $_[2], 'timeout');
@@ -268,6 +284,10 @@ sub add_component_duration {
 	$this->_count_object(1,         'component', $component, 'perf_samples');
 	$this->_count_instance($duration, 'component', $host, $component, 'perf_values');
 	$this->_count_instance(1,         'component', $host, $component, 'perf_samples');
+
+	# Decreases the 'announced' counter so we have a live gauge of pending interfaces
+	$this->_count_object(-1, 'component', $component, 'announced');
+	$this->_count_instance(-1, 'component', $host, $component, 'announced');
 }
 
 ################################################################################
@@ -287,7 +307,6 @@ sub add_interface_duration {
 	$this->_count_object(1,         'interface', $component1, $component2, 'perf_samples');
 	$this->_count_instance($duration, 'interface', $host, $component1, $component2, 'perf_values');
 	$this->_count_instance(1,         'interface', $host, $component1, $component2, 'perf_samples');
-
 
 	# Decreases the 'announced' counter so we have a live gauge of pending interfaces
 	$this->_count_object(-1, 'interface', $component1, $component2, 'announced');
