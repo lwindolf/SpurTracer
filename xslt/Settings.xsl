@@ -315,7 +315,12 @@
 				<td>
 					<xsl:call-template name="statistics-object-selector"/>
 				</td></tr>
-				<tr><td>Check Type</td><td>Error Rate<input type="hidden" name="checkType" value="Error Rate"/></td></tr>
+				<tr><td>Check Type</td><td>
+					<select name="checkType">
+						<option value="Error Rate">Error Rate</option>
+						<option value="Timeout Rate">Timeout Rate</option>
+					</select>
+				</td></tr>
 				<tr><td>Check Interval [min]</td><td><input type="input" name="checkInterval" size="5"/></td></tr>
 				<tr><td>Map To Host</td><td><input type="input" name="mapHost"/></td></tr>
 				<tr><td>Map To Service</td><td><input type="input" name="mapService"/></td></tr>

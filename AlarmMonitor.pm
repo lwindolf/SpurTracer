@@ -112,23 +112,33 @@ sub _check {
 	my $this = shift;
 	my $now = time();
 
-	# Check object error rates
-	foreach my $type ('host', 'component', 'interface') {
-		foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
-			my $key = "object!$type!$object->{name}";
-			my %config = %{alarm_config_get_threshold($key)};
-			my $errorRate = $object->{'failed'} * 100 / $object->{'started'};
-			
-			if($errorRate > $config{'critical'}) {
-				$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{critical}%% threshold)!", $errorRate));
-				next;
-			}
+	# Check object error/timeout rates
+	foreach my $checkCriteria ('failed', 'timeout') {
+		foreach my $type ('host', 'component', 'interface') {
+			foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
+				my $key = "object!$type!$object->{name}";
+				my (%config, $what, $errorRate);
 
-			if($errorRate > $config{'warning'}) {
-				$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("Error rate is %0.2f%% (> $config{warning}%% threshold)!", $errorRate));
-				next;
-			}
-		}	
+				$errorRate = $object->{$checkCriteria} * 100 / $object->{'started'};
+				%config = %{alarm_config_get_threshold($key)};	# FIXME: Specific configuration for error rate and timeout rates!
+
+				if($checkCriteria eq 'failed') {
+					$what = "Error rate";
+				} elsif($checkCriteria eq 'timeout') {
+					$what = "Timeout rate";
+				}
+			
+				if($errorRate > $config{'critical'}) {
+					$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("$what is %0.2f%% (> $config{critical}%% threshold)!", $errorRate));
+					next;
+				}
+
+				if($errorRate > $config{'warning'}) {
+					$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("$what is %0.2f%% (> $config{warning}%% threshold)!", $errorRate));
+					next;
+				}
+			}	
+		}
 	}
 
 	# Check overdue announcements (uncleared older announcements)
