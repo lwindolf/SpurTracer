@@ -201,7 +201,11 @@ td.critical, td.error {
 }
 
 tr.componentInstance td.error, tr.interfaceInstance td.error {
-	background:#faa;
+	background:#fcc;
+}
+
+tr.componentInstance td.timeout, tr.interfaceInstance td.timeout {
+	background:#fea;
 }
 
 div.visualize {

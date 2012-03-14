@@ -172,7 +172,7 @@ sub print {
 		$writer->endTag();
 	}
 
-	foreach my $tag ("Announcement", "Host", "Interface", "Component") {
+	foreach my $tag ("ComponentAnnouncement", "InterfaceAnnouncement", "Host", "Interface", "Component") {
 
 		# Dump objects
 		if(defined($data{$tag . 's'})) {

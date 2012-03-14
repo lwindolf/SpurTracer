@@ -31,7 +31,7 @@
 		</div>
 
 		<div class="systemMap">
-		<div class="header">Recent Pending/Failed Announcements</div>
+		<div class="header">Recent Pending/Failed Interfaces</div>
 		<table border="0" class="notifications">
 			<tr>
 				<th>Time</th>
@@ -41,9 +41,26 @@
 				<th>Source Context</th>
 				<th>Since</th>
 			</tr>
-			<xsl:for-each select="Announcements/Announcement">
+			<xsl:for-each select="InterfaceAnnouncements/InterfaceAnnouncement">
 				<xsl:sort select="@time" order="descending" data-type="number"/>
-				<xsl:call-template name="Announcement"/>
+				<xsl:call-template name="InterfaceAnnouncement"/>
+			</xsl:for-each>
+		</table>
+		</div>
+
+		<div class="systemMap">
+		<div class="header">Recent Pending/Failed Components</div>
+		<table border="0" class="notifications">
+			<tr>
+				<th>Time</th>
+				<th>Host</th>
+				<th>Component</th>
+				<th>Context</th>
+				<th>Since</th>
+			</tr>
+			<xsl:for-each select="ComponentAnnouncements/ComponentAnnouncement">
+				<xsl:sort select="@time" order="descending" data-type="number"/>
+				<xsl:call-template name="ComponentAnnouncement"/>
 			</xsl:for-each>
 		</table>
 		</div>
@@ -76,7 +93,7 @@
 </html>
 </xsl:template>
 
-<xsl:template name="Announcement">
+<xsl:template name="InterfaceAnnouncement">
 	<xsl:element name="tr">
 		<xsl:attribute name="class">announcement
 			<xsl:if test="@timeout = 0">announced</xsl:if>
@@ -91,5 +108,20 @@
 		<td class="since" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
 	</xsl:element>
 </xsl:template>
+
+<xsl:template name="ComponentAnnouncement">
+	<xsl:element name="tr">
+		<xsl:attribute name="class">announcement
+			<xsl:if test="@timeout = 0">announced</xsl:if>
+			<xsl:if test="@timeout = 1">timeout</xsl:if>
+		</xsl:attribute>
+		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
+		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
+		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
+		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td class="since" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
+	</xsl:element>
+</xsl:template>
+
 
 </xsl:stylesheet>

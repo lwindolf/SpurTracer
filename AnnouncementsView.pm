@@ -30,7 +30,8 @@ sub new {
 	my $this = SpurTracerView->new(@_);
 	my %results;
 
-	$results{"Announcements"} = announcements_fetch('interface', $this->{'glob'});
+	$results{'InterfaceAnnouncements'} = announcements_fetch('interface', $this->{'glob'});
+	$results{'ComponentAnnouncements'} = announcements_fetch('component', $this->{'glob'});
 	$results{'Alarms'} = alarm_monitor_get_alarms();
 
 	$this->{results} = \%results;
