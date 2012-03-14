@@ -124,12 +124,14 @@ sub spur_fetch {
 
 	my @tmp;
 	my $i = 0;
-	# Sort by string as equally long unique paths
+	# Sort by string by length as equally long unique paths
 	# cannot contain each other and reverse sort ensures
 	# longest paths are processed first. Matching against
 	# already processed paths in @tmp eliminates partial
 	# spur types.
-	SPURLOOP: foreach(reverse sort DB->keys("spuren!$filter")) {
+	SPURLOOP: foreach(reverse sort {
+		length($a) <=> length($b)
+	} DB->keys("spuren!$filter")) {
 		next unless(/^spuren!(.*)$/);
 		my $spur = $1;
 
