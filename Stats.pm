@@ -160,7 +160,7 @@ sub _count_instance {
 }
 
 ################################################################################
-# Generic error counter method. Increases the error for all relevant counters.
+# Generic started counter method.
 #
 # $2	Host
 # $3	Component
@@ -176,7 +176,7 @@ sub add_start_notification {
 }
 
 ################################################################################
-# Generic error counter method. Increases the error for all relevant counters.
+# Generic error counter method.
 #
 # $2	Host
 # $3	Component
@@ -192,7 +192,8 @@ sub add_error_notification {
 }
 
 ################################################################################
-# Generic error counter method. Increases the error for all relevant counters.
+# Generic announcement counter method. Additionally counts an interface as 
+# 'started' so we have a total number of times the interface was triggered.
 #
 # $2	Source Host
 # $3	Source Component
@@ -201,16 +202,18 @@ sub add_error_notification {
 sub add_interface_announced {
 	my $this = $_[0];
 
-	# Note: for a simpler and generic processing we use 'started'
-	# instead of 'announced' as the counter name for interfaces...
 	$this->_count_object(1, 'global', 'announced');
+	$this->_count_object(1, 'interface', $_[2], $_[3], 'announced');
 	$this->_count_object(1, 'interface', $_[2], $_[3], 'started');
 
+	$this->_count_instance(1, 'interface', $_[1], $_[2], $_[3], 'announced');
 	$this->_count_instance(1, 'interface', $_[1], $_[2], $_[3], 'started');
 }
 
 ################################################################################
-# Generic error counter method. Increases the error for all relevant counters.
+# Generic interface timeout counter method. Increases all relevant counters.
+# Additionally decreases the 'announced' counter so we have a live gauge of
+# pending interfaces.
 #
 # To be called only by AlarmMonitor!
 #
@@ -223,9 +226,11 @@ sub add_interface_timeout {
 
 	$this->_count_object(1, 'global', 'timeout');
 	$this->_count_object(1, 'host', $_[1], 'timeout');
-	$this->_count_object(1, 'interface', $_[2], $_[3], 'timeout');
+	$this->_count_object(-1, 'interface', $_[2], $_[3], 'announced');
+	$this->_count_object( 1, 'interface', $_[2], $_[3], 'timeout');
 
-	$this->_count_instance(1, 'interface', $_[1], $_[2], $_[3], 'timeout');
+	$this->_count_instance(-1, 'interface', $_[1], $_[2], $_[3], 'announced');
+	$this->_count_instance( 1, 'interface', $_[1], $_[2], $_[3], 'timeout');
 }
 
 ################################################################################
@@ -243,7 +248,8 @@ sub add_component_timeout {
 	$this->_count_object(1, 'host', $_[1], 'timeout');
 	$this->_count_object(1, 'component', $_[2], 'timeout');
 
-	$this->_count_instance(1, 'component', $_[1], $_[2], 'timeout');
+	$this->_count_instance(-1, 'component', $_[1], $_[2], 'announced');
+	$this->_count_instance( 1, 'component', $_[1], $_[2], 'timeout');
 }
 
 ################################################################################
@@ -281,6 +287,11 @@ sub add_interface_duration {
 	$this->_count_object(1,         'interface', $component1, $component2, 'perf_samples');
 	$this->_count_instance($duration, 'interface', $host, $component1, $component2, 'perf_values');
 	$this->_count_instance(1,         'interface', $host, $component1, $component2, 'perf_samples');
+
+
+	# Decreases the 'announced' counter so we have a live gauge of pending interfaces
+	$this->_count_object(-1, 'interface', $component1, $component2, 'announced');
+	$this->_count_instance(-1, 'interface', $host, $component1, $component2, 'announced');
 }
 
 ################################################################################

@@ -73,11 +73,9 @@
 			<td colspan="2">
 			<div class="componentLabel">
 				<strong><xsl:value-of select="$name"/></strong><br/>
-				<small>
-					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@started"/></span> /
-					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@announced"/></span> /
-					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Components/Component[@name=$name]/@failed"/></span>
-				</small>
+				<xsl:call-template name="counterSet">
+					<xsl:with-param name="this" select="/Spuren/Components/Component[@name=$name]"/>
+				</xsl:call-template>
 			</div>
 			</td>
 		</xsl:otherwise>
@@ -98,11 +96,9 @@
 
 			<td class="spurConnector" valign="top">
 				<div class="interfaceMetrics">
-				<small>
-					<span class="interfaceLabel finished"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@started"/></span> /
-					<span class="interfaceLabel announced"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@announced"/></span> /
-					<span class="interfaceLabel error"><xsl:value-of select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]/@timeout"/></span>
-				</small>
+					<xsl:call-template name="counterSet">
+						<xsl:with-param name="this"  select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]"/>
+					</xsl:call-template>
 				</div>
 			</td>
 
@@ -113,6 +109,25 @@
 			</xsl:call-template>
 		</xsl:for-each>
 	</tr>
+</xsl:template>
+
+<xsl:template name="counterSet">
+	<xsl:param name="this"/>
+	<small>
+		<span title="finished events" class="interfaceLabel finished"><xsl:value-of select="$this/@started"/></span> /
+		<xsl:element name="span">
+			<xsl:attribute name="title">pending announcements</xsl:attribute>
+			<xsl:attribute name="class">interfaceLabel<xsl:if test="$this/@announced != 0"> announced</xsl:if></xsl:attribute>
+			<xsl:value-of select="$this/@announced"/>
+		</xsl:element>
+
+		<xsl:if test="$this/@timeout != 0">
+			/ <span title="timeouts" class="interfaceLabel error"><xsl:value-of select="$this/@timeout"/></span>
+		</xsl:if>
+		<xsl:if test="$this/@failed != 0">
+			/ <span title="failures" class="interfaceLabel error"><xsl:value-of select="$this/@failed"/></span>
+		</xsl:if>
+	</small>
 </xsl:template>
 
 </xsl:stylesheet>
