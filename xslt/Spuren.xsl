@@ -122,7 +122,7 @@
 		</xsl:element>
 
 		<xsl:if test="$this/@timeout > 0">
-			/ <span title="timeouts" class="interfaceLabel error"><xsl:value-of select="$this/@timeout"/></span>
+			/ <span title="timeouts" class="interfaceLabel timeout"><xsl:value-of select="$this/@timeout"/></span>
 		</xsl:if>
 		<xsl:if test="$this/@failed > 0">
 			/ <span title="failures" class="interfaceLabel error"><xsl:value-of select="$this/@failed"/></span>
