@@ -335,6 +335,7 @@ sub get_object {
 		foreach my $value (values(%tmp)) {
 			$results{$_} += $value;
 		}
+		$results{$_} = 0 if($results{$_} < 0);	# can happen for announcements
 
 	}
 
@@ -419,6 +420,7 @@ sub get_instance {
 		foreach my $value (values(%tmp)) {
 			$results{$_} += $value;
 		}
+		$results{$_} = 0 if($results{$_} < 0);	# can happen for announcements
 	}
 
 	return %results;
