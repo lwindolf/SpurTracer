@@ -47,27 +47,46 @@ ERROR_RATE_delivery_messaging=0
 trap "cat $PIDFILE | xargs kill -9; exit" SIGINT SIGTERM
 
 ################################################################################
-# Determine wether to simulate an error
+# Determine wether to simulate an error based on the host and component error 
+# rate definitions
 #
-# $1	name of error rate setting
+# $1	host name
+# $2	component name
 #
 # Returns 0 for error event (1 otherwise)
 ################################################################################
 simulate_error() {
-	frequency=$(eval echo \$$1)
 
-	if [ "$frequency" == "" ]; then
+	# Try host error rate
+	local host_frequency=$(eval echo \$ERROR_RATE_$1)
+	#echo "host $1 = $host_frequency"
+	if [ "$host_frequency" == "" ]; then
+		host_frequency=0
+	fi
+
+	# Try component error rate
+	local comp_frequency=$(eval echo \$ERROR_RATE_$2)
+	#echo "component $2 = $comp_frequency"
+	if [ "$comp_frequency" == "" ]; then
+		comp_frequency=0
+	fi
+
+	local frequency=$host_frequency
+	if [ $frequency -lt $comp_frequency ]; then
+		frequency=$comp_frequency
+	fi
+
+	if [ $frequency == 0 ]; then
 		return 1
 	fi
 
-	if [ ! $frequency -gt 0 ]; then
-		return 1
-	fi
-
+	#echo "effective: $frequency"
 	result=$(($RANDOM % $frequency))
 	if [ $result -eq 1 ]; then
 		echo -n "e"
 		return 0
+	else
+		echo -n "t"
 	fi
 
 	return 1
@@ -132,7 +151,13 @@ run_messaging() {
 	local ctxt=$1
 
 	notify $host "messaging" $ctxt "started" "new message queued"
+
 	sleep 2
+
+	if simulate_error $host "MESSAGING"; then
+		notify $host "messaging" $ctxt "failed" "simulated messaging failure"
+	fi
+
 	notify $host "messaging" $ctxt "finished" "complete"
 }
 
@@ -148,9 +173,13 @@ run_delivery() {
 	notify $host "delivery" $ctxt "started" "new delivery"
 	sleep 2
 
-	announce $host "delivery" $ctxt "messaging" msg_$ctxt
-	sleep 1
-	run_messaging msg_$ctxt
+	if simulate_error $host "DELIVERY"; then
+		notify $host "delivery" $ctxt "failed" "simulated delivery failure"
+	else
+		announce $host "delivery" $ctxt "messaging" msg_$ctxt
+		sleep 1
+		run_messaging msg_$ctxt
+	fi
 
 	notify $host "delivery" $ctxt "finished" "complete"
 }
@@ -172,9 +201,13 @@ run_payment() {
 	notify $host "payment" $ctxt "running" "encryption schema: 3526+CGT/23-4"
 	notify $host "payment" $ctxt "running" "transaction id: 1234-$$-890-AB-124"
 
-	announce $host "payment" $ctxt "messaging" msg_$ctxt
-	sleep 1
-	run_messaging msg_$ctxt
+	if simulate_error $host "PAYMENT"; then
+		notify $host "payment" $ctxt "failed" "simulated payment failure"
+	else
+		announce $host "payment" $ctxt "messaging" msg_$ctxt
+		sleep 1
+		run_messaging msg_$ctxt
+	fi
 
 	notify $host "payment" $ctxt "finished" "payment completed"
 }
@@ -194,7 +227,7 @@ run_frontend() {
 	notify $host "frontend" $ctxt "running" "add product 1"
 	sleep 1
 
-	if simulate_error ERROR_RATE_COMP$j; then
+	if simulate_error $host "FRONTEND"; then
 		notify $host "frontend" $ctxt "failed" "simulated frontend session failure"
 	else
 		notify $host "frontend" $ctxt "running" "add product 2"
@@ -221,10 +254,10 @@ if [ "$1" == "" ]; then
 	i=0
 	while [ $i -lt $SENDER_COUNT ]; 
 	do
+		i=$(($i + 1))
 		echo "Starting sender $i..."
 		( $0 $i ) &
 		echo "$! " >> $PIDFILE
-		i=$(($i + 1))
 	done
 
 	while [ 1 ]; do
@@ -237,7 +270,7 @@ else
 
 	while [ 1 ]; do
 		SEQNR=$(($SEQNR + 1))
-		run_frontend $(($RANDOM % 3))
+		run_frontend $(($RANDOM % 3 + 1))
 		sleep 2
 	done
 fi
