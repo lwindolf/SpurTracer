@@ -25,6 +25,7 @@ use Announcement;
 use AlarmConfig;
 use DB;
 use Settings;
+use Spuren;
 use Stats;
 
 our @ISA = qw(Exporter);
@@ -73,6 +74,7 @@ sub _run {
 	my $this = shift;
 
 	$this->{'stats'} = new Stats();
+	$this->{'spuren'} = new Spuren();
 
 	while(1) {
 		sleep($INTERVAL);
@@ -148,10 +150,7 @@ sub _check {
 		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{host}!$announcement->{component}!$announcement->{newcomponent}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
 
-		announcement_set_timeout('interface', $announcement);
-		$this->{'stats'}->add_interface_timeout($announcement->{'host'},
-		                                        $announcement->{'component'},
-		                                        $announcement->{'newcomponent'});
+		$this->{'spuren'}->add_timeout('interface', $announcement);
 	}
 
 	# Check component timeouts (missing 'finished' event)
@@ -161,9 +160,7 @@ sub _check {
 		my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{host}!$announcement->{component}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'component'});
 
-		announcement_set_timeout('component', $announcement);
-		$this->{'stats'}->add_component_timeout($announcement->{'host'},
-		                                        $announcement->{'component'});
+		$this->{'spuren'}->add_timeout('component', $announcement);
 	}
 
 	# Cleanup 'events' ZSET by event TTL

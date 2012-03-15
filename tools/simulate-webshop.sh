@@ -37,7 +37,7 @@ ERROR_RATE_delvr=4000
 ERROR_RATE_mail1=10000
 ERROR_RATE_mail2=0
 #
-# Error rates per interface
+# Error rates per interface (FIXME: implement those below!)
 ERROR_RATE_frontend_payment=0
 ERROR_RATE_frontend_delivery=2000
 ERROR_RATE_payment_messaging=0

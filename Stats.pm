@@ -42,10 +42,10 @@ our @EXPORT = qw(
 );
 
 my @INTERVALS = (
-	{ 'name' => 'hour',	'resolution' => 60,	step => 60 },
-	{ 'name' => 'day',	'resolution' => 24*60,	step => 60 },
-	{ 'name' => 'week',	'resolution' => 7*144,	step => 600 },
-	{ 'name' => 'year',	'resolution' => 365,	step => 24*60*60 }
+	{ 'name' => 'hour',	'resolution' => 60,	'step' => 60 },
+	{ 'name' => 'day',	'resolution' => 24*60,	'step' => 60 },
+	{ 'name' => 'week',	'resolution' => 7*144,	'step' => 600 },
+	{ 'name' => 'year',	'resolution' => 365,	'step' => 24*60*60 }
 );
 
 ################################################################################
@@ -117,8 +117,8 @@ sub _count_interval {
 	# the interval array. The array (excluding the n+1) field
 	# can be used for a graphical
 	foreach my $interval (@INTERVALS) {
-		my $n = (time() / $$interval{step}) % ($$interval{resolution} + 1);
-		
+		my $n = (time() / $$interval{'step'}) % ($$interval{'resolution'} + 1);
+
 		DB->hsetnx("stats$$interval{name}\!$key", $n, 0);
 		DB->hincrby("stats$$interval{name}\!$key", $n, $add);
 		DB->hset("stats$$interval{name}\!$key", ($n + 1) % ($$interval{resolution} + 1), 0);

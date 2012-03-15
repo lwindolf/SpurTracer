@@ -77,6 +77,7 @@
 			<xsl:choose>
 				<xsl:when test="Event[@status = 'failed']">error</xsl:when>
 				<xsl:when test="Event[@status = 'finished']">finished</xsl:when> 
+				<xsl:when test="Event[@status = 'timeout']">timeout</xsl:when> 
 				<xsl:when test="Event[@status = 'running']">running</xsl:when>
 			</xsl:choose>
 		</xsl:attribute>
@@ -90,9 +91,12 @@
 		<xsl:sort select="@time" order="ascending" data-type="number"/>
 		<xsl:choose>
 			<xsl:when test="@type = 'n'">
-				<xsl:if test="@status = 'failed'">
+				<xsl:if test="@status = 'failed' or @status = 'timeout'">
 				<xsl:element name="tr">
-					<xsl:attribute name="class">notification <xsl:if test="@status='failed'">error</xsl:if></xsl:attribute>
+					<xsl:attribute name="class">notification
+						<xsl:if test="@status='failed'">error</xsl:if>
+						<xsl:if test="@status='timeout'">timeout</xsl:if>
+					</xsl:attribute>
 					<td/>
 					<td/>
 					<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>

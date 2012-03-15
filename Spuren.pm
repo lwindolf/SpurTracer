@@ -45,7 +45,7 @@ sub new {
 
 	$this->{'stats'} = new Stats();
 	$this->{'ttl'} = $settings->{'ttl'};
-	warn "Not TTL!" unless(defined($this->{'ttl'}));
+	warn "No TTL defined!" unless(defined($this->{'ttl'}));
 
 	return bless $this, $type;
 }
@@ -130,6 +130,34 @@ sub add_event {
 	}
 
 	return 0;
+}
+
+################################################################################
+# Add a new timeout event
+#
+# $2	'component' or 'interface'
+# $3	reference to the event hash
+################################################################################
+sub add_timeout {
+	my ($this, $type, $announcement) = @_;
+
+	announcement_set_timeout($type, $announcement);
+
+	if($type eq 'interface') {
+		$this->{'stats'}->add_interface_timeout($announcement->{'host'},
+			                                $announcement->{'component'},
+			                                $announcement->{'newcomponent'});
+	} elsif($type eq 'component') {
+		$this->{'stats'}->add_component_timeout($announcement->{'host'},
+		                                        $announcement->{'component'});
+	}
+
+	my %event = %$announcement;
+	$event{'status'} = 'timeout';
+	$event{'type'} = 'n';
+	$event{'time'} = time()*1000;
+	$event{'desc'} = ucfirst($type)." timeout for $announcement->{newcomponent} (context $announcement->{newctxt}) detected by SpurTracer";
+	notification_add(\%event, $this->{'ttl'});
 }
 
 ################################################################################
