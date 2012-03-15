@@ -339,6 +339,11 @@ sub get_object {
 
 	}
 
+	# E.g. in object lists it might be important to further
+	# resolve object properties so we provide additionally
+	# the human readable 'name' and the DB lookup 'key'
+	$results{'key'} = "object!$key_prefix";
+
 	return %results;
 }
 
@@ -367,11 +372,7 @@ sub get_keys {
 #
 # $2	object type ('global', 'interface', 'component' or 'host')
 #
-# Returns a list including
-#
-#	('name' => '<hostname>') pairs for host and components
-#	('from' => '<source component>',
-#        'to'   => '<target component>) pairs for interfaces
+# Returns a list reference with hash describing the objects
 ################################################################################
 sub get_object_list {
 	my ($this, $type) = @_;
@@ -381,7 +382,10 @@ sub get_object_list {
 	foreach(@{$this->get_keys('object', $type)}) {
 		next unless(/^stats$interval{name}!object!$type!(.+)!\w+$/);
 		my %tmp = $this->get_object($type, $1);
-		
+
+		# provide human readable name
+		$tmp{'name'} = $1;
+	
 		# We must distinguish between interfaces and objects
 		# as interface names are <from>!<to> pairs...
 		if($type eq "interface") {
@@ -390,8 +394,6 @@ sub get_object_list {
 			$tmp{'to'} = $2;
 		}
 		
-		$tmp{'name'} = $1;
-
 		push(@results, \%tmp);
 	}
 

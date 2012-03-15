@@ -58,7 +58,7 @@
 		<h3>2. Alarm Thresholds</h3>
 
 		<p>
-			Configure error rate thresholds so that SpurTracer
+			Configure error and timeout rate thresholds so that SpurTracer
 			can raise a warning or an error for a host, component, 
 			interface, component instance or interface instance
 			with to many errors.
@@ -86,18 +86,20 @@
 
 		<br/>
 
-		<b>Specific Thresholds</b>
+		<b>Specific Check Thresholds</b>
 
-		<a name="checks"/>
+		<a name="specific_alarm_thresholds"/>
 		<table class="checks">
 			<tr>
 				<th>Statistics Object</th>
+				<th>Check Type</th>
 				<th>Warning Threshold [%]</th>
 				<th>Critical Threshold [%]</th>
 			</tr>
-			<xsl:for-each select="Settings/Setting[@prefix='alarms.thresholds']">
+			<xsl:for-each select="Settings/Setting[contains(@prefix, 'alarms.thresholds')]">
 			<tr>
 				<td><xsl:value-of select="@name"/></td>
+				<td><xsl:value-of select="@checkType"/></td>
 				<td><xsl:value-of select="@warning"/></td>
 				<td><xsl:value-of select="@critical"/></td>
 				<td>
@@ -109,32 +111,40 @@
 				</td>
 			</tr>
 			</xsl:for-each>
+			<tr>
+				<td>
+					<xsl:call-template name="statistics-object-selector">
+						<xsl:with-param name="id" select="'addThresholdName'"/>
+					</xsl:call-template>
+				</td>
+				<td>
+					<select id="addThresholdCheckType" name="checkType">
+						<option value="Error Rate">Error Rate</option>
+						<option value="Timeout Rate">Timeout Rate</option>
+					</select>
+				</td>
+				<td><input id="addThresholdWarning" type="input" size="5" name="warning"/></td>
+				<td><input id="addThresholdCritical" type="input" size="5" name="critical"/></td>
+				<td><input type="button" value="Add" onclick="addThreshold()"/></td>
+			</tr>			
 		</table>
 
-		<xsl:if test="count(Settings/Setting[@prefix='alarms.thresholds']) = 0">
-			<p>You have not defined any specific thresholds yet! Add one using the form below...</p>
-		</xsl:if>
-		<xsl:if test="count(Settings/Setting[@prefix='alarms.thresholds']) > 0">
-			<p>Add more definitions using the form below...</p>
-		</xsl:if>
+		<script type="text/javascript">
+			function addThreshold() {
+				var warning   = document.getElementById('addThresholdWarning').value;
+				var critical  = document.getElementById('addThresholdCritical').value;
+				var checkType = document.getElementById('addThresholdCheckType').value;
+				var name      = document.getElementById('addThresholdName').value;
+				
+				document.location.href = '/addSetting?prefix=alarm.thresholds.'+checkType+
+				      '&amp;checkType='+checkType+
+				      '&amp;warning='+warning+
+				      '&amp;critical='+critical+
+				      '&amp;name='+name+'#specific_alarm_thresholds';
+			}
+		</script>
 
-		<form method="GET" action="addSetting">
-			<input type="hidden" name="prefix" value="alarms.thresholds"/>
-			<table>
-				<tr><td>Statistics Object</td>
-				<td><xsl:call-template name="statistics-object-selector"/></td></tr>
-				<tr>
-					<td>Warning Threshold [%]</td>
-					<td><input type="input"  name="warning"/></td>
-				</tr>
-				<tr>
-					<td>Critical Threshold [%]</td>
-					<td><input type="input" name="critical"/></td>
-				</tr>
-			</table>
-			<input type="submit" value="Add New"/>
-		</form>
-
+		<br/>
 		<hr/>
 
 		<a name="timeouts"/>
@@ -194,38 +204,35 @@
 				</td>
 			</tr>
 			</xsl:for-each>
-		</table>
-
-		<xsl:if test="count(Settings/Setting[@prefix='timeouts.hosts']) = 0">
-			<p>You have not defined any specific timeouts yet! Add one using the form below...</p>
-		</xsl:if>
-		<xsl:if test="count(Settings/Setting[@prefix='timeouts.hosts']) > 0">
-			<p>Add more definitions using the form below...</p>
-		</xsl:if>
-
-		<form method="GET" action="addSetting">
-			<input type="hidden" name="prefix" value="timeouts.hosts"/>
-			<table>
-				<tr><td>Source Host</td>
-				<td><select name='name'>
+			<tr>
+				<td>
+					<select id="addTimeoutName" name='name'>
 						<xsl:for-each select="Hosts/Host">
 							<xsl:sort select="@name"/>
 							<option value="object!host!{@name}">[Host] <xsl:value-of select="@name"/></option>
 						</xsl:for-each>
-				</select></td>
-				</tr>
-				<tr>
-					<td>Component Timeout [s]</td>
-					<td><input type="input"  name="component"/></td>
-				</tr>
-				<tr>
-					<td>Interface Timeout [s]</td>
-					<td><input type="input" name="interface"/></td>
-				</tr>
-			</table>
-			<input type="submit" value="Add New"/>
-		</form>
+					</select>
+				</td>
+				<td><input id="addTimeoutComponent" type="input" name="component"/></td>
+				<td><input id="addTimeoutInterface" type="input" name="interface"/></td>
+				<td><input type="submit" value="Add New" onclick="addTimeout()"/></td>
+			</tr>
+		</table>
 
+		<script type="text/javascript">
+			function addTimeout() {
+				var component = document.getElementById('addTimeoutComponent').value;
+				var interface = document.getElementById('addTimeoutInterface').value;
+				var name = document.getElementById('addTimeoutName').value;
+				
+				document.location.href = '/addSetting?prefix=timeouts.hosts'+
+				      '&amp;component='+component+
+				      '&amp;interface='+interface+
+				      '&amp;name='+name+'#timeouts';
+			}
+		</script>
+
+		<br/>
 		<hr/>
 
 		<a name="nagios"/>
@@ -272,7 +279,9 @@
 		<h4>Nagios Service Checks</h4>
 
 		<p>Note: Nagios service checks use the alarm thresholds as configured
-		in the <a href='#alarms'>Alarm Thresholds</a> section.</p>
+		in the <a href='#alarms'>Alarm Thresholds</a> section. To bridge the
+		conceptual difference between SpurTracer and Nagios you need to provide
+		a mapping to a specific service in your Nagios setup.</p>
 
 		<a name="checks"/>
 		<table class="checks">
@@ -283,7 +292,7 @@
 				<th>Map to Host</th>
 				<th>Map to Service</th>
 			</tr>
-			<xsl:for-each select="Settings/Setting[@prefix='nagios.serviceChecks']">
+			<xsl:for-each select="Settings/Setting[contains(@prefix, 'nagios.serviceChecks')]">
 			<tr>
 				<td><xsl:value-of select="@name"/></td>
 				<td><xsl:value-of select="@checkType"/></td>
@@ -299,35 +308,41 @@
 				</td>
 			</tr>
 			</xsl:for-each>
-		</table>
-
-		<xsl:if test="count(Settings/Setting[@prefix='nagios.serviceChecks']) = 0">
-			<p>You have not defined any checks yet! Add one using the form below...</p>
-		</xsl:if>
-		<xsl:if test="count(Settings/Setting[@prefix='nagios.serviceChecks']) > 0">
-			<p>Add further checks using the form below...</p>
-		</xsl:if>
-
-		<form method="GET" action="addSetting">
-			<input type="hidden" name="prefix" value="nagios.serviceChecks"/>
-			<table>
-				<tr><td>Statistics Object</td>
+			<tr>
 				<td>
-					<xsl:call-template name="statistics-object-selector"/>
-				</td></tr>
-				<tr><td>Check Type</td><td>
-					<select name="checkType">
+					<xsl:call-template name="statistics-object-selector">
+						<xsl:with-param name="id" select="'addNagiosCheckName'"/>
+					</xsl:call-template>
+				</td>
+				<td>
+					<select id="addNagiosCheckType">
 						<option value="Error Rate">Error Rate</option>
 						<option value="Timeout Rate">Timeout Rate</option>
 					</select>
-				</td></tr>
-				<tr><td>Check Interval [min]</td><td><input type="input" name="checkInterval" size="5"/></td></tr>
-				<tr><td>Map To Host</td><td><input type="input" name="mapHost"/></td></tr>
-				<tr><td>Map To Service</td><td><input type="input" name="mapService"/></td></tr>
-			</table>
-			<input type="submit" value="Add New Check"/>
-		</form>
+				</td>
+				<td><input type="input" id="addNagiosCheckInterval" size="5"/></td>
+				<td><input type="input" id="addNagiosCheckMapHost"/></td>
+				<td><input type="input" id="addNagiosCheckMapService"/></td>
+				<td><input type="submit" value="Add New Check" onclick="addNagiosCheck()"/></td>
+			</tr>
+		</table>
 
+		<script type="text/javascript">
+			function addNagiosCheck() {
+				var checkInterval = document.getElementById('addNagiosCheckInterval').value;
+				var checkType = document.getElementById('addNagiosCheckType').value;
+				var mapHost = document.getElementById('addNagiosCheckMapHost').value;
+				var mapService = document.getElementById('addNagiosCheckMapService').value;
+				var name = document.getElementById('addNagiosCheckName').value;
+
+				document.location.href = '/addSetting?prefix=nagios.serviceChecks.'+checkType+
+				      '&amp;checkInterval='+checkInterval+
+				      '&amp;checkType='+checkType+
+				      '&amp;mapService='+mapService+
+				      '&amp;mapHost='+mapHost+
+				      '&amp;name='+name+'#checks';
+			}
+		</script>
 
 		<div class="clear"/>
 	</div>
@@ -337,7 +352,9 @@
 
 <!-- Produces <select> form element with a list of all available objects -->
 <xsl:template name="statistics-object-selector">
-	<select name="name">
+	<xsl:param name="id"/>
+
+	<select id="{$id}" name="name">
 		<xsl:for-each select="Hosts/Host">
 			<xsl:sort select="@name"/>
 			<option value="object!host!{@name}">[Host] <xsl:value-of select="@name"/></option>

@@ -29,30 +29,37 @@ our @EXPORT = qw(alarm_config_get_threshold alarm_config_get_timeout);
 
 # Default error rate alarm configuration (in %)
 my %DEFAULT_ALARM_THRESHOLDS = (
-	'critical'	=> 15,
-	'warning'	=> 5	
+	'Error Rate' => {
+		'critical'	=> 15,
+		'warning'	=> 5	
+	},
+	'Timeout Rate' => {
+		'critical'	=> 15,
+		'warning'	=> 5
+	}
 );
 
 ################################################################################
 # Get most specific alarm threshold config value for a given object name
 #
-# $1	object name
+# $1	threshold type
+# $2	object name
 #
 # Returns alarm threshold config hash
 ################################################################################
 sub alarm_config_get_threshold {
-	my ($object) = @_;
+	my ($type, $object) = @_;
 
 	# Try to fetch specific setting
-	my $settings = settings_get_specific("alarms.thresholds", $object);
+	my $settings = settings_get_specific("alarms.thresholds.$type", $object);
 	return $settings if(defined($settings));
 
 	# Fallback to default setting
-	$settings = settings_get("alarms", "global");
+	$settings = settings_get("alarms", "global");	# FIXME: apply $type here too!
 	return $settings if(defined($settings));
 
 	# If nothing else can be found return hard coded default
-	return \%DEFAULT_ALARM_THRESHOLDS;
+	return \$DEFAULT_ALARM_THRESHOLDS{$type};
 }
 
 ################################################################################

@@ -37,6 +37,11 @@ $ENV{ 'ENV' } = '';
 
 my $INTERVAL = 10;	# for now run detection roughly every 10s
 
+my @CHECK_TYPES = (	# currently known check types
+	'Error Rate',
+	'Timeout Rate'
+);
+
 ################################################################################
 # Start the alarm monitor by forking a background process
 #
@@ -108,6 +113,33 @@ sub _add_alarm {
 }
 
 ################################################################################
+# $2	object name
+# $3	check type ('Error Rate' or 'Timeout Rate')
+#
+# Returns 
+# -> status code (0=ok, 1=warning, 2=critical, 3=unknown)
+# -> the configured threshold that was surpassed (or 0)
+# -> the error rate
+################################################################################
+sub _check_object {
+	my ($this, $object, $check) = @_;
+
+	return (3, 0, 0) unless($object->{'started'} > 0);
+
+	# map check types to counter
+	my %counter = (
+		'Error Rate' => 'failed',
+		'Timeout Rate' => 'timeout'
+	);
+	my %config = %{alarm_config_get_threshold($check, $object->{'key'})};
+	my $rate = $object->{$counter{$check}} * 100 / $object->{'started'};;
+
+	return (2, $config{'critical'}, $rate) if($rate >= $config{'critical'});
+	return (1, $config{'warning'},  $rate) if($rate >= $config{'warning'});
+	return (0, 0, $rate);
+}
+
+################################################################################
 # Check wether we need to raise some alarms and add alarms to alarm list
 ################################################################################
 sub _check {
@@ -115,28 +147,13 @@ sub _check {
 	my $now = time();
 
 	# Check object error/timeout rates
-	foreach my $checkCriteria ('failed', 'timeout') {
+	foreach my $check (@CHECK_TYPES) {
 		foreach my $type ('host', 'component', 'interface') {
 			foreach my $object (@{$this->{'stats'}->get_object_list($type)}) {
-				my $key = "object!$type!$object->{name}";
-				my (%config, $what, $errorRate);
-
-				$errorRate = $object->{$checkCriteria} * 100 / $object->{'started'};
-				%config = %{alarm_config_get_threshold($key)};	# FIXME: Specific configuration for error rate and timeout rates!
-
-				if($checkCriteria eq 'failed') {
-					$what = "Error rate";
-				} elsif($checkCriteria eq 'timeout') {
-					$what = "Timeout rate";
-				}
+				my ($status, $threshold, $rate) = $this->_check_object($object, $check);
 			
-				if($errorRate > $config{'critical'}) {
-					$this->_add_alarm('critical', $type, $object->{'name'}, sprintf("$what is %0.2f%% (> $config{critical}%% threshold)!", $errorRate));
-					next;
-				}
-
-				if($errorRate > $config{'warning'}) {
-					$this->_add_alarm('warning', $type, $object->{'name'}, sprintf("$what is %0.2f%% (> $config{warning}%% threshold)!", $errorRate));
+				if($status > 0 and $status < 3) {
+					$this->_add_alarm(($status > 1)?'critical':'warning', $type, $object->{'name'}, sprintf("%s is %0.2f%% (> %d%% threshold)!", $check, $rate, $threshold));
 					next;
 				}
 			}	
@@ -180,6 +197,7 @@ sub _send_nsca {
 	# Check last NSCA processing time stamp to determine wether we have
 	# new sending to do. Minimal update interval for NSCA is 60s.
 	my $last = DB->get("alarmmonitor!lastNSCASend");
+	$last = 0 unless(defined($last));
 	return if(($now - $last) < 60);
 
 	my $nagios = settings_get("nagios", "server");
@@ -191,47 +209,40 @@ sub _send_nsca {
 	$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
 	$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
 
-	#print STDERR "Processing NSCA $now\n";
-	foreach my $setting (@{settings_get_all("nagios.serviceChecks")}) {
-		my $objectName = $setting->{'name'};
+	print STDERR "Processing NSCA $now\n";
+	foreach my $check (@CHECK_TYPES) {
+		foreach my $setting (@{settings_get_all("nagios.serviceChecks.$check")}) {
+			next unless($setting->{'name'} =~ /^object!((\w+)!.*)/);
+			my $objectName = $1;
+			my $objectType = $2;
 
-		# Respect passive check interval
-		$last = DB->get("alarmmonitor!$objectName!lastNSCASend");
-		next if(($now - $last) < $setting->{'interval'} * 60);
-		DB->set("alarmmonitor!$objectName!lastNSCASend", $now);
+			# Respect passive check interval
+			$last = DB->get("alarmmonitor!$objectName!lastNSCASend");
+			$last = 0 unless(defined($last));
+			next if(($now - $last) < $setting->{'checkInterval'} * 60);
+			DB->set("alarmmonitor!$objectName!lastNSCASend", $now);
 
-		# FIXME: Support different types of checks (currently only error rate)
-		my $status = 3;
-		my $result = "";
-		my $perfdata = "";
-		$objectName =~ s/^object!//;
-		my %object = $this->{'stats'}->get_object($objectName);
-		my %config = %{alarm_config_get_threshold($setting->{'name'})};
-
-		if($object{'started'} > 0) {
-			my $errorRate = $object{'failed'} * 100 / $object{'started'};
+			my %object = $this->{'stats'}->get_object($objectName);
+			my ($status, $threshold, $rate) = $this->_check_object(\%object, $check);
+			my $perfdata = sprintf "$check=%0.2f%%", $rate;
+			my $result = "";
 			
-			if($errorRate > $config{'critical'}) {
-				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $errorRate, $config{'critical'};
-				$status = 2;
-			} elsif($errorRate > $config{'warning'}) {
-				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $errorRate, $config{'warning'};
-				$status = 1;
+			if($status == 0) {
+				$result = sprintf "Current Error Rate %0.2f%%", $rate;
+			} elsif($status == 3) {
+				$result = "No statistics for object '$objectName' [yet]!";
+				$perfdata = "";
 			} else {
-				$result = sprintf "Current Error Rate %0.2f%%", $errorRate;
-				$status = 0;
+				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $rate, $threshold;
 			}
 
-			$perfdata = sprintf "error_rate=%0.2f%%", $errorRate;
-		} else {
-			$result = "No statistics for this object [yet]!\n";
-		}
-
-		if(open(SEND_NSCA, "| $cmd >/dev/null")) {
-			print SEND_NSCA "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
-			close(SEND_NSCA);
-		} else {
-			print STDERR "Failed to run '$cmd' ($!)\n";
+			if(open(SEND_NSCA, "| $cmd >/dev/null")) {
+				print STDERR "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
+				print SEND_NSCA "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
+				close(SEND_NSCA);
+			} else {
+				print STDERR "Failed to run '$cmd' ($!)\n";
+			}
 		}
 	}
 
