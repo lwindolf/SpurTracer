@@ -211,7 +211,9 @@ sub _send_nsca {
 
 	print STDERR "Processing NSCA $now\n";
 	foreach my $check (@CHECK_TYPES) {
+		print STDERR "Processing $check checks...\n";
 		foreach my $setting (@{settings_get_all("nagios.serviceChecks.$check")}) {
+			# FIXME: Support instances!!!
 			next unless($setting->{'name'} =~ /^object!((\w+)!.*)/);
 			my $objectName = $1;
 			my $objectType = $2;
@@ -228,14 +230,15 @@ sub _send_nsca {
 			my $result = "";
 			
 			if($status == 0) {
-				$result = sprintf "Current Error Rate %0.2f%%", $rate;
+				$result = sprintf "Current $check %0.2f%%", $rate;
 			} elsif($status == 3) {
 				$result = "No statistics for object '$objectName' [yet]!";
 				$perfdata = "";
 			} else {
-				$result = sprintf "Error Rate %0.2f%% (> %0.2f%% threshold)", $rate, $threshold;
+				$result = sprintf "$check %0.2f%% (> %0.2f%% threshold)", $rate, $threshold;
 			}
 
+			print STDERR "$cmd\n";
 			if(open(SEND_NSCA, "| $cmd >/dev/null")) {
 				print STDERR "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";
 				print SEND_NSCA "$setting->{mapHost}!$setting->{mapService}!$status!$result|$perfdata\n";

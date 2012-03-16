@@ -24,7 +24,7 @@ use CGI;
 use Redis;
 use URI::Escape;
 use Error qw(:try);
-use POSIX qw(strftime);
+use POSIX qw(strftime locale_h);
 use base qw(Net::Server::HTTP);
 use lib ".";
 
@@ -33,6 +33,7 @@ use Settings;
 use Spuren;
 use SpurQuery;
 
+setlocale(LC_TIME, "C");
 DB->check();
 
 # Before starting the httpd fork a alarm monitor
@@ -64,6 +65,16 @@ sub configure_hook {
 		js => 'application/javascript'
 	};
 	$self->{mime_default} = 'text/plain';
+	$self->{access_log}   = "access.log";
+}
+
+sub post_configure_hook {
+    my $self = shift;
+
+    open(ACCESS, ">>". $self->{access_log}) || die "Couldn't open ACCESS: $!";
+    my $old = select ACCESS;
+    $| = 1;
+    select $old;
 }
 
 ################################################################################
@@ -198,6 +209,13 @@ sub send_error {
 	$self->send_status($n);
 	print "Content-type: text/html\r\n\r\n";
 	print "<h1>Error $n</h1><h3>$msg</h3>";
+	$self->access_log($n);
+}
+
+sub access_log {
+	my ($self, $status) = @_;
+
+	printf ACCESS "%s - - [%s] \"%s\" $status\n", $ENV{'REMOTE_ADDR'}, scalar(localtime()), $ENV{'REQUEST_URI'};
 }
 
 ################################################################################
@@ -216,7 +234,7 @@ sub process_http_request {
 	#	local $Data::Dumper::Sortkeys = 1;
 	#	my $form = {};
 	#	if (require CGI) {  my $q = CGI->new; $form->{$_} = $q->param($_) for $q->param;  }
-	#	print "<pre>".Data::Dumper->Dump([\%ENV, $form], ['*ENV', 'form'])."</pre>";
+	#	print STDERR "<pre>".Data::Dumper->Dump([\%ENV, $form], ['*ENV', 'form'])."</pre>";
 	#}
 
 	# Sanity check requests
@@ -230,15 +248,17 @@ sub process_http_request {
 	$uri =~ s/^\/+//;	# strip leading slash
 
 	# Handle static content (currently only XSLT, JS and CSS)
-	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/[\w_.\-]+\.js|images/[\w.]+.png)$#) {
+	if ($uri =~ m#^(xslt/\w+\.xsl|css/\w+\.css|js/[\w_.\-]+\.js|images/[\w.]+.png|.*favicon.*)$#) {
+		$uri = "images/favicon.ico" if($uri =~ /favicon/);
 		unless (-f $uri) {
 			return $self->send_error(400, "Malformed URL");
 		} else {
 			$self->send_status(200);
+			$self->access_log(200);
+
 			open(my $fh, '<', $uri) || return $self->send_501("Can't open file [$!]");
 			my $type = $uri =~ /([^\.]+)$/ ? $1 : '';
 			$type = $self->{'mime_types'}->{$type} || $self->{'mime_default'};
-			print "Cache-Control: max-age=3600, public\r\n";
 			print "Expires: ".strftime("%a, %d %b %Y %H:%M:%S GMT", gmtime(time()+3600))."\r\n";
 			print "Content-type: $type\r\n\r\n";
 			print $_ while read $fh, $_, 8192;
@@ -261,6 +281,8 @@ sub process_http_request {
 	} else {
 		return $self->send_error (404, "$uri not found!");
 	}
+
+	$self->access_log(200);
 }
 
 ################################################################################
