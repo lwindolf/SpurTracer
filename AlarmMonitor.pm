@@ -120,11 +120,12 @@ sub _add_alarm {
 # -> status code (0=ok, 1=warning, 2=critical, 3=unknown)
 # -> the configured threshold that was surpassed (or 0)
 # -> the error rate
+# -> a Nagios performance data string
 ################################################################################
 sub _check_object {
 	my ($this, $object, $check) = @_;
 
-	return (3, 0, 0) unless($object->{'started'} > 0);
+	return (3, 0, 0, "") unless($object->{'started'} > 0);
 
 	# map check types to counter
 	my %counter = (
@@ -133,10 +134,11 @@ sub _check_object {
 	);
 	my %config = %{alarm_config_get_threshold($check, $object->{'key'})};
 	my $rate = $object->{$counter{$check}} * 100 / $object->{'started'};;
+	my $perfdata = sprintf "$check=%0.2f%%;%0.2f%%;0.2f%%;", $rate, $config{'warning'}, $config{'critical'};
 
-	return (2, $config{'critical'}, $rate) if($rate >= $config{'critical'});
-	return (1, $config{'warning'},  $rate) if($rate >= $config{'warning'});
-	return (0, 0, $rate);
+	return (2, $config{'critical'}, $rate, $perfdata) if($rate >= $config{'critical'});
+	return (1, $config{'warning'},  $rate, $perfdata) if($rate >= $config{'warning'});
+	return (0, 0, $rate, $perfdata);
 }
 
 ################################################################################
@@ -225,8 +227,7 @@ sub _send_nsca {
 			DB->set("alarmmonitor!$objectName!lastNSCASend", $now);
 
 			my %object = $this->{'stats'}->get_object($objectName);
-			my ($status, $threshold, $rate) = $this->_check_object(\%object, $check);
-			my $perfdata = sprintf "$check=%0.2f%%", $rate;
+			my ($status, $threshold, $rate, $perfdata) = $this->_check_object(\%object, $check);
 			my $result = "";
 			
 			if($status == 0) {
