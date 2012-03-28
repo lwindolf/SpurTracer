@@ -26,12 +26,14 @@ use URI::Escape;
 use Error qw(:try);
 use POSIX qw(strftime locale_h);
 use base qw(Net::Server::HTTP);
-use lib ".";
+use lib "@perllibdir@";
 
 use AlarmMonitor;
 use Settings;
 use Spuren;
 use SpurQuery;
+
+my $VERSION = "@VERSION@";
 
 setlocale(LC_TIME, "C");
 DB->check();
@@ -69,12 +71,14 @@ sub configure_hook {
 }
 
 sub post_configure_hook {
-    my $self = shift;
+	my $self = shift;
 
-    open(ACCESS, ">>". $self->{access_log}) || die "Couldn't open ACCESS: $!";
-    my $old = select ACCESS;
-    $| = 1;
-    select $old;
+	open(ACCESS, ">>". $self->{access_log}) || die "Couldn't open ACCESS: $!";
+	my $old = select ACCESS;
+	$| = 1;
+	select $old;
+
+	chdir "@pkgdatadir@/";	# FIXME: Include a Config.pm providing the paths instead
 }
 
 ################################################################################
