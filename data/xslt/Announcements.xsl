@@ -99,7 +99,7 @@
 			<xsl:if test="@timeout = 0">announced</xsl:if>
 			<xsl:if test="@timeout = 1">timeout</xsl:if>
 		</xsl:attribute>
-		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
+		<td class="time" title="{@time}000"><xsl:value-of select="@time"/>000</td>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a></td>
@@ -115,7 +115,7 @@
 			<xsl:if test="@timeout = 0">announced</xsl:if>
 			<xsl:if test="@timeout = 1">timeout</xsl:if>
 		</xsl:attribute>
-		<td class="time" title="{@time}"><xsl:value-of select="@time"/></td>
+		<td class="time" title="{@time}000"><xsl:value-of select="@time"/>000</td>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>

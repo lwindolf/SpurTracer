@@ -3,6 +3,7 @@
 	Version 0.8
 
 	* Fixes SF #1: Error.pm dependency not documented
+	* Fixes SF #3: Timeout column in "Announcements" view is incorrect 
 
 
 2012-03-28  Lars Lindner <lars.lindner@gmail.com>
