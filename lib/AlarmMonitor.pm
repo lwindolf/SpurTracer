@@ -134,7 +134,7 @@ sub _check_object {
 	);
 	my %config = %{alarm_config_get_threshold($check, $object->{'key'})};
 	my $rate = $object->{$counter{$check}} * 100 / $object->{'started'};;
-	my $perfdata = sprintf "$check=%0.2f%%;%0.2f%%;0.2f%%;", $rate, $config{'warning'}, $config{'critical'};
+	my $perfdata = sprintf "$check=%0.2f%%;%0.2f%%;%0.2f%%;", $rate, $config{'warning'}, $config{'critical'};
 
 	return (2, $config{'critical'}, $rate, $perfdata) if($rate >= $config{'critical'});
 	return (1, $config{'warning'},  $rate, $perfdata) if($rate >= $config{'warning'});
