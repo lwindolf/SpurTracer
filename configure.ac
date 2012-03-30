@@ -1,4 +1,4 @@
-AC_INIT([spurtracer],[0.7],[lars.lindner@gmail.com])
+AC_INIT([spurtracer],[0.8],[lars.lindner@gmail.com])
 AC_PREREQ([2.59])
 AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE(1.9)
