@@ -65,7 +65,8 @@ You can install the following distribution specific packages
 
    Debian (Wheezy and later): 
 
-	apt-get install libxml-writer-perl libnet-server-perl libredis-perl redis-server
+	apt-get install libxml-writer-perl libnet-server-perl libredis-perl \
+			liberror-perl redis-server
 
 If you want Nagios integration you might want to install
 
@@ -92,6 +93,7 @@ And install the packages by typing the following at the prompt
 	> install XML::Writer
 	> install Net::Server
 	> install Redis
+	> install Error
 
 
 3.4 Redis Installation

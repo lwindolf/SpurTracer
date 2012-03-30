@@ -1,3 +1,10 @@
+2012-??-??  ???
+
+	Version 0.8
+
+	* Fixes SF #1: Error.pm dependency not documented
+
+
 2012-03-28  Lars Lindner <lars.lindner@gmail.com>
 
 	Version 0.7
