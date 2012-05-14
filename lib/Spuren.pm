@@ -143,7 +143,14 @@ sub add_timeout {
 
 	announcement_set_timeout($type, $announcement);
 
+	my %event = %$announcement;
+	$event{'status'} = 'timeout';
+	$event{'type'} = 'n';
+	$event{'time'} = time()*1000;
+
 	if($type eq 'interface') {
+		$event{'desc'} = ucfirst($type)." timeout for $announcement->{newcomponent} (context $announcement->{newctxt}) detected by SpurTracer";
+
 		$this->{'stats'}->add_interface_timeout($announcement->{'host'},
 			                                $announcement->{'component'},
 			                                $announcement->{'newcomponent'});
@@ -152,11 +159,6 @@ sub add_timeout {
 		                                        $announcement->{'component'});
 	}
 
-	my %event = %$announcement;
-	$event{'status'} = 'timeout';
-	$event{'type'} = 'n';
-	$event{'time'} = time()*1000;
-	$event{'desc'} = ucfirst($type)." timeout for $announcement->{newcomponent} (context $announcement->{newctxt}) detected by SpurTracer";
 	notification_add(\%event, $this->{'ttl'});
 }
 
