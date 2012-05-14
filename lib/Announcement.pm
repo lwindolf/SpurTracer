@@ -164,6 +164,7 @@ sub announcements_fetch {
 	foreach my $key (DB->keys($filter)) {
 		next if($key =~ /skipped because its mtime/);
 		my %event = DB->hgetall($key);
+		$event{'timeout'} = 0 unless(defined($event{'timeout'}));
 		push(@results, \%event);
 
 		last if($i++ > 100);	# FIXME: hard coded!
