@@ -50,10 +50,14 @@ my %DEFAULT_SETTINGS = (
 		}
 	},
 	'alarms' => {
-		'global' => {
+		'global.Error Rate' => {
 			'critical' => 15,
 			'warning' => 7
-		}
+		},
+		'global.Timeout Rate' => {
+			'critical' => 6,
+			'warning' => 3
+		},
 	},
 	'spuren' => {
 		'global' => {

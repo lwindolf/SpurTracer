@@ -55,7 +55,7 @@ sub alarm_config_get_threshold {
 	return $settings if(defined($settings));
 
 	# Fallback to default setting
-	$settings = settings_get("alarms", "global");	# FIXME: apply $type here too!
+	$settings = settings_get("alarms", "global.$type");
 	return $settings if(defined($settings));
 
 	# If nothing else can be found return hard coded default

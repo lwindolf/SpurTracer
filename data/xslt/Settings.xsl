@@ -64,21 +64,39 @@
 			with to many errors.
 		</p>
 
-		<b>Global Default</b>
+		<b>Global Defaults</b>
 
 		<form method="GET" action="addSetting">
 			<input type="hidden" name="prefix" value="alarms"/>
-			<input type="hidden" name="name" value="global"/>
+			<input type="hidden" name="name" value="global.Error Rate"/>
 			<table>
 				<tr>
-					<td>Warning Threshold [%]</td>
-					<td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global']/@warning}"/></td>
-					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global']/@warning"/></td>
+					<td>Error Rate Warning Threshold [%]</td>
+					<td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global.Error Rate']/@warning}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global.Error Rate']/@warning"/></td>
 				</tr>
 				<tr>
-					<td>Critical Threshold [%]</td>
-					<td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global']/@critical}"/></td>
-					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global']/@critical"/></td>
+					<td>Error Rate Critical Threshold [%]</td>
+					<td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global.Error Rate']/@critical}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global.Error Rate']/@critical"/></td>
+				</tr>
+			</table>
+			<input type="submit" value="Save"/>
+		</form>
+
+		<form method="GET" action="addSetting">
+			<input type="hidden" name="prefix" value="alarms"/>
+			<input type="hidden" name="name" value="global.Timeout Rate"/>
+			<table>
+				<tr>
+					<td>Timeout Rate Warning Threshold [%]</td>
+					<td><input type="input"  name="warning" value="{Settings/Setting[@prefix='alarms' and @name='global.Timeout Rate']/@warning}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global.Timeout Rate']/@warning"/></td>
+				</tr>
+				<tr>
+					<td>Timeout Rate Critical Threshold [%]</td>
+					<td><input type="input" name="critical" value="{Settings/Setting[@prefix='alarms' and @name='global.Timeout Rate']/@critical}"/></td>
+					<td>default: <xsl:value-of select="DefaultSettings/Setting[@prefix='alarms' and @name='global.Timeout Rate']/@critical"/></td>
 				</tr>
 			</table>
 			<input type="submit" value="Save"/>
@@ -159,7 +177,7 @@
 			</ul>
 		</p>
 
-		<b>Global Default</b>
+		<b>Global Defaults</b>
 
 		<form method="GET" action="addSetting">
 			<input type="hidden" name="prefix" value="timeouts"/>

@@ -1,6 +1,7 @@
 # AlarmMonitor.pm: Detect and forward alarms
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
+# Copytirhg (c) 2012 Lars Lindner <lars.lindner@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
