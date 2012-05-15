@@ -22,14 +22,14 @@
 
 		<ol>
 			<li><a href="#retention">Data Retention Time (TTL)</a></li>
-			<li><a href="#alarms">Alarm Thresholds</a></li>
-			<li><a href="#timeouts">Timeouts</a></li>
+			<li><a href="#alarms">Alarming based on Error/Timeout Rates</a></li>
+			<li><a href="#timeouts">Timeout Settings</a></li>
 			<li><a href="#nagios">Nagios Integration</a></li>
 		</ol>
 
 		<hr/>
 
-		<a name="alarms"/>
+		<a name="retention"/>
 		<h3>1. Data Retention Time (TTL)</h3>
 
 		<p>
@@ -55,7 +55,7 @@
 		<hr/>
 
 		<a name="alarms"/>
-		<h3>2. Alarm Thresholds</h3>
+		<h3>2. Alarming based on Error/Timeout Rates</h3>
 
 		<p>
 			Configure error and timeout rate thresholds so that SpurTracer
@@ -148,7 +148,7 @@
 		<hr/>
 
 		<a name="timeouts"/>
-		<h3>3. Timeouts</h3>
+		<h3>3. Timeout Settings</h3>
 
 		<p>
 			Configure timeouts to control when SpurTracer considers
