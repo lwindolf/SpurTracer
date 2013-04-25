@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+
+# SpurTracer wrapper allowing to run any command and
+# emit started/finished/error messages to SpurTracer
+#
+# The configuration for the SpurTracer instance is taken
+# from environment. If no configuration is found the passed
+# command will just be started.
+#
+# As this wrapper is meant to be transparent it won't print
+# any errors per default to stdout or stderr.
+
+#use warnings;
+use strict;
+use URI::Escape;
+use Env qw(SPT_URL);
+
+my ($host, $component, $ctxt);
+
+$host = `uname -n`;
+chomp $host;
+$component = $ARGV[0];
+$ctxt = 1;	# FIXME: Must be random or from argument!
+shift @ARGV;
+
+sub send_message {
+	my ($status, $message) = @_;
+
+	return unless(defined($status));
+	return unless(defined($message));
+
+	my $time = `date +%s`;
+	chomp $time;
+	$time .= "000";
+
+	# URI encode everything
+	my $url;
+	$url .= "$SPT_URL/set?type=n";
+	$url .= "&host=" . uri_escape($host);
+	$url .= "&component=" . uri_escape($component);
+	$url .= "&ctxt=" . uri_escape($ctxt);
+	$url .= "&status=" . uri_escape($status);
+	$url .= "&desc=" . uri_escape($message);
+	$url .= "&time=" . $time;
+
+	# FIXME: Send request!
+	print $url . "\n";
+}
+
+my $pid = fork();
+send_message("failed", "Could not launch $component @ARGV (fork failed)!") unless defined($pid);
+
+unless($pid) {
+	exec "$component", @ARGV;
+
+	send_message("failed", "Could not launch $component @ARGV (exec failed)!") unless defined($pid);
+	exit(1);
+} else {
+	# FIXME: Send "started"
+	send_message("started", "$component @ARGV");
+}
+
+waitpid $pid, 0;
+
+send_message("finished", "$component @ARGV");
