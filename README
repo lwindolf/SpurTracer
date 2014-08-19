@@ -35,7 +35,8 @@ infrastructure on-demand.
 Features
 
 - Zero Configuration: Auto-Discovery of Components and Interfaces
-- Out-of-the-box Monitoring of Non-Functional Aspects of Components and Interfaces
+- Out-of-the-box Monitoring of Non-Functional Aspects of Components 
+  and Interfaces
 - Simple Nagios Integration
 
 
@@ -72,6 +73,7 @@ SpurTracer relies on the following software stack:
 
     - XML::Writer
     - Net::Server
+    - Error
     - Redis
 
 3.) Redis 1.3 or later
