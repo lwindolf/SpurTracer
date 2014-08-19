@@ -24,7 +24,7 @@
 
 		<div class="info">
 			<p>Each announcement does indicate an interface that was triggered by one
-			component, while not yet being processed by the component implementation
+			component, while not yet being processed by the component implementing
 			the interface.</p>
 			<p> Overdue announcements will time out according to the 
 			<a href="getSettings#timeouts">timeout settings</a>.</p>
