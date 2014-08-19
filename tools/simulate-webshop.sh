@@ -116,7 +116,7 @@ get_timestamp() {
 announce() {
 	# FIXME: HTTP URI encode parameters 
 
-	curl -s "${SERVER}/set?time=$(get_timestamp)&host=$1&type=c&component=$2&ctxt=$3&newcomponent=$4&newctxt=$5"
+	curl -s "${SERVER}/set?time=$(get_timestamp)&host=$1&type=c&component=$2&ctxt=$3&newcomponent=$4&newctxt=$5" >/dev/null
 }
 
 ################################################################################
@@ -131,7 +131,7 @@ announce() {
 notify() {
 	# FIXME: HTTP URI encode parameters 
 
-	curl -s "${SERVER}/set?time=$(get_timestamp)&host=$1&type=n&component=$2&ctxt=$3&status=$4&desc=$5"
+	curl -s "${SERVER}/set?time=$(get_timestamp)&host=$1&type=n&component=$2&ctxt=$3&status=$4&desc=$5" >/dev/null
 }
 
 ################################################################################
