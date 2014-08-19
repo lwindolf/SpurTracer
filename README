@@ -152,13 +152,7 @@ listen on http://localhost:8080
 4. Support
 ==========
 
-If you have any setup problems or cannot get the code to run please use
-the project forum at the SourceForge project page.
+If you have any setup problems or cannot get the code or if you have found 
+a functional bug please create a bug in the Github issue tracker:
 
-	http://sourceforge.net/p/spurtracer/discussion/	
-
-
-If you have found a functional bug please create a bug in the SourceForge
-tracker:
-
-	http://sourceforge.net/p/spurtracer/tickets/
+	https://github.com/lwindolf/SpurTracer/issues
