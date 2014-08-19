@@ -32,7 +32,7 @@
 		<div class="info">
 			<p>Click on a context link to follow a spur/trace.</p>
 
-			<p><a href="/get">Hide Details</a></p>
+			<p><a href="get">Hide Details</a></p>
 		</div>
 
 		<div class="systemMap">
