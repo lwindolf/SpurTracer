@@ -18,7 +18,26 @@ Content
 1. Introduction
 ===============
 
-SpurTracer...
+SpurTracer is a push-notification based monitoring solution for heterogenous 
+loosely coupled IT infrastructures. It complements a service-endpoint 
+monitoring solution like Nagios with a component-level interface auto-discovery.
+
+It automatically provides a certain level of functional tracing along with 
+many non-functional measurements (e.g. call, error and timeout rates, 
+interface latency, component execution...).
+
+While being zero config itself, SpurTracer relies on you adding push 
+notification support to the components you want to monitor. The best way 
+to use SpurTracer is by adding punctual tracing to components in your 
+infrastructure on-demand.
+
+
+Features
+
+- Zero Configuration: Auto-Discovery of Components and Interfaces
+- Out-of-the-box Monitoring of Non-Functional Aspects of Components and Interfaces
+- Simple Nagios Integration
+
 
 
 2. License
