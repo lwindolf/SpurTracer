@@ -85,9 +85,23 @@ sub spur_add {
 	
 	EVENTLOOP: while(defined($event)) {
 
+		my ($filter_comp, $filter_ctxt);
+
+		if($event->{'status'} eq "finished") {
+			# for finished events we backtrack for the current
+			# component/ctxt
+			$filter_comp = $event->{'component'};
+			$filter_ctxt = $event->{'ctxt'};
+		} else {
+			# for timeouts we need to use to backtrack
+			# the target component/ctxt
+			$filter_comp = $event->{'newcomponent'};
+			$filter_ctxt = $event->{'newctxt'};
+		}
+
 		my $filter = notification_build_filter((
-			'newcomponent'	=> $event->{'component'},
-			'newctxt'	=> $event->{'ctxt'}
+			'newcomponent'	=> $filter_comp,
+			'newctxt'	=> $filter_ctxt
 		));
 
 		$event = undef;

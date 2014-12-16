@@ -160,6 +160,13 @@ sub add_timeout {
 	}
 
 	notification_add(\%event, $this->{'ttl'});
+
+	if($type eq 'interface') {
+		# Do count spur chain type as we will never get a 
+		# 'finished' event which would add the spur if a timeout
+		# happens and we might never know about the spur 
+		spur_add(\%event);
+	}
 }
 
 ################################################################################
