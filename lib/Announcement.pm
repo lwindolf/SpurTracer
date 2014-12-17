@@ -85,7 +85,7 @@ sub announcement_add {
 
 	# Do not readd/reset existing announcements
 	return if(DB->exists($akey) == 1);
-print STDERR "add announcement $akey\n";
+
 	DB->hset($akey, 'host',			$event->{'host'});
 	DB->hset($akey, 'component',		$event->{'component'});
 	DB->hset($akey, 'ctxt',			$event->{'ctxt'});
