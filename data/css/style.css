@@ -335,3 +335,8 @@ td.spurConnector .hidden {
 td.zero, td.zero * {
 	color:gray;
 }
+
+.content.config select {
+	width:100%;
+	max-width:100%;
+}
