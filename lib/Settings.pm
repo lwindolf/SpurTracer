@@ -124,18 +124,18 @@ sub settings_get_specific {
 	# Determining inherited settings to be checked
 	my @steps = ();
 
-	if($path =~ /^instance!interface!(\w+)!(\w+)!(\w+)$/) {
+	if($path =~ /^instance!interface!([^!]+)!([^!]+)!([^!]+)$/) {
 		push(@steps, "object!interface!$2!$3");
 		push(@steps, "object!host!$1");
 	}
-	if($path =~ /^instance!component!(\w+)!(\w+)$/) {
+	if($path =~ /^instance!component!([^!]+)!([^!]+)$/) {
 		push(@steps, "object!component!$2");
 		push(@steps, "object!host!$1");
 	}
-	if($path =~ /^object!interface!(\w+)!(\w+)$/) {
+	if($path =~ /^object!interface!([^!]+)!([^!]+)$/) {
 		push(@steps, "object!component!$1");
 	}
-	if($path =~ /^object!component!(\w+)!(\w+)$/) {
+	if($path =~ /^object!component!([^!]+)!([^!]+)$/) {
 		push(@steps, "object!host!$1");
 	}
 
