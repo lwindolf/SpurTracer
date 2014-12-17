@@ -149,8 +149,9 @@ If everything is prepared try starting SpurTrace by running
 
 from the source directory. If no errors are given try to access the server
 via your browser or a local HTTP client. The default configuration will
-listen on http://localhost:8080
+listen on http://localhost:8080. To use a different port run
 
+	./spurtracerd.pl --port=<port>
 
 4. Support
 ==========
