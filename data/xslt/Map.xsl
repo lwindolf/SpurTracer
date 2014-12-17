@@ -162,6 +162,7 @@
 			<xsl:with-param name="value" select="@failed"/>
 		</xsl:call-template>
 		<xsl:call-template name="TimeoutCell">
+			<xsl:with-param name="url">get?component=<xsl:value-of select="@name"/>&amp;status=timeout</xsl:with-param>
 			<xsl:with-param name="value" select="@timeout"/>
 		</xsl:call-template>
 	</tr>
