@@ -1,7 +1,7 @@
 # AlarmMonitor.pm: Detect and forward alarms
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
-# Copytirhg (c) 2012 Lars Lindner <lars.lindner@gmail.com>
+# Copytirhg (c) 2012-2014 Lars Windolf <lars.windolf@gmx.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -212,9 +212,9 @@ sub _send_nsca {
 	$cmd .= "-p $nagios->{NSCAPort} "	if($nagios->{'NSCAPort'} ne "");
 	$cmd .= "-c $nagios->{NSCAConfigFile} "	if($nagios->{'NSCAConfigFile'} ne "");
 
-	print STDERR "Processing NSCA $now\n";
+	#print STDERR "Processing NSCA $now\n";
 	foreach my $check (@CHECK_TYPES) {
-		print STDERR "Processing $check checks...\n";
+		#print STDERR "Processing $check checks...\n";
 		foreach my $setting (@{settings_get_all("nagios.serviceChecks.$check")}) {
 			# FIXME: Support instances!!!
 			next unless($setting->{'name'} =~ /^object!((\w+)!.*)/);
