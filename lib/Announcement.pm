@@ -1,6 +1,7 @@
-# Announcement.pm: Handling of announced events
+# Announcement.pm: Handling of announced instances
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
+# Copyright (C) 2014 Lars Windolf <lars.windolf@gmx.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,6 +82,10 @@ sub announcement_add {
 	my ($type, $event, $ttl) = @_;
 
 	my $akey = build_announcement_key($type, $event);
+
+	# Do not readd/reset existing announcements
+	return if(DB->exists($akey) == 1);
+print STDERR "add announcement $akey\n";
 	DB->hset($akey, 'host',			$event->{'host'});
 	DB->hset($akey, 'component',		$event->{'component'});
 	DB->hset($akey, 'ctxt',			$event->{'ctxt'});
@@ -92,8 +97,10 @@ sub announcement_add {
 	}
 
 	DB->hset($akey, 'time',			time());
-	DB->hset($akey, 'timeout',		0);
+	DB->hset($akey, 'status',		'announced');
 	DB->hset($akey, 'source',		notification_build_key($event));
+	# FIXME: TTL should be timeout + some buffer (maybe x10) as global
+	# TTL might be near endless for archiving
 	DB->expire($akey, $ttl);
 }
 
@@ -108,13 +115,32 @@ sub announcement_add {
 sub announcement_clear {
 	my ($type, $event) = @_;
 
+	# Handling components is simple...
+	if($type eq 'component') {
+		my $akey = build_announcement_key($type, $event);
+		# Brute force rebuild announcement to ensure we have one
+		announcement_add($type, $event, 30);	# FIXME: get rid of hard-coded TTL
+		# And mark it as done
+		DB->hset($akey, 'status', 'finished');
+		return;
+	}
+
+	# And for interfaces...
+
 	# We cannot use build_announcement_key() here as we have not all
 	# necessary values (source host/source component...). So we need
 	# to delete based on match pattern
 	foreach(DB->keys("announce!$type!*!$event->{component}!$event->{ctxt}")) {
-		my %announcement = DB->hgetall($_);
-		DB->del($_);
-		DB->hset($announcement{'source'}, 'status', 'finished') if($announcement{'type'} eq 'c');
+		my $akey = $_;
+		my %announcement = DB->hgetall($akey);
+		if($announcement{'type'} eq 'c') {
+			# Set announcement status in announcement AND event 
+			# data. The info in the event data is considered the
+			# long term info as the announcement info has much 
+			# shorter life cycle.
+			DB->hset($akey, 'status', 'finished');
+			DB->hset($announcement{'source'}, 'status', 'finished');
+		}
 		return \%announcement;
 	}
 
@@ -129,7 +155,7 @@ sub announcement_clear {
 ################################################################################
 sub announcement_set_timeout {
 
-	DB->hset(build_announcement_key(shift, @_), 'timeout', 1);
+	DB->hset(build_announcement_key(shift, @_), 'status', 'timeout');
 }
 
 ################################################################################
@@ -164,7 +190,6 @@ sub announcements_fetch {
 	foreach my $key (DB->keys($filter)) {
 		next if($key =~ /skipped because its mtime/);
 		my %event = DB->hgetall($key);
-		$event{'timeout'} = 0 unless(defined($event{'timeout'}));
 		push(@results, \%event);
 
 		last if($i++ > 100);	# FIXME: hard coded!

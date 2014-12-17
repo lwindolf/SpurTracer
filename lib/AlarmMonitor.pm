@@ -163,9 +163,9 @@ sub _check {
 		}
 	}
 
-	# Check overdue announcements (uncleared older announcements)
+	# Check interface timeouts
 	foreach my $announcement (@{announcements_fetch('interface', {})}) {
-		next if($announcement->{'timeout'} == 1);
+		next if($announcement->{'status'} ne 'announced');
 
 		my $timeoutSetting = alarm_config_get_timeout("instance!interface!$announcement->{host}!$announcement->{component}!$announcement->{newcomponent}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'interface'});
@@ -173,9 +173,9 @@ sub _check {
 		$this->{'spuren'}->add_timeout('interface', $announcement);
 	}
 
-	# Check component timeouts (missing 'finished' event)
+	# Check component timeouts
 	foreach my $announcement (@{announcements_fetch('component', {})}) {
-		next if($announcement->{'timeout'} == 1);
+		next if($announcement->{'status'} ne 'announced');
 
 		my $timeoutSetting = alarm_config_get_timeout("instance!component!$announcement->{host}!$announcement->{component}");
 		next if(($now - $announcement->{'time'}) < $timeoutSetting->{'component'});

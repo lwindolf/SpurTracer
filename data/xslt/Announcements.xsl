@@ -39,9 +39,10 @@
 				<th>To</th>
 				<th>New Context</th>
 				<th>Source Context</th>
+				<th>Status</th>
 				<th>Since</th>
 			</tr>
-			<xsl:for-each select="InterfaceAnnouncements/InterfaceAnnouncement">
+			<xsl:for-each select="InterfaceAnnouncements/InterfaceAnnouncement[@status != 'finished']">
 				<xsl:sort select="@time" order="descending" data-type="number"/>
 				<xsl:call-template name="InterfaceAnnouncement"/>
 			</xsl:for-each>
@@ -56,9 +57,10 @@
 				<th>Host</th>
 				<th>Component</th>
 				<th>Context</th>
+				<th>Status</th>
 				<th>Since</th>
 			</tr>
-			<xsl:for-each select="ComponentAnnouncements/ComponentAnnouncement">
+			<xsl:for-each select="ComponentAnnouncements/ComponentAnnouncement[@status != 'finished']">
 				<xsl:sort select="@time" order="descending" data-type="number"/>
 				<xsl:call-template name="ComponentAnnouncement"/>
 			</xsl:for-each>
@@ -96,8 +98,8 @@
 <xsl:template name="InterfaceAnnouncement">
 	<xsl:element name="tr">
 		<xsl:attribute name="class">announcement
-			<xsl:if test="@timeout = 0">announced</xsl:if>
-			<xsl:if test="@timeout = 1">timeout</xsl:if>
+			<xsl:if test="@status = 'announced'">announced</xsl:if>
+			<xsl:if test="@status = 'timeout'">timeout</xsl:if>
 		</xsl:attribute>
 		<td class="time" title="{@time}000"><xsl:value-of select="@time"/>000</td>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
@@ -105,6 +107,7 @@
 		<td><a href="/getDetails?component={@newcomponent}"><xsl:value-of select="@newcomponent"/></a></td>
 		<td><a href="/getSpur?ctxt={@newctxt}"><xsl:value-of select="@newctxt"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td><xsl:value-of select="@status"/></td>
 		<td class="since" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
 	</xsl:element>
 </xsl:template>
@@ -112,13 +115,14 @@
 <xsl:template name="ComponentAnnouncement">
 	<xsl:element name="tr">
 		<xsl:attribute name="class">announcement
-			<xsl:if test="@timeout = 0">announced</xsl:if>
-			<xsl:if test="@timeout = 1">timeout</xsl:if>
+			<xsl:if test="@status = 'announced'">announced</xsl:if>
+			<xsl:if test="@status = 'timeout'">timeout</xsl:if>
 		</xsl:attribute>
 		<td class="time" title="{@time}000"><xsl:value-of select="@time"/>000</td>
 		<td><a href="/getDetails?host={@host}"><xsl:value-of select="@host"/></a></td>
 		<td><a href="/getDetails?component={@component}"><xsl:value-of select="@component"/></a></td>
 		<td><a href="/getSpur?ctxt={@ctxt}"><xsl:value-of select="@ctxt"/></a></td>
+		<td><xsl:value-of select="@status"/></td>
 		<td class="since" title="{@time * 1000}"><xsl:value-of select="@time * 1000"/></td>
 	</xsl:element>
 </xsl:template>
