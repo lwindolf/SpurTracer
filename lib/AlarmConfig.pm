@@ -1,6 +1,7 @@
 # AlarmConfig.pm: SpurTracer Alarm Configuration
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
+# Copyright (c) 2014 Lars Windolf <lars.windolf@gmx.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -73,7 +74,7 @@ sub alarm_config_get_timeout {
 	my ($object) = @_;
 
 	# Try to fetch specific setting
-	my $settings = settings_get_specific("timeouts.hosts", $object);
+	my $settings = settings_get_specific("timeouts", $object);
 	return $settings if(defined($settings));
 
 	# Fallback to default setting

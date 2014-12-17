@@ -154,7 +154,7 @@
 				var checkType = document.getElementById('addThresholdCheckType').value;
 				var name      = document.getElementById('addThresholdName').value;
 				
-				document.location.href = '/addSetting?prefix=alarm.thresholds.'+checkType+
+				document.location.href = '/addSetting?prefix=alarms.thresholds.'+checkType+
 				      '&amp;checkType='+checkType+
 				      '&amp;warning='+warning+
 				      '&amp;critical='+critical+
@@ -208,7 +208,7 @@
 				<th>Component Timeout [s]</th>
 				<th>Interface Timeout [s]</th>
 			</tr>
-			<xsl:for-each select="Settings/Setting[@prefix='timeouts.hosts']">
+			<xsl:for-each select="Settings/Setting[@prefix='timeouts' and @name != 'global']">
 			<tr>
 				<td><xsl:value-of select="@name"/></td>
 				<td><xsl:value-of select="@component"/></td>
@@ -224,16 +224,13 @@
 			</xsl:for-each>
 			<tr>
 				<td>
-					<select id="addTimeoutName" name='name'>
-						<xsl:for-each select="Hosts/Host">
-							<xsl:sort select="@name"/>
-							<option value="object!host!{@name}">[Host] <xsl:value-of select="@name"/></option>
-						</xsl:for-each>
-					</select>
+					<xsl:call-template name="statistics-object-selector">
+						<xsl:with-param name="id" select="'addTimeoutName'"/>
+					</xsl:call-template>
 				</td>
 				<td><input id="addTimeoutComponent" type="input" name="component"/></td>
 				<td><input id="addTimeoutInterface" type="input" name="interface"/></td>
-				<td><input type="submit" value="Add New" onclick="addTimeout()"/></td>
+				<td><input type="submit" value="Add" onclick="addTimeout()"/></td>
 			</tr>
 		</table>
 
@@ -243,7 +240,7 @@
 				var interface = document.getElementById('addTimeoutInterface').value;
 				var name = document.getElementById('addTimeoutName').value;
 				
-				document.location.href = '/addSetting?prefix=timeouts.hosts'+
+				document.location.href = '/addSetting?prefix=timeouts'+
 				      '&amp;component='+component+
 				      '&amp;interface='+interface+
 				      '&amp;name='+name+'#timeouts';
