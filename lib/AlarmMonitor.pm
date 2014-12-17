@@ -262,11 +262,13 @@ sub alarm_monitor_get_alarms {
 	my @results = ();
 
 	foreach my $key (DB->keys("alarm!*!*")) {
-		next unless($key =~ /^alarm!(\w+)!(\w+)$/);
+		next unless($key =~ /^alarm!([^!]+)!(.+)$/);
 		my ($type, $name) = ($1, $2);
 		my %tmp = DB->hgetall($key);
 		$tmp{'type'} = $type;
+		$tmp{'id'} = $name;
 		$tmp{'name'} = $name;
+		$tmp{'name'} =~ s/!/ -> /;	# for interface to pretty print $2
 		push(@results, \%tmp);
 	}
 

@@ -205,7 +205,13 @@
 
 <xsl:template name="Interface">
 	<tr class="interface">
-		<td><xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/></td>
+		<xsl:element name="td">
+			<xsl:variable name="interface"><xsl:value-of select="@from"/>!<xsl:value-of select="@to"/></xsl:variable>
+			<xsl:attribute name="class">
+				<xsl:value-of select="//Alarms/Alarm[@type='interface' and @id=$interface]/@severity"/>
+			</xsl:attribute>
+			<xsl:value-of select="@from"/> -&gt; <xsl:value-of select="@to"/>
+		</xsl:element>
 		<td class='calls'><xsl:value-of select="@started"/></td>
 		<td><xsl:value-of select="@announced"/></td>
 		<xsl:call-template name="TimeoutCell">
