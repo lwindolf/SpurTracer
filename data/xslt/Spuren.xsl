@@ -75,6 +75,7 @@
 				<strong><xsl:value-of select="$name"/></strong><br/>
 				<xsl:call-template name="counterSet">
 					<xsl:with-param name="this" select="/Spuren/Components/Component[@name=$name]"/>
+					<xsl:with-param name="type">component</xsl:with-param>
 				</xsl:call-template>
 			</div>
 			</td>
@@ -98,6 +99,7 @@
 				<div class="interfaceMetrics">
 					<xsl:call-template name="counterSet">
 						<xsl:with-param name="this"  select="/Spuren/Interfaces/Interface[@to=$to and @from=$from]"/>
+						<xsl:with-param name="type">interface</xsl:with-param>
 					</xsl:call-template>
 				</div>
 			</td>
@@ -113,11 +115,18 @@
 
 <xsl:template name="counterSet">
 	<xsl:param name="this"/>
+	<xsl:param name="type"/>
 	<small>
 		<span title="finished events" class="interfaceLabel finished"><xsl:value-of select="$this/@started"/></span> /
 		<xsl:element name="span">
-			<xsl:attribute name="title">pending announcements</xsl:attribute>
-			<xsl:attribute name="class">interfaceLabel<xsl:if test="$this/@announced > 0"> announced</xsl:if></xsl:attribute>
+			<xsl:if test="$type = 'interface'"><xsl:attribute name="title">pending announcements</xsl:attribute></xsl:if>
+			<xsl:if test="$type = 'component'"><xsl:attribute name="title">running instances</xsl:attribute></xsl:if>			
+			<xsl:attribute name="class">interfaceLabel
+				<xsl:if test="$this/@announced > 0">
+					<xsl:if test="$type = 'interface'"> announced</xsl:if>
+					<xsl:if test="$type = 'component'"> running</xsl:if>
+				</xsl:if>
+			</xsl:attribute>
 			<xsl:value-of select="$this/@announced"/>
 		</xsl:element>
 
