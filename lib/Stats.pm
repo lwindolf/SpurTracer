@@ -1,6 +1,7 @@
 # Stats.pm: Per-Object/Interval Statistics Data Access
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
+# Copyright (c) 2014 Lars Windolf <lars.windolf@gmx.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -275,15 +276,19 @@ sub add_component_timeout {
 #
 # $2	Host
 # $3	Component
-# $4	Duration
+# $4	End Time
+# $5    Announcement (or undef)
 ################################################################################
 sub add_component_duration {
-	my ($this, $host, $component, $duration) = @_;
+	my ($this, $host, $component, $end_time, $announcement) = @_;
 
-	$this->_count_object($duration, 'component', $component, 'perf_values');
-	$this->_count_object(1,         'component', $component, 'perf_samples');
-	$this->_count_instance($duration, 'component', $host, $component, 'perf_values');
-	$this->_count_instance(1,         'component', $host, $component, 'perf_samples');
+	if(defined($announcement)) {
+		my $duration = ($end_time - $announcement->{'time'});
+		$this->_count_object($duration, 'component', $component, 'perf_values');
+		$this->_count_object(1,         'component', $component, 'perf_samples');
+		$this->_count_instance($duration, 'component', $host, $component, 'perf_values');
+		$this->_count_instance(1,         'component', $host, $component, 'perf_samples');
+	}
 
 	# Decreases the 'announced' counter so we have a live gauge of pending interfaces
 	$this->_count_object(-1, 'component', $component, 'announced');

@@ -116,7 +116,7 @@ sub add_event {
 		if($data{'status'} eq "finished") {
 			# Component Performance Data Handling
 			my $announcement = announcement_clear('component', \%data);
-			$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}, ($data{'time'} - $announcement->{'time'})) if(defined($announcement));
+			$this->{'stats'}->add_component_duration($data{'host'}, $data{'component'}, $data{'time'}, $announcement);
 
 			# Do count spur chain type. This is simply to collect all 
 			# existing types. To determine the chain we backtrack the
