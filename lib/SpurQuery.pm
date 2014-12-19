@@ -1,6 +1,7 @@
 # SpurQuery.pm: Map Requests to Views
 #
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
+# Copyright (c) 2014 Lars Windolf <lars.windolf@gmx.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -74,7 +75,12 @@ sub execute {
 	require "${viewName}.pm";
 
 	my $view = ${viewName}->new($xsltMapping{$this->{name}}, $this->{name}, %{$this->{glob}});
-	$view->print();
+
+	if(defined($this->{glob}->{'output'}) and ($this->{glob}->{'output'} eq "json")) {
+		$view->printJSON();
+	} else {
+		$view->print();
+	}
 }
 
 1;

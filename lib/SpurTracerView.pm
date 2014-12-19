@@ -1,6 +1,6 @@
-# SpurTracerView.pm: View factory with XML/XSLT serialization
+# SpurTracerView.pm: View factory with XML/XSLT and JSON serialization
 #
-# Copyright (C) 2011 Lars Lindner <lars.lindner@gmail.com>
+# Copyright (C) 2011-2014 Lars Windolf <lars.windolf@gmx.de>
 # Copyright (C) 2012 GFZ Deutsches GeoForschungsZentrum Potsdam <lars.lindner@gfz-potsdam.de>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@ package SpurTracerView;
 
 use warnings;
 use strict;
+use JSON;
 use XML::Writer;
 
 use Stats;
@@ -194,6 +195,42 @@ sub print {
 	}
 
 	$writer->endTag();
+	return 0;
+}
+
+################################################################################
+# Dump JSON response on STDOUT
+#
+# Returns 0 on success
+################################################################################
+sub printJSON {
+	my $this = shift;
+	my %data = %{$this->{results}};
+	my @filter;
+
+	print "Content-type: application/json\r\n\r\n";
+
+	my %output = (
+		'Spuren' => {
+			%data
+		}
+	);
+
+	$output{'Spuren'}{'now'} = time();
+	$output{'Spuren'}{'interval'} = $this->{'intervalName'};
+	$output{'Spuren'}{'Intervals'} = @{stats_get_interval_definitions()};
+	$output{'Spuren'}{'Filter'} = {};
+
+	foreach my $key (keys %{$this->{'glob'}}) {
+		next if($key eq "interval");
+		next if($key eq "output");
+		$output{'Spuren'}{'Filter'}{$key} = $this->{'glob'}->{$key};
+	}
+
+	# FIXME: statistic values are still missing
+
+	print to_json(\%output, { pretty => 1 });
+
 	return 0;
 }
 
