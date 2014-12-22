@@ -14,7 +14,7 @@
 
 ################################################################################
 # Configuration
-SERVER="http://localhost:8080"		# the SpurTracer server
+SERVER="http://localhost:8081"		# the SpurTracer server
 PIDFILE=/tmp/spt_webshop.pid
 SENDER_COUNT=3
 SEQNR=0			# current request sequence (for "unique" ctxt ids)

@@ -16,6 +16,9 @@
 	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
 	<script type="text/javascript" src="js/jquery.timeago.js"/>
 	<script type="text/javascript" src="js/jquery.time.js"/>
+	<script type="text/javascript" src="js/d3.v3.js"></script>
+	<script type="text/javascript" src="js/cola.v3.min.js"></script>
+	<script type="text/javascript" src="js/spuren_view.js"></script>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -37,6 +40,14 @@
 			</table>
 		</div>
 
+		<div class="clear"/>
+
+		<div class="systemMap" style="float:none">
+		<div class="header">Component Path Map (new incomplete graph)</div>
+			<div class="map">
+			</div>
+		</div>
+
 		<xsl:for-each select="Statistics/Object">
 			<xsl:call-template name="Graph"/>
 		</xsl:for-each>
@@ -47,9 +58,23 @@
 	</div>
 
 	<script type="text/javascript">
+	<script type="text/javascript">
+		var view = new SptSpurenView('.map');
+		var reloadTimeout;
+
+		function reloadTimer() {
+			view.reload();
+
+			clearTimeout(reloadTimeout);
+			reloadTimeout = setTimeout("reloadTimer();", 5000);  // FIXME: hard-coded timeout
+		}
+
 		jQuery(document).ready(function() {
 		 	jQuery(".time").time();
+
+			//reloadTimer();
 		});
+	</script>);
 	</script>
 </body>
 </html>

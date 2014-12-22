@@ -10,9 +10,9 @@ function SptSpurenView(stage) {
 	this.reload();
 }
 
-SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, nodeData, monitoring) {
+SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, name, monitoring) {
 	var n = {};
-	n['name'] = nodeData['name'];
+	n['name'] = name;
 	n['width'] = 100;
 	n['height'] = 40;
 
@@ -31,29 +31,15 @@ SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, no
 	nodeIndex[n['name']] = Object.keys(nodeIndex).length;
 };
 
-// FIXME: dirty workaround, sometimes auto-grouping causes group without
-// leaves which causes an Exception, which we do not want
-function fixGroups(g) {
-	if (g.groups) {
-		g.groups.forEach(function (cg) {
-			return fixGroups(cg);
-		});
-	}
-	if (g.leaves)
-		return;
-
-	g.leaves = new Array();
-}
-
 SptSpurenView.prototype.setData = function(data) {
 	var view = this;
 	var width = $(this.stage).width(),
-	    height = width / 2,
+	    height = width * 3 / 4,
 	    r = 9, margin = 0;
 
 	var d3cola = cola.d3adaptor()
 	    .convergenceThreshold(0.01)
-	    .linkDistance(150)
+	    .linkDistance(200)
 	    .avoidOverlaps(true)
 	    .size([width, height]);
 
@@ -95,15 +81,15 @@ SptSpurenView.prototype.setData = function(data) {
 	view.graph["links"] = new Array();
 
 	$.each(data.Spuren.Components, function(index, nodeData) {
-		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData, data.monitoring);
+		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData['name'], data.monitoring);
 	});
 	$.each(data.Spuren.Interfaces, function(index, connectionData) {
 		// Node sources and target might not exist
 		// in case of non-managed nodes we connect to/from
-		/*if(nodeIndex[connectionData.from] == undefined)
+		if(nodeIndex[connectionData.from] == undefined)
 			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.from, data.monitoring);
 		if(nodeIndex[connectionData.to] == undefined)
-			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.monitoring);*/
+			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.monitoring);
 		var l = {};
 		l['source'] = nodeIndex[connectionData.from];
 		l['target'] = nodeIndex[connectionData.to];
@@ -143,12 +129,12 @@ SptSpurenView.prototype.setData = function(data) {
 				if(d.status == 'UNKNOWN')
 					return '#fca';
 				if($.inArray(d.name, data.nodes) == -1)
-					return '#eee';
+					return '#ccc';
 
 				return 'white';
 			    })
 			    .style("stroke-width", 1)
-			    .style("stroke", "gray");
+			    .style("stroke", "black");
 
 			d3.select(this)
 			    .append("text")
@@ -176,7 +162,10 @@ SptSpurenView.prototype.setData = function(data) {
 
 	if(view.nodePositions.length == 0) {
 		console.log("Calculating layout...");
-		d3cola.start(10,20,30);
+		d3cola
+			    .flowLayout("x", 250)
+			    .symmetricDiffLinkLengths(6)
+			.start(100,20,30);
 	} else {
 		/* Do only a few full constraint iterations */
 		d3cola.start(0,0,5);

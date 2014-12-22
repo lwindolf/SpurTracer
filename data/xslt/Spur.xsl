@@ -16,9 +16,6 @@
 
 	<script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
 	<script type="text/javascript" src="js/jquery.time.js"></script>
-	<script type="text/javascript" src="js/d3.v3.js"></script>
-	<script type="text/javascript" src="js/cola.v3.min.js"></script>
-	<script type="text/javascript" src="js/spuren_view.js"></script>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -31,10 +28,6 @@
 
 
 		<div class="info">
-
-			<div class="map" width="400px" height="200px">
-			</div>
-
 			<xsl:call-template name="legend-spuren"/>
 		</div>
 
@@ -57,20 +50,8 @@
 	</div>
 
 	<script type="text/javascript">
-		var view = new SptSpurenView('.map');
-		var reloadTimeout;
-
-		function reloadTimer() {
-			view.reload();
-
-			clearTimeout(reloadTimeout);
-			reloadTimeout = setTimeout("reloadTimer();", 5000);  // FIXME: hard-coded timeout
-		}
-
 		jQuery(document).ready(function() {
 		 	jQuery(".time").time();
-
-			//reloadTimer();
 		});
 	</script>
 </body>
