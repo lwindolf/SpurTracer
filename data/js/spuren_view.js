@@ -19,8 +19,15 @@ SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, na
 	/* We expect a node label font size of 10pt! */
 	n['width'] = 6 * n['name'].length + 48;
 
-	// FIXME: supply alert infos
 	n['status'] = '';
+	try {
+		$.each(monitoring, function(index, data) {
+			if(data['id'] == name && data['type'] == 'component') {
+				n['status'] = data['severity'];
+			}
+		});
+	}
+	catch(e) { }
 
 	if(this.nodePositions[n['name']]) {
 		n.x = this.nodePositions[n['name']].x;
@@ -81,15 +88,15 @@ SptSpurenView.prototype.setData = function(data) {
 	view.graph["links"] = new Array();
 
 	$.each(data.Spuren.Components, function(index, nodeData) {
-		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData['name'], data.monitoring);
+		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData['name'], data.Spuren.Alarms);
 	});
 	$.each(data.Spuren.Interfaces, function(index, connectionData) {
 		// Node sources and target might not exist
 		// in case of non-managed nodes we connect to/from
 		if(nodeIndex[connectionData.from] == undefined)
-			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.from, data.monitoring);
+			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.from, data.Spuren.Alarms);
 		if(nodeIndex[connectionData.to] == undefined)
-			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.monitoring);
+			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.Spuren.Alarms);
 		var l = {};
 		l['source'] = nodeIndex[connectionData.from];
 		l['target'] = nodeIndex[connectionData.to];
@@ -122,10 +129,10 @@ SptSpurenView.prototype.setData = function(data) {
 			    .attr("rx", r - 3).attr("ry", r - 3)
 			    .attr("class", function (d) { return "node_rect node_" + d.name.replace('.',''); })
 			    .style("fill", function (d) {
-				if(d.status == 'UP')
-					return '#fff';
-				if(d.status == 'DOWN')
+				if(d.status == 'critical')
 					return '#f30';
+				if(d.status == 'warning')
+					return '#fea';
 				if(d.status == 'UNKNOWN')
 					return '#fca';
 				if($.inArray(d.name, data.nodes) == -1)
