@@ -53,9 +53,7 @@ except for the js/ subdirectory in this source distribution.
 Please note that the js/ subdirectory contains Javascript libraries which 
 do have other licenses listed below:
 
-	JQuery 1.4.2		MIT or GPL Version 2 licensed
-	Raphael			MIT licensed
-	Dracula			MIT licensed
+	JQuery 2.1.1		MIT or GPL Version 2 licensed
 	Visualize		MIT or GPL Version 2 licensed
 	timeago			MIT or GPL Version 2 licensed
 	
@@ -74,8 +72,9 @@ SpurTracer relies on the following software stack:
 1.) Perl 5
 2.) Perl modules
 
-    - XML::Writer
+    - XML::Writer (soon to be deprecated)
     - Net::Server
+    - JSON
     - Error
     - Redis
 
@@ -90,7 +89,7 @@ You can install the following distribution specific packages
    Debian (Wheezy and later): 
 
 	apt-get install libxml-writer-perl libnet-server-perl libredis-perl \
-			liberror-perl redis-server
+			liberror-perl libjson-perl redis-server
 
 If you want Nagios integration you might want to install
 
@@ -116,6 +115,7 @@ And install the packages by typing the following at the prompt
 
 	> install XML::Writer
 	> install Net::Server
+        > install JSON
 	> install Redis
 	> install Error
 
@@ -152,6 +152,15 @@ via your browser or a local HTTP client. The default configuration will
 listen on http://localhost:8080. To use a different port run
 
 	./spurtracerd.pl --port=<port>
+
+As Spurtracer uses Net::Server you can use all documented Net::Server
+options to change the server behaviour. A full list can be found at:
+
+  http://search.cpan.org/~rhandom/Net-Server-2.008/lib/Net/Server.pod#DEFAULT_ARGUMENTS_FOR_Net::Server
+
+Note that all arguments can you specified as key value pairs as shown with
+"port" in the example above.
+
 
 4. Support
 ==========

@@ -8,7 +8,7 @@
 <head>
 	<title>Settings</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
-	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/jquery-2.1.1.min.js"/>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>

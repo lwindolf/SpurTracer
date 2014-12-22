@@ -218,7 +218,7 @@ sub printJSON {
 
 	$output{'Spuren'}{'now'} = time();
 	$output{'Spuren'}{'interval'} = $this->{'intervalName'};
-	$output{'Spuren'}{'Intervals'} = @{stats_get_interval_definitions()};
+	$output{'Spuren'}{'Intervals'} = \@{stats_get_interval_definitions()};
 	$output{'Spuren'}{'Filter'} = {};
 
 	foreach my $key (keys %{$this->{'glob'}}) {

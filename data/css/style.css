@@ -340,3 +340,43 @@ td.zero, td.zero * {
 	width:100%;
 	max-width:100%;
 }
+
+// d3 webcola map definition
+
+.d3map {
+	border:1px solid #444;
+	margin:6px 6px 0 0;
+	padding:0;
+	border-radius:6px;
+}
+
+svg .node {
+  stroke-width: 1.5px;
+    cursor: move;
+}
+
+svg .group {
+/*  stroke: #fff;
+  stroke-width: 1.5px;
+  cursor: move;
+  opacity: 0.7;*/
+}
+
+svg .link {
+  stroke: #7a4e4e;
+  stroke-width: 2px;
+  stroke-opacity: 1;
+}
+
+.link {
+	marker-end: url(#end-arrow);
+}
+
+svg .label {
+    color:black;
+    font-family: Monospace;
+    font-size: 10px;
+    text-anchor: middle;
+    cursor: move;
+}
+

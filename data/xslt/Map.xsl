@@ -12,7 +12,7 @@
 	<meta http-equiv="refresh" content="5"/>
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
-	<script type="text/javascript" src="js/jquery-1.4.2.min.js"/>
+	<script type="text/javascript" src="js/jquery-2.1.1.min.js"/>
 	<script type="text/javascript" src="js/visualize.jQuery.js"/>	
 	<script type="text/javascript" src="js/jquery.timeago.js"/>
 </head>

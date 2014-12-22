@@ -14,11 +14,11 @@
 
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
 
-	<script type="text/javascript" src="js/raphael-min.js"></script>
-	<script type="text/javascript" src="js/dracula_graffle.js"></script>
-	<script type="text/javascript" src="js/dracula_graph.js"></script>
-	<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
 	<script type="text/javascript" src="js/jquery.time.js"></script>
+	<script type="text/javascript" src="js/d3.v3.js"></script>
+	<script type="text/javascript" src="js/cola.v3.min.js"></script>
+	<script type="text/javascript" src="js/spuren_view.js"></script>
 </head>
 <body>
 	<span class="title"><a href="http://spurtracer.sf.net"><b>Spur</b>Tracer</a></span>
@@ -28,9 +28,12 @@
 			<xsl:with-param name="filter" select="'1'"/>
 		</xsl:call-template>
 
+
+
 		<div class="info">
 
-			<div id="mapCanvas"></div>
+			<div class="map" width="400px" height="200px">
+			</div>
 
 			<xsl:call-template name="legend-spuren"/>
 		</div>
@@ -50,14 +53,24 @@
 		</table>
 		</div>
 
-		<xsl:call-template name="SpurKarte"/>
-
 		<div class="clear"/>
 	</div>
 
 	<script type="text/javascript">
+		var view = new SptSpurenView('.map');
+		var reloadTimeout;
+
+		function reloadTimer() {
+			view.reload();
+
+			clearTimeout(reloadTimeout);
+			reloadTimeout = setTimeout("reloadTimer();", 5000);  // FIXME: hard-coded timeout
+		}
+
 		jQuery(document).ready(function() {
 		 	jQuery(".time").time();
+
+			//reloadTimer();
 		});
 	</script>
 </body>
@@ -110,55 +123,5 @@
 		</xsl:choose>
 	</xsl:for-each>
 </xsl:template>
-
-<xsl:template name="SpurKarte">
-
-	<script type="text/javascript">	
-		var redraw, g, renderer;
-
-		function nice_duration(duration, alternativeText) {
-			if(isNaN(duration)) {
-				return alternativeText;
-			}
-
-			if(duration &lt; 1000) {
-				duration += " ms";
-			} else {
-				duration = Math.ceil(duration/1000) + " s";
-			}
-
-			return duration;
-		}
-
-		window.onload = function() {
-			/* FIXME: use JQuery canvas dimensions */
-			var width = 600;
-			var height = 200;
-
-			g = new Graph();
-
-			<xsl:for-each select="//Spur">
-				<xsl:sort select="@time" order="ascending" data-type="number"/>
-				duration = <xsl:value-of select="Event[@status='finished']/@time - Event[@status='started']/@time"/>
-				g.addNode("<xsl:value-of select="@component"/>",
-					  { label:"<xsl:value-of select="@component"/> @ <xsl:value-of select='@host'/>\n "+nice_duration(duration, "pending")});
-			</xsl:for-each>
-
-			<xsl:for-each select="//Spur/Event[@type = 'c']">
-				<xsl:variable name="component"><xsl:value-of select="@newcomponent"/></xsl:variable>
-				duration = <xsl:value-of select="//Spur[@component=$component]/Event[@status='started']/@time - @time"/>
-				g.addEdge("<xsl:value-of select="../@component"/>","<xsl:value-of select="@newcomponent"/>", 
-				          { directed:true, stroke: (isNaN(duration)?"#CCC":"black"), label : nice_duration(duration, "announced") });
-			</xsl:for-each>
-
-			/* layout the graph using the Spring layout implementation */
-			var layouter = new Graph.Layout.Spring(g);
-
-			/* draw the graph using the RaphaelJS draw implementation */
-			renderer = new Graph.Renderer.Raphael('mapCanvas', g, width, height);
-		};
-	</script>
-</xsl:template>
-
 
 </xsl:stylesheet>
