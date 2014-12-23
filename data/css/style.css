@@ -380,3 +380,11 @@ svg .label {
     cursor: move;
 }
 
+.stats body {
+	background: none;
+	padding: 0;
+}
+
+.stats span {
+	padding:0 3px;
+}

@@ -10,20 +10,25 @@ function SptSpurenView(stage) {
 	this.reload();
 }
 
-SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, name, monitoring) {
+SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, name, data) {
 	var n = {};
 	n['name'] = name;
-	n['width'] = 100;
-	n['height'] = 40;
+	n['height'] = 55;
 
 	/* We expect a node label font size of 10pt! */
 	n['width'] = 6 * n['name'].length + 48;
+	// FIXME: consider statistic numbers to max length!
 
 	n['status'] = '';
 	try {
-		$.each(monitoring, function(index, data) {
+		$.each(data.Alarms, function(index, data) {
 			if(data['id'] == name && data['type'] == 'component') {
 				n['status'] = data['severity'];
+			}
+		});
+		$.each(data.Components, function(index, data) {
+			if(data['name'] == name) {
+				n['stats'] = data;
 			}
 		});
 	}
@@ -88,15 +93,15 @@ SptSpurenView.prototype.setData = function(data) {
 	view.graph["links"] = new Array();
 
 	$.each(data.Spuren.Components, function(index, nodeData) {
-		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData['name'], data.Spuren.Alarms);
+		view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, nodeData['name'], data.Spuren);
 	});
 	$.each(data.Spuren.Interfaces, function(index, connectionData) {
 		// Node sources and target might not exist
 		// in case of non-managed nodes we connect to/from
 		if(nodeIndex[connectionData.from] == undefined)
-			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.from, data.Spuren.Alarms);
+			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.from, data.Spuren);
 		if(nodeIndex[connectionData.to] == undefined)
-			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.Spuren.Alarms);
+			view.addNodeToColaNodeList(view.graph['nodes'], nodeIndex, connectionData.to, data.Spuren);
 		var l = {};
 		l['source'] = nodeIndex[connectionData.from];
 		l['target'] = nodeIndex[connectionData.to];
@@ -164,6 +169,28 @@ SptSpurenView.prototype.setData = function(data) {
 					loadNode(d.name);
 				}
 			    });
+
+			// Build statistic number HTML
+			var stats = "";
+			try {
+				stats += "<span class='started'>"+d.stats.started+"</span>";
+				if(d.stats.announced > 0)
+					stats += " / <span class='running'>"+d.stats.announced+"</span>";
+				if(d.stats.timeout > 0)
+					stats += " / <span class='timeout'>"+d.stats.timeout+"</span>";
+				if(d.stats.failed > 0)
+					stats += " / <span class='error'>"+d.stats.failed+"</span>";
+			} catch(e) { }
+
+			d3.select(this)
+				.append("foreignObject")
+				.attr("x", function (d) { return -(d.width - 2*pad)/2; })
+				.attr("y", function (d) { return -d.height/2 + 20; })
+				.attr("width", "100%")
+				.attr("height", 30)
+				.attr("class", "stats")
+				.append("xhtml:body")
+				.html(stats);
 		})
 	        .call(d3cola.drag);
 
