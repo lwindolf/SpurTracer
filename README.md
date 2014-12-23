@@ -1,20 +1,3 @@
-Content
-=======
-
-1. ................... Introduction
-
-2. ................... License
-
-3. ................... Installation
-3.1. .................... Dependencies
-3.2. .................... Installing via OS-Packages
-3.3. .................... Installing Perl Modules from CPAN
-3.4. .................... Redis Installation
-3.5. .................... Starting SpurTracer
-
-4. ................... Support
-
-
 1. Introduction
 ===============
 
