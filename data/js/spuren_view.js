@@ -150,7 +150,7 @@ SptSpurenView.prototype.setData = function(data) {
 
 			stats += "<span class='started'>"+d.stats.started+"</span>";
 			if(d.stats.announced > 0) {
-				stats += " <span class='running'>"+d.stats.announced+"</span>";
+				stats += " <span class='announced'>"+d.stats.announced+"</span>";
 				slen += d.stats.announced
 			}
 			if(d.stats.timeout > 0) {
