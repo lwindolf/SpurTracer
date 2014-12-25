@@ -351,33 +351,23 @@ td.zero, td.zero * {
 }
 
 svg .node {
-  stroke-width: 1.5px;
-    cursor: move;
+	stroke-width: 1.5px;
+	cursor: move;
 }
 
-svg .group {
-/*  stroke: #fff;
-  stroke-width: 1.5px;
-  cursor: move;
-  opacity: 0.7;*/
-}
-
-svg .link {
-  stroke: #7a4e4e;
-  stroke-width: 2px;
-  stroke-opacity: 1;
-}
-
-.link {
+svg .link-line {
+	fill: none;
+	stroke: #666;
+	stroke-width: 1.5px;
 	marker-end: url(#end-arrow);
 }
 
 svg .label {
-    color:black;
-    font-family: Monospace;
-    font-size: 10px;
-    text-anchor: middle;
-    cursor: move;
+	color:black;
+	font-family: Monospace;
+	font-size: 10px;
+	text-anchor: middle;
+	cursor: move;
 }
 
 .stats body {

@@ -46,12 +46,13 @@ SptSpurenView.prototype.addNodeToColaNodeList = function(nodeList, nodeIndex, na
 SptSpurenView.prototype.setData = function(data) {
 	var view = this;
 	var width = $(this.stage).width(),
-	    height = width * 3 / 4,
+	    height = width * 9 / 16,	// FIXME: use screen aspect
 	    r = 9, margin = 0;
+	var linkDistance = 300;
+	var pad = 3;
 
 	var d3cola = cola.d3adaptor()
 	    .convergenceThreshold(0.01)
-	    .linkDistance(200)
 	    .avoidOverlaps(true)
 	    .size([width, height]);
 
@@ -105,6 +106,17 @@ SptSpurenView.prototype.setData = function(data) {
 		var l = {};
 		l['source'] = nodeIndex[connectionData.from];
 		l['target'] = nodeIndex[connectionData.to];
+
+		$.each(data.Spuren.Alarms, function(index, ifData) {
+			if(ifData['id'] == connectionData.from + "!" + connectionData.to && ifData['type'] == 'interface') {
+				l['status'] = ifData['severity'];
+			}
+		});
+		$.each(data.Spuren.Interfaces, function(index, ifData) {
+			if(ifData['name'] == connectionData.from + "!" + connectionData.to) {
+				l['stats'] = ifData;
+			}
+		});
 		view.graph['links'].push(l);
 	});
 
@@ -113,12 +125,57 @@ SptSpurenView.prototype.setData = function(data) {
 	svg.append('svg:defs').append('svg:marker').attr('id', 'end-arrow').attr('viewBox', '0 -5 10 10').attr('refX', 5).attr('markerWidth', 9).attr('markerHeight', 3).attr('orient', 'auto').append('svg:path').attr('d', 'M0,-5L10,0L0,5L2,0').attr('stroke-width', '0px').attr('fill', '#555');
 
 	var link = nodeArea.selectAll(".link")
-	      .data(view.graph.links)
-	      .enter().append("line")
-	      .attr("class", "link")
-	      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+	    .data(view.graph.links)
+	    .enter().append("g")
+	    .attr("class", "link")
+	    .append("line")
+	    .attr("class", "link-line")
+	    .style("stroke", function(d) {
+		if(d.status == 'critical')
+			return '#f30';
+		if(d.status == 'warning')
+			return '#fea';
+		if(d.status == 'UNKNOWN')
+			return '#fca';
+		return "black";
+	    });
+
+	var labelLine = nodeArea.selectAll(".link")
+            .each(function(d) {
+		// Build statistic number HTML
+		var stats = "";
+		var statsWidth = 80;	// safe default
+		try {
+			var slen = "" + d.stats.started;
+
+			stats += "<span class='started'>"+d.stats.started+"</span>";
+			if(d.stats.announced > 0) {
+				stats += " <span class='running'>"+d.stats.announced+"</span>";
+				slen += d.stats.announced
+			}
+			if(d.stats.timeout > 0) {
+				stats += " <span class='timeout'>"+d.stats.timeout+"</span>";
+				slen += d.stats.announced
+			}
+			if(d.stats.failed > 0) {
+				stats += " <span class='error'>"+d.stats.failed+"</span>";
+				slen += d.stats.announced
+			}
+
+			statsWidth = (slen.length + 1) * 8 + 6*4; /* we assume 10px font size + 6px padding each number */
+		} catch(e) { } 
+
+		d3.select(this)
+			.append("foreignObject")
+			.attr("x", (linkDistance - statsWidth)/2 )
+			.attr("y", -15)
+			.attr("width", statsWidth)
+			.attr("height", 30)
+			.attr("class", "link-label stats")
+			.append("xhtml:body")
+			.html(stats);
+	    });
 	
-	var pad = 3;
 	var node = nodeArea.selectAll(".node")
 		.data(view.graph.nodes);
 
@@ -197,8 +254,8 @@ SptSpurenView.prototype.setData = function(data) {
 	if(view.nodePositions.length == 0) {
 		console.log("Calculating layout...");
 		d3cola
-			    .flowLayout("x", 250)
-			    .symmetricDiffLinkLengths(6)
+			.flowLayout("x", linkDistance)
+			.symmetricDiffLinkLengths(6)
 			.start(100,20,30);
 	} else {
 		/* Do only a few full constraint iterations */
@@ -213,10 +270,11 @@ SptSpurenView.prototype.setData = function(data) {
                 });
 
 		node.attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; });
+		nodeArea.selectAll(".link-label").attr("transform", function (d) { return "translate(" + d.source.x + "," + (d.source.y+d.target.y)/2 + ")"; });
 
-                link.each(function (d) {
-                    cola.vpsc.makeEdgeBetween(d, d.source.innerBounds, d.target.innerBounds, 5);
-                });
+		link.each(function (d) {
+			cola.vpsc.makeEdgeBetween(d, d.source.innerBounds, d.target.innerBounds, 5);
+		});
 		link.attr("x1", function (d) {
 			return d.sourceIntersection.x;
 		}).attr("y1", function (d) {
@@ -226,6 +284,7 @@ SptSpurenView.prototype.setData = function(data) {
 		}).attr("y2", function (d) {
 			return d.arrowStart.y;
 		});
+
 	  });
 	};
 

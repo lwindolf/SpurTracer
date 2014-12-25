@@ -8,7 +8,7 @@
 <xsl:template match="/Spuren">
 <html>
 <head>
-	<title>All Recent Events</title>
+	<title>Spuren</title>
 	<meta http-equiv="refresh" content="5"/>
 	<link rel="stylesheet" type="text/css" href="css/visualize.css"/>
 	<link rel="stylesheet" type="text/css" href="css/style.css"/>
@@ -31,19 +31,10 @@
 
 		<xsl:call-template name="Alarms"/>
 
-		<div class="systemMap">
-		<div class="header">Component Path Map</div>
-			<table cellspacing="0" class="spurtypes">
-				<xsl:for-each select="SpurTypes/SpurType">
-					<xsl:call-template name="SpurType"/>
-				</xsl:for-each>
-			</table>
-		</div>
-
 		<div class="clear"/>
 
 		<div class="systemMap" style="float:none">
-		<div class="header">Component Path Map (new incomplete graph)</div>
+		<div class="header">Component Path Map</div>
 			<div class="map">
 			</div>
 		</div>
