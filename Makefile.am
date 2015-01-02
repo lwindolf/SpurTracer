@@ -3,7 +3,8 @@ SUBDIRS = data lib
 SUBST = @abs_top_builddir@/setup_tools/substvars.sh
 
 bin_SCRIPTS = \
-	spurtracerd.pl
+	spurtracerd.pl \
+	spt
 
 CLEANFILES = $(bin_SCRIPTS)
 
