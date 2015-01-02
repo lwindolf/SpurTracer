@@ -1,7 +1,7 @@
 AC_INIT([spurtracer],[0.8],[lars.lindner@gmail.com])
 AC_PREREQ([2.59])
 AC_CANONICAL_HOST
-AM_INIT_AUTOMAKE(1.9)
+AM_INIT_AUTOMAKE([1.9 foreign])
 
 AC_PATH_PROG(PERL, perl, no)
 AC_PATH_PROG(SED, sed, no)
