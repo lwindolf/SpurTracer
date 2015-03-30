@@ -23,10 +23,6 @@ Features
 - Simple Nagios Integration
 
 
-A demo is running here: http://lzone.de/spurtracer-demo/
-
-
-
 2. License
 ==========
 
